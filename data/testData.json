@@ -1,0 +1,8 @@
+{
+  "searchQuery": "John Doe",
+  "registrationData": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "johndoe@example.com"
+  }
+}

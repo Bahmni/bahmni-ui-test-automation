@@ -1,0 +1,15 @@
+export default {
+  semi: true,
+  singleQuote: true,
+  trailingComma: 'all',
+  printWidth: 80,
+  tabWidth: 2,
+  useTabs: false,
+  bracketSpacing: true,
+  bracketSameLine: false,
+  arrowParens: 'always',
+  proseWrap: 'preserve',
+  htmlWhitespaceSensitivity: 'strict',
+  singleAttributePerLine: false,
+  plugins: ['prettier-plugin-organize-imports'],
+};

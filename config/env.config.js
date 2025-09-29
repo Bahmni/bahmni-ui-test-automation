@@ -1,4 +1,3 @@
-
 module.exports = {
   dev: {
     baseURL: 'https://bahnew.gdobahmni.click/',

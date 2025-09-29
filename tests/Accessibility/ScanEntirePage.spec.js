@@ -1,17 +1,21 @@
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default; // 1
 
-test.describe('homepage', () => { // 2
-  test('should not have any automatically detectable accessibility issues', async ({ page }) => {
-
-    await page.goto('https://bahnew.gdobahmni.click/');  //3
+test.describe('homepage', () => {
+  // 2
+  test('should not have any automatically detectable accessibility issues', async ({
+    page,
+  }) => {
+    await page.goto('https://bahnew.gdobahmni.click/'); //3
     //maximize the browser window
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.getByRole('link', { name: 'Clinical Service' }).click();
     await page.getByRole('textbox', { name: 'Username *' }).click();
     await page.getByRole('textbox', { name: 'Username *' }).fill('superman');
     await page.getByRole('textbox', { name: 'Username *' }).press('Tab');
-    await page.getByRole('textbox', { name: 'Password * Enter OTP *' }).fill('Admin123');
+    await page
+      .getByRole('textbox', { name: 'Password * Enter OTP *' })
+      .fill('Admin123');
     await page.getByRole('button', { name: 'Login' }).click();
     await page.getByLabel('Location *').selectOption('Emergency Ward');
     await page.getByRole('button', { name: 'Continue' }).click();
@@ -21,16 +25,16 @@ test.describe('homepage', () => { // 2
     // await page.getByRole('img').click();
 
     await page.click('//li[@class="tab-item"][1]/a');
-    await page.click('//li[@class="active-patient"][1]'); 
+    await page.click('//li[@class="active-patient"][1]');
 
     await page.locator('//div[@class="layout--QBvp5"]').waitFor();
     //Scanning an entire page
     //const accessibilityScanResults = await new AxeBuilder({ page }).include('.layout--QBvp5').analyze(); // 4
     const accessibilityScanResults = await new AxeBuilder({ page }).analyze(); // 4
-    console.log("Violation>>>>>>>>" +accessibilityScanResults.violations);
+    console.log('Violation>>>>>>>>' + accessibilityScanResults.violations);
 
-    const size=accessibilityScanResults.violations.length;
-console.log("Size of the violation array is: " + size);
+    const size = accessibilityScanResults.violations.length;
+    console.log('Size of the violation array is: ' + size);
 
     expect(accessibilityScanResults.violations).toEqual([]); // 5
   });

@@ -12,7 +12,7 @@
 10. Verify that the diagnosis is displayed in the patient dashboard under the latest visit.
 */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test('test', async ({ page }) => {
   await page.goto('https://bahnew.gdobahmni.click/');
@@ -20,7 +20,9 @@ test('test', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Username *' }).click();
   await page.getByRole('textbox', { name: 'Username *' }).fill('superman');
   await page.getByRole('textbox', { name: 'Password * Enter OTP *' }).click();
-  await page.getByRole('textbox', { name: 'Password * Enter OTP *' }).fill('Admin123');
+  await page
+    .getByRole('textbox', { name: 'Password * Enter OTP *' })
+    .fill('Admin123');
   await page.getByRole('button', { name: 'Login' }).click();
   await page.getByLabel('Location *').selectOption('Emergency Ward');
   await page.getByRole('button', { name: 'Continue' }).click();
@@ -42,11 +44,13 @@ test('test', async ({ page }) => {
   await page.waitForLoadState('networkidle');
 
   // Step 9: Get all side nav items and print their names
-  const sideNavItems = await page.locator('//span[@class="cds--side-nav__link-text"]').allTextContents();
+  const sideNavItems = await page
+    .locator('//span[@class="cds--side-nav__link-text"]')
+    .allTextContents();
   expect(sideNavItems.length).toBeGreaterThan(0);
 
   console.log('--- Available Patient Dashboard Sections ---');
-  sideNavItems.forEach(item => console.log(item));
+  sideNavItems.forEach((item) => console.log(item));
   console.log('------------------------------------------');
 
   await page.getByRole('button', { name: 'New Consultation' }).click();
@@ -60,17 +64,18 @@ test('test', async ({ page }) => {
   await page.getByText('Congenital Fusion of Testis', { exact: true }).click();
 
   await page.getByRole('combobox', { name: 'Diagnoses Certainty' }).click();
-  await page.locator('//div[starts-with(@id,"diagnoses-certainty-dropdown-")]').getByText('Confirmed').click();
+  await page
+    .locator('//div[starts-with(@id,"diagnoses-certainty-dropdown-")]')
+    .getByText('Confirmed')
+    .click();
   //await page.getByTestId('diagnoses-certainty-dropdown-143951AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA').getByText('Confirmed').click();
 
   // save the consultation
   await page.locator('//button[text()="Done"]').click();
 
-
   // Verify that the consultation was saved successfully
   const successMessage = page.getByText('Consultation saved successfully');
   await expect(successMessage).toBeVisible();
-
 
   // Verify the diagnosis was added in the patient dashboard
 
@@ -81,22 +86,33 @@ test('test', async ({ page }) => {
   await expect(diagnosisSection).toBeVisible();
 
   //Click on the latest visit diagnosis section
-  await page.locator('(//table[starts-with(@aria-label,"Diagnoses -")])[1]').click();
+  await page
+    .locator('(//table[starts-with(@aria-label,"Diagnoses -")])[1]')
+    .click();
 
   //Count the number of diagnoses in the section
-  const diagnosisCount = await page.locator('(//table[starts-with(@aria-label,"Diagnoses -")])[1]/tbody/tr').count();
+  const diagnosisCount = await page
+    .locator('(//table[starts-with(@aria-label,"Diagnoses -")])[1]/tbody/tr')
+    .count();
   console.log(`Number of diagnoses: ${diagnosisCount}`);
 
   //verify the diagnosis is present in the table in each row of the first cell using the above count
   for (let i = 1; i <= diagnosisCount; i++) {
-    const diagnosisText = await page.locator(`(//table[starts-with(@aria-label,"Diagnoses -")])[1]/tbody/tr[${i}]/td[1]`).textContent();
+    const diagnosisText = await page
+      .locator(
+        `(//table[starts-with(@aria-label,"Diagnoses -")])[1]/tbody/tr[${i}]/td[1]`,
+      )
+      .textContent();
     console.log(`Diagnosis in row ${i}: ${diagnosisText}`);
     // Verify the diagnosis text is as expected
     if (diagnosisText.includes('Congenital Fusion of Testis')) {
-      console.log(`Diagnosis found in row ${i}: ${diagnosisText} and verified successfully.`);
+      console.log(
+        `Diagnosis found in row ${i}: ${diagnosisText} and verified successfully.`,
+      );
     } else {
-      console.log(`Diagnosis not found in row ${i}: ${diagnosisText} and no Diagnosis found.`);
+      console.log(
+        `Diagnosis not found in row ${i}: ${diagnosisText} and no Diagnosis found.`,
+      );
     }
   }
-
 });

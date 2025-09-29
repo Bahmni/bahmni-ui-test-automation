@@ -1,9 +1,20 @@
-name: Playwright Tests
+name: bahmni-ui-test-automation
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Playwright project to run'
+        default: 'chrome-qa'
+      username:
+        description: 'Username for login'
+        default: ''
+      password:
+        description: 'Password for login'
+        default: ''
 jobs:
   test:
     timeout-minutes: 60
@@ -13,12 +24,18 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
+
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       run: npx playwright test login.spec.js --project=chromium 
+    - name: Install dependencies
+      run: npm ci && npm install --save-dev eslint prettier eslint-plugin-prettier eslint-config-prettier allure-playwright
+    - name: Run Playwright Tests
+      run: npx playwright test
+      env:
+       USERMAIL: ${{ secrets.UI_USERMAIL }}
+       PASSWORD: ${{ secrets.UI_PASSWORD }}
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:

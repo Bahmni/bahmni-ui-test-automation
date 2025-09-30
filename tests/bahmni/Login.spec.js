@@ -2,7 +2,7 @@ import { expect } from '@playwright/test';
 import { test } from '../../fixtures/authFixtures';
 
 
-test('should view appointment history on dashboard', async ({
+test('View change Location after login', async ({
   authenticatedPage,
 }) => {
   await authenticatedPage.goto(
@@ -15,5 +15,4 @@ test('should view appointment history on dashboard', async ({
   const dropdown = authenticatedPage.locator('#location');
   await dropdown.selectOption('Emergency');
   await authenticatedPage.locator('text="Continue"').click();
-  await authenticatedPage.pause();
 });

@@ -1,7 +1,7 @@
 name: bahmni-ui-test-automation
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master,feature/* ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -27,12 +27,10 @@ jobs:
 
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test login.spec.js --project=chromium 
     - name: Install dependencies
       run: npm ci && npm install --save-dev eslint prettier eslint-plugin-prettier eslint-config-prettier allure-playwright
     - name: Run Playwright Tests
-      run: npx playwright test
+      run: npx playwright test tests/bahmni/Login.spec.js --config=playwright1.config.js --project=chrome-qa
       env:
        USERMAIL: ${{ secrets.UI_USERMAIL }}
        PASSWORD: ${{ secrets.UI_PASSWORD }}

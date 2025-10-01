@@ -1,4 +1,4 @@
-class PatientRegistrationPage {
+export class PatientRegistrationPage {
   constructor(page) {
     this.page = page;
     this.firstNameInput = '#first_name';
@@ -19,4 +19,4 @@ class PatientRegistrationPage {
   }
 }
 
-module.exports = PatientRegistrationPage;
+export default PatientRegistrationPage;

@@ -1,5 +1,4 @@
-
-module.exports = {
+export default {
   dev: {
     baseURL: 'https://bahnew.gdobahmni.click/',
     username: 'dr_neha',

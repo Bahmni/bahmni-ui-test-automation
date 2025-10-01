@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-class LoginPage {
+export class LoginPage {
   constructor(page) {
     this.page = page;
     this.usernameInput = '#username'; // Selector for username input
@@ -18,7 +17,6 @@ class LoginPage {
     await this.page.fill(this.passwordInput, password); // Fill password
     await this.page.click(this.loginButton); // Click login button
   }
-
 }
 
 export default LoginPage;

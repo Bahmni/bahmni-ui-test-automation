@@ -1,9 +1,9 @@
-class DashboardPage {
+export class DashboardPage {
   constructor(page) {
     this.page = page;
     this.dashboardTitle = '.dashboard-title';
-    this.clinical='//a[@id="bahmni.clinical"]';
-    this.continue ='//button[text()="Continue"]';
+    this.clinical = '//a[@id="bahmni.clinical"]';
+    this.continue = '//button[text()="Continue"]';
   }
 
   async getDashboardTitle() {
@@ -11,4 +11,4 @@ class DashboardPage {
   }
 }
 
-module.exports = DashboardPage;
+export default DashboardPage;

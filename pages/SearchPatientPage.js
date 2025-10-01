@@ -1,4 +1,4 @@
-class SearchPatientPage {
+export class SearchPatientPage {
   constructor(page) {
     this.page = page;
     this.searchQueryInput = '#search_query';
@@ -20,4 +20,4 @@ class SearchPatientPage {
   }
 }
 
-module.exports = SearchPatientPage;
+export default SearchPatientPage;

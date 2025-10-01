@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+import { expect, test } from '@playwright/test';
 
 test.describe('Bahmni Clinical Application E2E Tests', () => {
   // This block runs before each test, handling the initial login steps.
@@ -16,7 +16,9 @@ test.describe('Bahmni Clinical Application E2E Tests', () => {
     await page.waitForLoadState('networkidle');
   });
 
-  test('Full E2E flow to print patient navigation sections @e2e', async ({ page }) => {
+  test('Full E2E flow to print patient navigation sections @e2e', async ({
+    page,
+  }) => {
     // Step 5 & 6: Click on Clinical
     await page.getByRole('link', { name: 'Clinical' }).click();
 
@@ -29,20 +31,17 @@ test.describe('Bahmni Clinical Application E2E Tests', () => {
     await page.waitForLoadState('networkidle');
 
     // Step 9: Get all side nav items and print their names
-    const sideNavItems = await page.locator('//span[@class="cds--side-nav__link-text"]').allTextContents();
+    const sideNavItems = await page
+      .locator('//span[@class="cds--side-nav__link-text"]')
+      .allTextContents();
     expect(sideNavItems.length).toBeGreaterThan(0);
-    
+
     console.log('--- Available Patient Dashboard Sections ---');
-    sideNavItems.forEach(item => console.log(item));
+    sideNavItems.forEach((item) => console.log(item));
     console.log('------------------------------------------');
 
-
     // // Step 10: Click on 'New Consultation'
-    // await page.getByRole('link', { name: 'New Consultation' }).click(); 
+    // await page.getByRole('link', { name: 'New Consultation' }).click();
     // await page.waitForLoadState('networkidle');
-    
-    
-
-
   });
 });

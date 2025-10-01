@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+import { expect, test } from '@playwright/test';
 
 test.describe('Bahmni Clinical Application E2E Tests', () => {
   // This block runs before each test, handling the initial login steps.
@@ -22,10 +22,12 @@ test.describe('Bahmni Clinical Application E2E Tests', () => {
     await expect(clinicalLink).toBeVisible();
   });
 
-  test('Navigate to Clinical module and verify patient list @sanity', async ({ page }) => {
+  test('Navigate to Clinical module and verify patient list @sanity', async ({
+    page,
+  }) => {
     // Step 5 & 6: Click on Clinical and navigate to patient home
     await page.getByRole('link', { name: 'Clinical' }).click();
-    
+
     // Step 7: Verify the 'New - Active' patient tab is visible
     await page.waitForLoadState('networkidle');
     const newActiveTab = page.locator('//li[@class="tab-item"][1]/a');
@@ -33,7 +35,9 @@ test.describe('Bahmni Clinical Application E2E Tests', () => {
     await expect(newActiveTab).toContainText('New - Active');
   });
 
-  test('Select an active patient and verify patient dashboard @e2e', async ({ page }) => {
+  test('Select an active patient and verify patient dashboard @e2e', async ({
+    page,
+  }) => {
     // Step 5 & 6: Click on Clinical
     await page.getByRole('link', { name: 'Clinical' }).click();
 
@@ -48,5 +52,4 @@ test.describe('Bahmni Clinical Application E2E Tests', () => {
     // const layout = page.locator('//div[@class="layout--QBvp5"]');
     // await expect(layout).toBeVisible();
   });
-
 });

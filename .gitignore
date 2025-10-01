@@ -5,3 +5,10 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/videos/
+storageState*.json
+screenshots/
+allure-results/
+allure-report/
+
+

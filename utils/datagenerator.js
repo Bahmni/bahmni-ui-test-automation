@@ -1,7 +1,44 @@
-const { generateRandomString, formatDate } = require('./helpers.js'); // Assuming helpers.js is in the same directory
+import { formatDate, generateRandomString } from './helpers.js'; // Assuming helpers.js is in the same directory
 
-const firstNames = ['Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna', 'Ishaan', 'Saanvi', 'Aanya', 'Aadhya', 'Ananya', 'Pari', 'Diya', 'Anika', 'Navya', 'Riya', 'Myra'];
-const lastNames = ['Sharma', 'Verma', 'Gupta', 'Singh', 'Kumar', 'Patel', 'Reddy', 'Das', 'Chopra', 'Mehta', 'Joshi', 'Nair', 'Iyer', 'Menon', 'Rao'];
+const firstNames = [
+  'Aarav',
+  'Vivaan',
+  'Aditya',
+  'Vihaan',
+  'Arjun',
+  'Sai',
+  'Reyansh',
+  'Ayaan',
+  'Krishna',
+  'Ishaan',
+  'Saanvi',
+  'Aanya',
+  'Aadhya',
+  'Ananya',
+  'Pari',
+  'Diya',
+  'Anika',
+  'Navya',
+  'Riya',
+  'Myra',
+];
+const lastNames = [
+  'Sharma',
+  'Verma',
+  'Gupta',
+  'Singh',
+  'Kumar',
+  'Patel',
+  'Reddy',
+  'Das',
+  'Chopra',
+  'Mehta',
+  'Joshi',
+  'Nair',
+  'Iyer',
+  'Menon',
+  'Rao',
+];
 const genders = ['Male', 'Female', 'Other'];
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -45,7 +82,9 @@ function getRandomDateOfBirth() {
   const today = new Date();
   const minAge = 18;
   const maxAge = 80;
-  const birthYear = today.getFullYear() - (Math.floor(Math.random() * (maxAge - minAge + 1)) + minAge);
+  const birthYear =
+    today.getFullYear() -
+    (Math.floor(Math.random() * (maxAge - minAge + 1)) + minAge);
   const birthMonth = Math.floor(Math.random() * 12); // 0-11
   const birthDay = Math.floor(Math.random() * 28) + 1; // 1-28 to keep it simple
   return new Date(birthYear, birthMonth, birthDay);
@@ -83,12 +122,12 @@ function generateRandomPatientData() {
   };
 }
 
-module.exports = {
-  getRandomFirstName,
-  getRandomLastName,
-  getRandomGender,
-  getRandomBloodGroup,
-  getRandomDateOfBirth,
+export {
   generatePatientId,
   generateRandomPatientData,
+  getRandomBloodGroup,
+  getRandomDateOfBirth,
+  getRandomFirstName,
+  getRandomGender,
+  getRandomLastName,
 };

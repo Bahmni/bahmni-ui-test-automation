@@ -1,6 +1,6 @@
-const { defineConfig } = require('@playwright/test');
+import { defineConfig } from '@playwright/test';
 
-module.exports = defineConfig({
+export default defineConfig({
   use: {
     baseURL: 'https://example.com', // Default base URL for tests
     browserName: 'chromium', // Browser to use

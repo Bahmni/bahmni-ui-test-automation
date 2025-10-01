@@ -37,8 +37,7 @@ export default defineConfig({
       },
 
       metadata: {
-        env: 'dev', 
-        
+        env: 'dev',
       },
     },
     {
@@ -54,7 +53,6 @@ export default defineConfig({
 
       metadata: {
         env: 'qa',
-        
       },
     },
   ],

@@ -1,6 +1,7 @@
 // eslint.config.js
 import js from '@eslint/js';
 import pluginPrettier from 'eslint-plugin-prettier';
+import globals from 'globals';
 
 export default [
   // Base config for all JS/TS files
@@ -12,15 +13,16 @@ export default [
       'storageState*.json',
       '.git/**',
       'coverage/**',
+      'allure-report/**',
+      'allure-results/**',
     ],
+
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
-        console: 'readonly',
-        process: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
+        ...globals.node, // Node.js runtime globals (setTimeout, process, __dirname, etc.)
+        ...globals.browser, // Browser runtime globals (document, window, etc.)
         expect: 'readonly', // Playwright expect
       },
     },
@@ -36,6 +38,7 @@ export default [
       'no-debugger': 'error',
     },
   },
+
   // Specific config for test files
   {
     files: ['tests/**/*.{js,ts}'],

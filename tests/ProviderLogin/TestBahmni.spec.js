@@ -6,7 +6,7 @@ import DashboardPage from '../../pages/DashboardPage.js';
 import LoginPage from '../../pages/LoginPage.js'; // Import LoginPage page object
 const environment = 'dev'; // Change to 'uat' for production
 
-const { baseURL, username, password } = envConfig[environment];
+const { baseURL, username } = envConfig[environment];
 
 test('Provider login test using Page Object Model', async ({ page }) => {
   const loginPage = new LoginPage(page); // Initialize the LoginPage object

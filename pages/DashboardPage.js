@@ -1,4 +1,4 @@
-class DashboardPage {
+export class DashboardPage {
   constructor(page) {
     this.page = page;
     this.dashboardTitle = '.dashboard-title';
@@ -11,4 +11,4 @@ class DashboardPage {
   }
 }
 
-module.exports = DashboardPage;
+export default DashboardPage;

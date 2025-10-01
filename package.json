@@ -3,7 +3,11 @@
   "name": "bahmni-ui-test-automation",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+  "lint": "eslint . --ext .js,.ts",
+  "lint:fix": "eslint . --ext .js,.ts --fix",
+  "format": "prettier --write ."
+},
   "keywords": [],
   "author": "Bahmni",
   "license": "MIT",

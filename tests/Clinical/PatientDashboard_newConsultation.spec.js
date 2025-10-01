@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+import { expect, test } from '@playwright/test';
 
 test.describe('Bahmni Clinical Application E2E Tests', () => {
   // This block runs before each test, handling the initial login steps.

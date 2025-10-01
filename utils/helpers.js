@@ -52,9 +52,4 @@ async function scrollElementIntoView(page, selector) {
   }, selector);
 }
 
-module.exports = {
-  generateRandomString,
-  formatDate,
-  delay,
-  scrollElementIntoView,
-};
+export { delay, formatDate, generateRandomString, scrollElementIntoView };

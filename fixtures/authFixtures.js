@@ -1,6 +1,5 @@
 import { test as baseTest } from '@playwright/test';
 import dotenv from 'dotenv';
-import fs from 'fs';
 import path from 'path';
 import POManager from '../pages/bahmni/POManager.js';
 
@@ -16,7 +15,6 @@ export const test = baseTest.extend({
     if (!username || !password) {
       throw new Error('USERNAME or PASSWORD environment variable not set!');
     }
-     
 
     if (!process.env.BASE_URL) {
       throw new Error(`BASE_URL is missing in ${envFile}`);

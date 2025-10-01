@@ -1,5 +1,5 @@
-const { test, expect } = require('@playwright/test');
-const AxeBuilder = require('@axe-core/playwright').default; // 1
+import AxeBuilder from '@axe-core/playwright'; // 1
+import { expect, test } from '@playwright/test';
 
 test.describe('homepage', () => {
   // 2

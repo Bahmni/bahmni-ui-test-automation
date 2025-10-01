@@ -1,7 +1,7 @@
 import { test as baseTest } from '@playwright/test';
 
 const test = baseTest.extend({
-  customData: async ({}, use) => {
+  customData: async (_, use) => {
     const data = { username: 'superman', password: 'Admin@123' };
     await use(data);
   },

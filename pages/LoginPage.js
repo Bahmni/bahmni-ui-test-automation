@@ -1,4 +1,4 @@
-class LoginPage {
+export class LoginPage {
   constructor(page) {
     this.page = page;
     this.usernameInput = '#username'; // Selector for username input

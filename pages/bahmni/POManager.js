@@ -9,8 +9,6 @@ export class POManager {
   getLoginPage() {
     return this.loginPage;
   }
-
- 
 }
 
 export default POManager;

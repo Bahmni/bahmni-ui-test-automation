@@ -1,4 +1,4 @@
-const { generateRandomString, formatDate } = require('./helpers.js'); // Assuming helpers.js is in the same directory
+import { formatDate, generateRandomString } from './helpers.js'; // Assuming helpers.js is in the same directory
 
 const firstNames = [
   'Aarav',
@@ -122,12 +122,12 @@ function generateRandomPatientData() {
   };
 }
 
-module.exports = {
-  getRandomFirstName,
-  getRandomLastName,
-  getRandomGender,
-  getRandomBloodGroup,
-  getRandomDateOfBirth,
+export {
   generatePatientId,
   generateRandomPatientData,
+  getRandomBloodGroup,
+  getRandomDateOfBirth,
+  getRandomFirstName,
+  getRandomGender,
+  getRandomLastName,
 };

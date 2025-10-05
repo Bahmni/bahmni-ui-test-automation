@@ -28,7 +28,7 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Install dependencies
-      run: npm ci && npm install --save-dev eslint prettier eslint-plugin-prettier eslint-config-prettier allure-playwright
+      run: npm ci && npm install eslint prettier allure-playwright
     - name: Run Playwright Tests
       run: npx playwright test tests/bahmni/Login.spec.js --config=playwright1.config.js --project=chrome-qa
       env:

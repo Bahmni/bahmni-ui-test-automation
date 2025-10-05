@@ -1,0 +1,12 @@
+trigger: none   
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - checkout: self
+    clean: true
+
+  - script: echo "✅ Code pulled successfully from GitHub repository."
+    displayName: "Pull latest code"

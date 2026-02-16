@@ -1,30 +1,49 @@
 {
-  "type": "module",
-  "name": "bahmni-ui-test-automation",
+  "name": "bahmni-ui-automation",
   "version": "1.0.0",
+  "description": "Automated test suite for Bahmni 3.0 UI - functional, E2E, and visual regression testing using Playwright",
   "main": "index.js",
   "scripts": {
-  "lint": "eslint . --ext .js,.ts",
-  "lint:fix": "eslint . --ext .js,.ts --fix",
-  "format": "prettier --write ."
-},
+    "test": "NODE_ENV=dev npx playwright test",
+    "test:dev": "NODE_ENV=dev npx playwright test",
+    "test:local": "NODE_EXTRA_CA_CERTS=/tmp/bahmni-cert.pem NODE_ENV=local npx playwright test",
+    "test:headed": "NODE_ENV=dev npx playwright test --headed",
+    "test:headed:local": "NODE_EXTRA_CA_CERTS=/tmp/bahmni-cert.pem NODE_ENV=local npx playwright test --headed",
+    "test:ui": "NODE_ENV=dev npx playwright test --ui",
+    "test:debug": "NODE_ENV=dev npx playwright test --debug",
+    "test:chromium": "NODE_ENV=dev npx playwright test --project=chromium",
+    "test:firefox": "NODE_ENV=dev npx playwright test --project=firefox",
+    "report": "npx playwright show-report reports/html-report",
+    "allure:generate": "allure generate reports/allure-results --clean -o reports/allure-report",
+    "allure:open": "allure open reports/allure-report",
+    "allure:serve": "allure serve reports/allure-results",
+    "allure:clean": "rm -rf reports/allure-results reports/allure-report",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\""
+  },
   "keywords": [],
-  "author": "Bahmni",
-  "license": "MIT",
-  "description": "",
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
   "devDependencies": {
-    "@axe-core/playwright": "^4.9.1",
-    "@eslint/js": "^9.36.0",
-    "@playwright/test": "^1.52.0",
-    "@types/node": "^24.0.0",
-    "allure-playwright": "^3.4.1",
-    "dotenv": "^17.2.3",
+    "@faker-js/faker": "^10.2.0",
+    "@percy/cli": "^1.31.8",
+    "@percy/playwright": "^1.0.10",
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "allure-commandline": "^2.36.0",
+    "allure-playwright": "^3.4.5",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
-    "prettier-plugin-organize-imports": "^4.3.0"
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "csv-parser": "^3.2.0",
-    "js-yaml": "^4.1.0"
+    "dotenv": "^17.2.3"
   }
 }

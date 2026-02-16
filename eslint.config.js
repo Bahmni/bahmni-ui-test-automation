@@ -1,49 +1,45 @@
-// eslint.config.js
-import js from '@eslint/js';
-import pluginPrettier from 'eslint-plugin-prettier';
-import globals from 'globals';
+const typescriptPlugin = require('@typescript-eslint/eslint-plugin');
+const typescriptParser = require('@typescript-eslint/parser');
+const prettierConfig = require('eslint-config-prettier');
+const prettierPlugin = require('eslint-plugin-prettier');
 
-export default [
-  // Base config for all JS/TS files
+module.exports = [
   {
-    files: ['**/*.{js,ts}'],
-    ignores: [
-      'node_modules/**',
-      'playwright-report/**',
-      'storageState*.json',
-      '.git/**',
-      'coverage/**',
-      'allure-report/**',
-      'allure-results/**',
-    ],
-
+    files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        project: './tsconfig.json',
+      },
       globals: {
-        ...globals.node, // Node.js runtime globals (setTimeout, process, __dirname, etc.)
-        ...globals.browser, // Browser runtime globals (document, window, etc.)
-        expect: 'readonly', // Playwright expect
+        node: true,
+        es2022: true,
       },
     },
-
     plugins: {
-      prettier: pluginPrettier,
+      '@typescript-eslint': typescriptPlugin,
+      prettier: prettierPlugin,
     },
     rules: {
-      ...js.configs.recommended.rules,
+      ...typescriptPlugin.configs.recommended.rules,
+      ...prettierConfig.rules,
       'prettier/prettier': 'error',
-      'no-console': 'warn',
-      'no-unused-vars': 'warn',
-      'no-debugger': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+      'no-console': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'warn',
     },
   },
-
-  // Specific config for test files
   {
-    files: ['tests/**/*.{js,ts}'],
-    rules: {
-      'no-console': 'off', // allow console.log in test code
-    },
+    ignores: ['node_modules/', 'test-results/', 'playwright-report/', 'reports/', 'dist/'],
   },
 ];

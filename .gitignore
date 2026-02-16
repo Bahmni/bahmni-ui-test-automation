@@ -11,4 +11,23 @@ screenshots/
 allure-results/
 allure-report/
 
+# Environment files with credentials
+.env
+.env.local
+.env.dev
+.env.qa
+.env.*.local
+# Keep the example file
+!.env.example
 
+# Claude Code
+.claude
+.playwright-mcp
+
+# IDE
+.vscode/
+
+# OS and generated files
+.DS_Store
+reports/
+test-data/.DS_Store

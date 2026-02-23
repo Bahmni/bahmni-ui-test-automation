@@ -141,3 +141,36 @@ export const medicationFaker = {
     isPrn: false,
   }),
 };
+
+/**
+ * A pair of different dosage forms of the same drug,
+ * used to verify the duplicate active medication error.
+ */
+export interface DuplicateMedicationPair {
+  drug: string;
+  firstDosage: string;
+  secondDosage: string;
+}
+
+export const DUPLICATE_MEDICATION_PAIRS: DuplicateMedicationPair[] = [
+  {
+    drug: 'Prednisolone',
+    firstDosage: 'Prednisolone 20 mg (Tablet)- Prednisolone',
+    secondDosage: 'Prednisolone 1% (Drops)- Prednisolone',
+  },
+  {
+    drug: 'Paracetamol',
+    firstDosage: 'Paracetamol 500 mg (Tablet)- Acetaminophen',
+    secondDosage: 'Paracetamol 650 mg (Tablet)- Acetaminophen',
+  },
+  {
+    drug: 'Artesunate',
+    firstDosage: 'Artesunate 25 mg (Tablet)- Artesunate',
+    secondDosage: 'Artesunate 60 mg (Powder for injection)- Artesunate',
+  },
+  {
+    drug: 'Acetylsalicylic acid',
+    firstDosage: 'Acetylsalicylic acid 100 mg (Tablet)- Aspirin',
+    secondDosage: 'Acetylsalicylic Acid 300 mg tablet (Tablet)- Aspirin',
+  },
+];

@@ -380,9 +380,16 @@ export class ClinicalPage {
     // Navigate to Medications section
     await this.navigateToSection('Medications');
 
-    // Verify the medication name appears in the medications table
+    // The table displays only the drug name and strength, stripping the dosage form "(Tablet)"
+    // and generic name suffix "- Prednisolone" from the full catalog name
+    const displayName = medication.name
+      .split('- ')[0]
+      .trim()
+      .replace(/\s*\([^)]*\)\s*$/, '')
+      .trim();
+
     const medicationsTable = this.page.locator(this.selectors.medicationsTable);
-    await expect(medicationsTable.locator(`text=${medication.name}`)).toBeVisible({ timeout: 5000 });
+    await expect(medicationsTable.locator(`text=${displayName}`)).toBeVisible({ timeout: 5000 });
   }
 
   /**

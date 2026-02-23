@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 import { MedicationData } from '../../test-data/medicationData';
 
 /**
@@ -7,6 +7,10 @@ import { MedicationData } from '../../test-data/medicationData';
  */
 export class NewConsultationPage {
   private readonly page: Page;
+
+  // Error message selectors
+  private readonly DUPLICATE_DRUG_ERROR =
+    'One or more drugs you are trying to order are already active. Please change the start date of the conflicting drug or remove them from the new prescription.';
 
   // Locator selectors
   private readonly selectors = {
@@ -186,15 +190,25 @@ export class NewConsultationPage {
   }
 
   /**
+   * Search for a medication by drug name and select the specified option.
+   * Uses only the base drug name (text before dosage/form) for the search input.
+   * @param medicationName - Full medication name to select from the dropdown
+   */
+  async searchAndSelectMedication(medicationName: string) {
+    const searchTerm = medicationName.split(/\s+(?=\d|\()/)[0];
+    await this.page.locator(this.selectors.medicationsSearchInput).fill(searchTerm);
+    const option = this.page.locator(`li[role="option"]:has-text("${medicationName}")`).first();
+    await option.waitFor({ state: 'visible', timeout: 5000 });
+    await option.click();
+  }
+
+  /**
    * Add a medication with complete prescription details
    * @param medication - Medication data object with all required fields
    */
   async addMedication(medication: MedicationData) {
-    // Search and select medication
-    await this.page.locator(this.selectors.medicationsSearchInput).fill(medication.name);
-    const option = this.page.locator(`li[role="option"]:has-text("${medication.name}")`).first();
-    await option.waitFor({ state: 'visible', timeout: 5000 });
-    await option.click();
+    // Search and select medication using only the base drug name
+    await this.searchAndSelectMedication(medication.name);
 
     // Fill dosage
     const dosageInput = this.page.getByRole('spinbutton', { name: 'Dosage' });
@@ -347,5 +361,15 @@ export class NewConsultationPage {
       state: 'visible',
       timeout: 10000,
     });
+  }
+
+  /**
+   * Verify duplicate medication error notification is displayed
+   * This error appears when trying to prescribe a medication that is already active
+   */
+  async verifyDuplicateMedicationError() {
+    const notification = this.page.locator('.cds--inline-notification');
+    await notification.waitFor({ state: 'visible', timeout: 5000 });
+    await expect(notification).toContainText(this.DUPLICATE_DRUG_ERROR);
   }
 }

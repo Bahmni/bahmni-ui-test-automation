@@ -406,6 +406,48 @@ export class ClinicalPage {
   }
 
   /**
+   * Verify pulse is displayed in Basic Details > Observations section
+   * @param pulse - Expected pulse value (e.g. '72')
+   */
+  async verifyObservationsSection(pulse: string) {
+    await this.navigateToSection('Basic Details');
+    const observationsSection = this.page
+      .locator('article')
+      .filter({ has: this.page.locator('p:has-text("Basic Details")') })
+      .first();
+    await expect(observationsSection.locator(`text=${pulse} beats/min`).first()).toBeVisible({ timeout: 5000 });
+  }
+
+  /**
+   * Verify vitals are displayed in the Vitals Flow Sheet table
+   * @param vitals - Expected vital signs data
+   */
+  async verifyVitalsFlowSheet(vitals: {
+    pulse?: string;
+    respiratoryRate?: string;
+    temperature?: string;
+    systolicBP?: string;
+    diastolicBP?: string;
+  }) {
+    await this.navigateToSection('Vitals Flow Sheet');
+    const table = this.page.locator(this.selectors.vitalsFlowSheetTable);
+    await table.waitFor({ state: 'visible', timeout: 5000 });
+
+    if (vitals.pulse) {
+      await expect(table.locator(`text=${vitals.pulse}`).first()).toBeVisible();
+    }
+    if (vitals.respiratoryRate) {
+      await expect(table.locator(`text=${vitals.respiratoryRate}`).first()).toBeVisible();
+    }
+    if (vitals.temperature) {
+      await expect(table.locator(`text=${vitals.temperature}`).first()).toBeVisible();
+    }
+    if (vitals.systolicBP && vitals.diastolicBP) {
+      await expect(table.locator(`text=${vitals.systolicBP}.0/${vitals.diastolicBP}.0`).first()).toBeVisible();
+    }
+  }
+
+  /**
    * Verify observation form is saved and open it in modal
    * @param formName - Name of the form to verify and open
    */

@@ -5,6 +5,7 @@ import { diagnosisFaker } from '../../test-data/diagnosisData';
 import { medicationFaker } from '../../test-data/medicationData';
 import { vaccinationFaker } from '../../test-data/vaccinationData';
 import { admissionLetterFaker } from '../../test-data/admissionLetterData';
+import { vitalsFaker } from '../../test-data/vitalsData';
 
 test.describe.serial('Clinical Consultation Tests', () => {
   test('Add allergy with severity and reaction in consultation', async ({ clinicalSetup }) => {
@@ -93,6 +94,25 @@ test.describe.serial('Clinical Consultation Tests', () => {
     await bahmni.clinicalPage.verifyVaccinationDisplayed(vaccination);
   });
 
+  test('Add vitals observation form in consultation', async ({ clinicalSetup }) => {
+    test.setTimeout(60000);
+    const { bahmni, page } = clinicalSetup;
+    const vitalsData = vitalsFaker.normalVitals();
+
+    await expect(page).toHaveURL(/.*clinical\/.*/);
+    await bahmni.clinicalPage.clickNewConsultation();
+    await bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
+    await bahmni.newConsultationPage.openVitalsForm();
+    await bahmni.vitalsForm.waitForFormToLoad();
+    await bahmni.vitalsForm.fillAndSaveVitals(vitalsData);
+    await bahmni.newConsultationPage.saveConsultation();
+    await bahmni.clinicalPage.verifyObservationsSection(vitalsData.pulse);
+    await bahmni.clinicalPage.verifyVitalsFlowSheet(vitalsData);
+    await bahmni.clinicalPage.verifyAndOpenObservationForm('Vitals');
+    await bahmni.vitalsForm.verifyVitalsData(vitalsData);
+    await bahmni.vitalsForm.closeModal();
+  });
+
   test('Add admission letter observation form in consultation', async ({ clinicalSetup }) => {
     test.setTimeout(60000);
     const { bahmni, page } = clinicalSetup;
@@ -105,9 +125,6 @@ test.describe.serial('Clinical Consultation Tests', () => {
     await bahmni.admissionLetterForm.waitForFormToLoad();
     await bahmni.admissionLetterForm.fillAndSaveAdmissionLetter(admissionLetterData);
     await bahmni.newConsultationPage.saveConsultation();
-    // TODO: Remove this refresh once the bug is fixed - forms don't display without refresh
-    await page.reload();
-    await page.waitForLoadState('networkidle');
     await bahmni.clinicalPage.verifyAndOpenObservationForm('Admission Letter');
     await bahmni.admissionLetterForm.verifyAdmissionLetterData(admissionLetterData);
     await bahmni.admissionLetterForm.closeModal();

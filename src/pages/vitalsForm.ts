@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 
 /**
  * VitalsForm class for Bahmni Vitals observation form
@@ -17,20 +17,37 @@ export class VitalsForm {
     FOWLERS: "Fowler's position",
   } as const;
 
+  // Notes button indices (0-based, order in the form):
+  // 0 - Pulse, 1 - Oxygen Saturation, 2 - Respiratory Rate,
+  // 3 - Temperature, 4 - Systolic BP, 5 - Diastolic BP, 6 - Body position
+  private readonly NOTES_FIELD_INDEX = {
+    PULSE: 0,
+    TEMPERATURE: 3,
+    SYSTOLIC_BP: 4,
+    DIASTOLIC_BP: 5,
+  } as const;
+
   // Locator selectors
   private readonly selectors = {
     // Form heading
     formHeading: 'h2:has-text("Vitals")',
 
-    // Vital signs inputs with normal ranges
-    pulseInput: 'spinbutton[aria-label="Pulse (beats/min)"]', // Normal: 60-100
-    oxygenSaturationInput: 'spinbutton[aria-label="Arterial blood oxygen saturation (pulse oximeter) (%)"]', // Normal: >95
-    respiratoryRateInput: 'spinbutton[aria-label="Respiratory rate"]', // Normal: 12-18
-    temperatureInput: 'spinbutton[aria-label="Temperature (F)"]', // Normal: 95-99.86
+    // Vital signs accessible names (used with getByRole)
+    pulseLabel: 'Pulse (beats/min)', // Normal: 60-100
+    oxygenSaturationLabel: 'Arterial blood oxygen saturation (pulse oximeter) (%)', // Normal: >95
+    respiratoryRateLabel: 'Respiratory rate', // Normal: 12-18
+    temperatureLabel: 'Temperature (F)', // Normal: 95-99.86
 
-    // Blood pressure
-    systolicBPInput: 'spinbutton[aria-label="Systolic blood pressure (mmHg)"]', // Normal: 100-140
-    diastolicBPInput: 'spinbutton[aria-label="Diastolic blood pressure (mmHg)"]', // Normal: 60-90
+    // Blood pressure accessible names (used with getByRole)
+    systolicBPLabel: 'Systolic blood pressure (mmHg)', // Normal: 100-140
+    diastolicBPLabel: 'Diastolic blood pressure (mmHg)', // Normal: 60-90
+
+    // Notes toggle button (same class for all fields; .active when open)
+    notesToggleButton: 'button.form-builder-comment-button-toggle',
+    notesToggleButtonActive: 'button.form-builder-comment-button-toggle.active',
+
+    // Notes textarea (appears when notes icon is clicked)
+    notesTextarea: 'textarea[placeholder="Notes"]',
 
     // Body position buttons
     bodyPositionSitting: 'button:has-text("sitting")',
@@ -65,7 +82,7 @@ export class VitalsForm {
    * @param pulse - Pulse value (normal range: 60-100)
    */
   async fillPulse(pulse: string) {
-    await this.page.locator(this.selectors.pulseInput).fill(pulse);
+    await this.page.getByRole('spinbutton', { name: this.selectors.pulseLabel }).fill(pulse);
   }
 
   /**
@@ -73,7 +90,7 @@ export class VitalsForm {
    * @param oxygenSaturation - Oxygen saturation value (normal: >95)
    */
   async fillOxygenSaturation(oxygenSaturation: string) {
-    await this.page.locator(this.selectors.oxygenSaturationInput).fill(oxygenSaturation);
+    await this.page.getByRole('spinbutton', { name: this.selectors.oxygenSaturationLabel }).fill(oxygenSaturation);
   }
 
   /**
@@ -81,7 +98,9 @@ export class VitalsForm {
    * @param respiratoryRate - Respiratory rate value (normal range: 12-18)
    */
   async fillRespiratoryRate(respiratoryRate: string) {
-    await this.page.locator(this.selectors.respiratoryRateInput).fill(respiratoryRate);
+    await this.page
+      .getByRole('spinbutton', { name: this.selectors.respiratoryRateLabel, exact: true })
+      .fill(respiratoryRate);
   }
 
   /**
@@ -89,7 +108,7 @@ export class VitalsForm {
    * @param temperature - Temperature value (normal range: 95-99.86)
    */
   async fillTemperature(temperature: string) {
-    await this.page.locator(this.selectors.temperatureInput).fill(temperature);
+    await this.page.getByRole('spinbutton', { name: this.selectors.temperatureLabel }).fill(temperature);
   }
 
   /**
@@ -97,7 +116,7 @@ export class VitalsForm {
    * @param systolic - Systolic BP value (normal range: 100-140)
    */
   async fillSystolicBP(systolic: string) {
-    await this.page.locator(this.selectors.systolicBPInput).fill(systolic);
+    await this.page.getByRole('spinbutton', { name: this.selectors.systolicBPLabel }).fill(systolic);
   }
 
   /**
@@ -105,7 +124,7 @@ export class VitalsForm {
    * @param diastolic - Diastolic BP value (normal range: 60-90)
    */
   async fillDiastolicBP(diastolic: string) {
-    await this.page.locator(this.selectors.diastolicBPInput).fill(diastolic);
+    await this.page.getByRole('spinbutton', { name: this.selectors.diastolicBPLabel }).fill(diastolic);
   }
 
   /**
@@ -115,6 +134,50 @@ export class VitalsForm {
   async selectBodyPosition(position: string) {
     const positionSelector = `button:has-text("${position}")`;
     await this.page.locator(positionSelector).click();
+  }
+
+  /**
+   * Add a note to a field by clicking its notes icon, filling the textarea,
+   * verifying the note is displayed, then closing the textarea.
+   * @param fieldIndex - 0-based index of the notes toggle button in the form
+   * @param note - Note text to enter
+   */
+  async addNote(fieldIndex: number, note: string) {
+    const notesButton = this.page.locator(this.selectors.notesToggleButton).nth(fieldIndex);
+
+    // Click to open the notes textarea
+    await notesButton.click();
+
+    // Wait for the textarea to appear and fill it
+    const textarea = this.page.locator(this.selectors.notesTextarea).first();
+    await textarea.waitFor({ state: 'visible', timeout: 5000 });
+    await textarea.fill(note);
+
+    // Verify the note is displayed in the open form
+    await expect(textarea).toHaveValue(note);
+
+    // Click the active notes button to close the textarea
+    await this.page.locator(this.selectors.notesToggleButtonActive).click();
+    await textarea.waitFor({ state: 'hidden', timeout: 5000 });
+  }
+
+  /**
+   * Fill notes for pulse, temperature, systolic BP, and diastolic BP fields
+   * @param notes - Object containing note text for each field
+   */
+  async fillNotes(notes: { pulse?: string; temperature?: string; systolicBP?: string; diastolicBP?: string }) {
+    if (notes.pulse) {
+      await this.addNote(this.NOTES_FIELD_INDEX.PULSE, notes.pulse);
+    }
+    if (notes.temperature) {
+      await this.addNote(this.NOTES_FIELD_INDEX.TEMPERATURE, notes.temperature);
+    }
+    if (notes.systolicBP) {
+      await this.addNote(this.NOTES_FIELD_INDEX.SYSTOLIC_BP, notes.systolicBP);
+    }
+    if (notes.diastolicBP) {
+      await this.addNote(this.NOTES_FIELD_INDEX.DIASTOLIC_BP, notes.diastolicBP);
+    }
   }
 
   /**
@@ -176,8 +239,8 @@ export class VitalsForm {
   }
 
   /**
-   * Fill and save the vitals form
-   * @param vitalsData - Object containing vital signs data
+   * Fill vitals values, add notes, then save the form
+   * @param vitalsData - Object containing vital signs data and optional notes
    */
   async fillAndSaveVitals(vitalsData: {
     pulse?: string;
@@ -187,8 +250,76 @@ export class VitalsForm {
     systolicBP?: string;
     diastolicBP?: string;
     bodyPosition?: string;
+    notes?: { pulse?: string; temperature?: string; systolicBP?: string; diastolicBP?: string };
   }) {
     await this.fillVitalsForm(vitalsData);
+    if (vitalsData.notes) {
+      await this.fillNotes(vitalsData.notes);
+    }
     await this.saveForm();
+  }
+
+  /**
+   * Verify the vitals form data is displayed correctly in the modal
+   * Note: Modal should already be open before calling this method
+   * @param vitalsData - Expected vital signs data to verify
+   */
+  async verifyVitalsData(vitalsData: {
+    pulse?: string;
+    oxygenSaturation?: string;
+    respiratoryRate?: string;
+    temperature?: string;
+    systolicBP?: string;
+    diastolicBP?: string;
+    bodyPosition?: string;
+    notes?: { pulse?: string; temperature?: string; systolicBP?: string; diastolicBP?: string };
+  }) {
+    const modal = this.page.locator('[data-testid="form-details-modal"]');
+    await modal.waitFor({ state: 'visible', timeout: 5000 });
+
+    if (vitalsData.pulse) {
+      await expect(modal.locator(`text=${vitalsData.pulse}`).first()).toBeVisible();
+    }
+    if (vitalsData.oxygenSaturation) {
+      await expect(modal.locator(`text=${vitalsData.oxygenSaturation}`).first()).toBeVisible();
+    }
+    if (vitalsData.respiratoryRate) {
+      await expect(modal.locator(`text=${vitalsData.respiratoryRate}`).first()).toBeVisible();
+    }
+    if (vitalsData.temperature) {
+      await expect(modal.locator(`text=${vitalsData.temperature}`).first()).toBeVisible();
+    }
+    if (vitalsData.systolicBP) {
+      await expect(modal.locator(`text=${vitalsData.systolicBP}`).first()).toBeVisible();
+    }
+    if (vitalsData.diastolicBP) {
+      await expect(modal.locator(`text=${vitalsData.diastolicBP}`).first()).toBeVisible();
+    }
+    if (vitalsData.bodyPosition) {
+      await expect(modal.locator(`text=${vitalsData.bodyPosition}`).first()).toBeVisible();
+    }
+    if (vitalsData.notes) {
+      if (vitalsData.notes.pulse) {
+        await expect(modal.locator(`text=${vitalsData.notes.pulse}`).first()).toBeVisible();
+      }
+      if (vitalsData.notes.temperature) {
+        await expect(modal.locator(`text=${vitalsData.notes.temperature}`).first()).toBeVisible();
+      }
+      if (vitalsData.notes.systolicBP) {
+        await expect(modal.locator(`text=${vitalsData.notes.systolicBP}`).first()).toBeVisible();
+      }
+      if (vitalsData.notes.diastolicBP) {
+        await expect(modal.locator(`text=${vitalsData.notes.diastolicBP}`).first()).toBeVisible();
+      }
+    }
+  }
+
+  /**
+   * Close the vitals modal
+   */
+  async closeModal() {
+    await this.page.keyboard.press('Escape');
+    const modal = this.page.locator('[data-testid="form-details-modal"]');
+    await modal.waitFor({ state: 'hidden', timeout: 5000 });
   }
 }

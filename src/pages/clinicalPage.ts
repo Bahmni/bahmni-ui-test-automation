@@ -1,5 +1,4 @@
-import { Page, expect } from '@playwright/test';
-import { MedicationData } from '../../test-data/medicationData';
+import { Page } from '@playwright/test';
 
 /**
  * ClinicalPage class for Bahmni clinical dashboard page
@@ -299,192 +298,99 @@ export class ClinicalPage {
     return await this.page.locator(sectionMap[section]).isVisible();
   }
 
-  /**
-   * Verify allergy is displayed in the allergies table
-   * @param allergyData - Allergy data to verify
-   */
-  async verifyAllergyDisplayed(allergyData: { allergen: string; severity?: string; reaction?: string }) {
-    // Navigate to allergies section
-    await this.navigateToSection('Allergies');
-
-    // Verify allergy table has at least one row
-    const table = this.page.locator(this.selectors.allergiesTable);
-    const rows = table.locator('tbody tr');
-    await expect(rows).toHaveCount(1, { timeout: 5000 });
-
-    // Verify allergen name
-    const allergenCell = rows.first().locator('td').first();
-    await expect(allergenCell).toContainText(allergyData.allergen);
-
-    // Verify reaction if provided
-    if (allergyData.reaction) {
-      const reactionCell = rows.first().locator('td').nth(1);
-      await expect(reactionCell).toContainText(allergyData.reaction);
-    }
-  }
-
-  /**
-   * Verify investigation or procedure is displayed
-   * @param name - Investigation/procedure name to verify
-   * @param section - Section to navigate to ('Lab Investigations' or 'Procedures')
-   */
-  async verifyInvestigationOrProcedureDisplayed(
-    name: string,
-    section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations'
-  ) {
-    // Navigate to the appropriate section
+  private async getDisplayedNamesFromTable(
+    tableSelector: string,
+    section: Parameters<typeof this.navigateToSection>[0]
+  ): Promise<string[]> {
     await this.navigateToSection(section);
-
-    // Convert name to display format (Camel Case and remove Panel in brackets)
-    const displayName = name
-      // Remove "(Panel)" as it's displayed separately
-      .replace(/\s*\(Panel\)/g, '')
-      // Convert to title case
-      .replace(/\b\w/g, (char) => char.toUpperCase());
-
-    // Verify the investigation/procedure name appears on the page
-    await expect(this.page.locator(`text=${displayName}`)).toBeVisible({ timeout: 5000 });
+    await this.page.locator(tableSelector).locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+    return this.page.locator(tableSelector).locator('tbody tr td:first-child').allTextContents();
   }
 
-  /**
-   * Verify diagnosis is displayed in Conditions and Diagnoses section
-   * @param diagnosisName - Diagnosis name to verify
-   */
-  async verifyDiagnosisDisplayed(diagnosisName: string) {
-    // Navigate to Conditions and Diagnoses section
-    await this.navigateToSection('Conditions and Diagnoses');
-
-    // Verify the diagnosis name appears in the diagnoses table
-    const diagnosesTable = this.page.locator(this.selectors.diagnosesTable);
-    await expect(diagnosesTable.locator(`text=${diagnosisName}`)).toBeVisible({ timeout: 5000 });
+  async getDisplayedAllergens(): Promise<string[]> {
+    return this.getDisplayedNamesFromTable(this.selectors.allergiesTable, 'Allergies');
   }
 
-  /**
-   * Verify condition is displayed in Conditions and Diagnoses section
-   * @param conditionName - Condition name to verify
-   */
-  async verifyConditionDisplayed(conditionName: string) {
-    // Navigate to Conditions and Diagnoses section
-    await this.navigateToSection('Conditions and Diagnoses');
-
-    // Verify the condition name appears in the conditions table
-    const conditionsTable = this.page.locator(this.selectors.conditionsTable);
-    await expect(conditionsTable.locator(`text=${conditionName}`)).toBeVisible({ timeout: 5000 });
+  async getDisplayedAllergyReactions(): Promise<string[]> {
+    await this.navigateToSection('Allergies');
+    await this.page
+      .locator(this.selectors.allergiesTable)
+      .locator('tbody tr')
+      .first()
+      .waitFor({ state: 'visible', timeout: 10000 });
+    return this.page.locator(this.selectors.allergiesTable).locator('tbody tr td:nth-child(2)').allTextContents();
   }
 
-  /**
-   * Verify medication is displayed in Medications section
-   * @param medication - Medication data to verify
-   */
-  async verifyMedicationDisplayed(medication: MedicationData) {
-    // Navigate to Medications section
-    await this.navigateToSection('Medications');
-
-    // The table displays only the drug name and strength, stripping the dosage form "(Tablet)"
-    // and generic name suffix "- Prednisolone" from the full catalog name
-    const displayName = medication.name
-      .split('- ')[0]
-      .trim()
-      .replace(/\s*\([^)]*\)\s*$/, '')
-      .trim();
-
-    const medicationsTable = this.page.locator(this.selectors.medicationsTable);
-    await expect(medicationsTable.locator(`text=${displayName}`)).toBeVisible({ timeout: 5000 });
+  async getAllergyRowCount(): Promise<number> {
+    await this.navigateToSection('Allergies');
+    return this.page.locator(this.selectors.allergiesTable).locator('tbody tr').count();
   }
 
-  /**
-   * Verify vaccination is displayed in Vaccinations section
-   * @param vaccination - Vaccination data to verify
-   */
-  async verifyVaccinationDisplayed(vaccination: MedicationData) {
-    // Navigate to Vaccinations section
-    await this.navigateToSection('Vaccinations');
-
-    // Verify the vaccination name appears in the vaccinations table
-    const vaccinationsTable = this.page.locator(this.selectors.vaccinationsTable);
-    await expect(vaccinationsTable.locator(`text=${vaccination.name}`)).toBeVisible({ timeout: 5000 });
+  getSectionArticle(section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations') {
+    return this.page
+      .locator('article')
+      .filter({ has: this.page.locator(`p:has-text("${section}")`) })
+      .first();
   }
 
-  /**
-   * Verify pulse is displayed in Basic Details > Observations section
-   * @param pulse - Expected pulse value (e.g. '72')
-   */
-  async verifyObservationsSection(pulse: string) {
-    await this.navigateToSection('Basic Details');
-    const observationsSection = this.page
+  async getDisplayedTextInSection(
+    section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations'
+  ): Promise<string | null> {
+    await this.navigateToSection(section);
+    return this.getSectionArticle(section).textContent();
+  }
+
+  async getDisplayedConditionNames(): Promise<string[]> {
+    return this.getDisplayedNamesFromTable(this.selectors.conditionsTable, 'Conditions and Diagnoses');
+  }
+
+  async getDisplayedDiagnosisNames(): Promise<string[]> {
+    return this.getDisplayedNamesFromTable(this.selectors.diagnosesTable, 'Conditions and Diagnoses');
+  }
+
+  async getDisplayedMedicationNames(): Promise<string[]> {
+    return this.getDisplayedNamesFromTable(this.selectors.medicationsTable, 'Medications');
+  }
+
+  async getDisplayedVaccinationNames(): Promise<string[]> {
+    return this.getDisplayedNamesFromTable(this.selectors.vaccinationsTable, 'Vaccinations');
+  }
+
+  getBasicDetailsArticle() {
+    return this.page
       .locator('article')
       .filter({ has: this.page.locator('p:has-text("Basic Details")') })
       .first();
-    await expect(observationsSection.locator(`text=${pulse} beats/min`).first()).toBeVisible({ timeout: 5000 });
   }
 
-  /**
-   * Verify vitals are displayed in the Vitals Flow Sheet table
-   * @param vitals - Expected vital signs data
-   */
-  async verifyVitalsFlowSheet(vitals: {
-    pulse?: string;
-    respiratoryRate?: string;
-    temperature?: string;
-    systolicBP?: string;
-    diastolicBP?: string;
-  }) {
+  async getBasicDetailsArticleText(): Promise<string | null> {
+    await this.navigateToSection('Basic Details');
+    return this.getBasicDetailsArticle().textContent();
+  }
+
+  getVitalsFlowSheetTable() {
+    return this.page.locator(this.selectors.vitalsFlowSheetTable);
+  }
+
+  async getVitalsFlowSheetTableText(): Promise<string | null> {
     await this.navigateToSection('Vitals Flow Sheet');
-    const table = this.page.locator(this.selectors.vitalsFlowSheetTable);
-    await table.waitFor({ state: 'visible', timeout: 5000 });
-
-    if (vitals.pulse) {
-      await expect(table.locator(`text=${vitals.pulse}`).first()).toBeVisible();
-    }
-    if (vitals.respiratoryRate) {
-      await expect(table.locator(`text=${vitals.respiratoryRate}`).first()).toBeVisible();
-    }
-    if (vitals.temperature) {
-      await expect(table.locator(`text=${vitals.temperature}`).first()).toBeVisible();
-    }
-    if (vitals.systolicBP && vitals.diastolicBP) {
-      await expect(table.locator(`text=${vitals.systolicBP}.0/${vitals.diastolicBP}.0`).first()).toBeVisible();
-    }
+    await this.getVitalsFlowSheetTable().waitFor({ state: 'visible', timeout: 5000 });
+    return this.getVitalsFlowSheetTable().textContent();
   }
 
-  /**
-   * Verify observation form is saved and open it in modal
-   * @param formName - Name of the form to verify and open
-   */
-  async verifyAndOpenObservationForm(formName: string) {
-    // Navigate to Forms section
+  async openObservationFormModal(formName: string): Promise<void> {
     await this.navigateToSection('Forms');
-
-    // Verify the form name appears in the forms section
     const formsSection = this.page.locator('article:has(p:has-text("Forms"))');
     const formButton = formsSection.locator(`button:has-text("${formName}")`);
-    await expect(formButton).toBeVisible({ timeout: 5000 });
-
-    // Check if the section is expanded by checking aria-expanded attribute
+    await formButton.waitFor({ state: 'visible', timeout: 5000 });
     const isExpanded = await formButton.getAttribute('aria-expanded');
     if (isExpanded === 'false' || isExpanded === null) {
-      // Click to expand the section
       await formButton.click();
     }
-
-    // Wait for the date/time link to be visible after expansion
     const dateLink = formsSection.locator('a').first();
     await dateLink.scrollIntoViewIfNeeded();
     await dateLink.waitFor({ state: 'visible', timeout: 10000 });
-
-    // Click the link to open the form in a modal
     await dateLink.click();
-
-    // Wait for the modal to be visible
-    const modal = this.page.locator('[data-testid="form-details-modal"]');
-    await expect(modal).toBeVisible({ timeout: 5000 });
-  }
-
-  /**
-   * Verify observation form data is displayed in Forms section (deprecated - use verifyAndOpenObservationForm)
-   * @param formName - Name of the form to verify
-   */
-  async verifyObservationFormSaved(formName: string) {
-    await this.verifyAndOpenObservationForm(formName);
+    await this.page.locator('[data-testid="form-details-modal"]').waitFor({ state: 'visible', timeout: 5000 });
   }
 }

@@ -118,12 +118,4 @@ export class RegistrationSearchPage {
     await patientLink.waitFor({ state: 'visible', timeout: 5000 });
     await patientLink.click();
   }
-
-  /**
-   * Verify user is on registration search page
-   */
-  async verifyPageLoaded() {
-    await this.page.waitForURL(/.*registration\/search/);
-    await this.page.locator(this.selectors.createNewPatientButton).waitFor();
-  }
 }

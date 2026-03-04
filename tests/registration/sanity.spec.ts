@@ -1,17 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { PageFactory } from '../../src/pages/PageFactory';
-import { config } from '../../src/config/env.config';
+import { ActionFactory } from '../../src/actions/ActionFactory';
 import { generatePatientData } from '../../test-data/patientData';
 
 test.describe('Bahmni sanity Tests', () => {
   test('Register and verify patient details', async ({ page }) => {
     const bahmni = new PageFactory(page);
-    const adminUser = config.getUser('admin');
+    const actions = new ActionFactory(bahmni);
     const patientData = generatePatientData();
 
-    await bahmni.loginPage.goto();
-    await bahmni.loginPage.login(adminUser.username, adminUser.password);
-    await bahmni.locationPage.selectLocation(config.defaults.location);
+    await actions.auth.loginAsAdmin();
     await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
 
@@ -26,36 +24,28 @@ test.describe('Bahmni sanity Tests', () => {
     });
 
     await bahmni.createPatientPage.uploadPhoto('patient-photo.png');
-
     await bahmni.createPatientPage.fillAddressInformation(patientData.address);
-
     await bahmni.createPatientPage.savePatient();
 
     await expect(page).toHaveURL(/.*registration\/patient\/[a-f0-9-]+/);
-
-    // Capture the generated patient ID
     const patientId = await bahmni.createPatientPage.getPatientId();
     await expect(patientId).toBeTruthy();
 
-    await bahmni.createPatientPage.clickSearchPatient();
-    await bahmni.registrationSearchPage.searchAndOpenPatientById(patientId);
+    await actions.registration.searchAndOpenPatient(patientId);
 
     await expect(page).toHaveURL(/.*registration\/patient\/[a-f0-9-]+/);
-
-    await bahmni.createPatientPage.verifyBasicInformation(patientData);
-    await bahmni.createPatientPage.verifyContactInformation(patientData.phoneNumber, patientData.email);
-    await bahmni.createPatientPage.verifyAddressInformation(patientData.address);
+    await actions.registration.verifyPatientBasicInformation(patientData);
+    await actions.registration.verifyPatientContactInformation(patientData.phoneNumber, patientData.email);
+    await actions.registration.verifyPatientAddressInformation(patientData.address);
   });
 
   test('Verify patient relationship', async ({ page }) => {
     const bahmni = new PageFactory(page);
-    const adminUser = config.getUser('admin');
+    const actions = new ActionFactory(bahmni);
     const patientData1 = generatePatientData();
     const patientData2 = generatePatientData();
 
-    await bahmni.loginPage.goto();
-    await bahmni.loginPage.login(adminUser.username, adminUser.password);
-    await bahmni.locationPage.selectLocation(config.defaults.location);
+    await actions.auth.loginAsAdmin();
     await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
 
@@ -84,12 +74,18 @@ test.describe('Bahmni sanity Tests', () => {
     );
     await bahmni.createPatientPage.savePatient();
 
-    await bahmni.createPatientPage.verifyRelationship('Father', patientData1.firstName + ' ' + patientData1.lastName);
+    await actions.registration.verifyPatientRelationship(
+      'Father',
+      patientData1.firstName + ' ' + patientData1.lastName
+    );
 
     // Click patient link which opens in new tab and returns new page instance
     const patient1Page = await bahmni.createPatientPage.clickPatientLink();
 
-    // Verify relationship on the opened patient's record (new tab)
-    await patient1Page.verifyRelationship('Son', patientData2.firstName + ' ' + patientData2.lastName);
+    // Verify relationship on the opened patient's record (new tab - different page context)
+    const relType = await patient1Page.getRelationshipType();
+    expect(relType?.trim()).toContain('Son');
+    const relName = await patient1Page.getRelationshipPatientName();
+    expect(relName?.trim()).toContain(patientData2.firstName + ' ' + patientData2.lastName);
   });
 });

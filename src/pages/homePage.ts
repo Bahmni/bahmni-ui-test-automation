@@ -80,11 +80,4 @@ export class HomePage {
     await this.openUserMenu();
     await this.page.locator(this.selectors.changePasswordLink).click();
   }
-
-  /**
-   * Verify user is on dashboard
-   */
-  async verifyDashboardLoaded() {
-    await this.page.waitForURL(/.*dashboard/);
-  }
 }

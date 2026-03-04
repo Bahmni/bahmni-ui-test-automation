@@ -11,7 +11,7 @@ const MEDICATIONS = [
   'Labetalol',
   'Potassium permanganate',
   'Paracetamol 500 mg',
-  'Prednisolone 20 mg (Tablet)- Prednisolone',
+  'Prednisolone 20 mg',
 ];
 
 // Dosage units

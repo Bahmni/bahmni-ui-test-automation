@@ -61,9 +61,9 @@ export class ActivePatientsPage {
    * @param patientId - Patient ID to click
    */
   async selectPatientById(patientId: string) {
-    await this.waitForPatientList();
-    // Click on the patient ID text which will open the patient's clinical page
-    await this.page.getByText(patientId, { exact: true }).click();
+    const patientLocator = this.page.getByText(patientId, { exact: true });
+    await patientLocator.waitFor({ state: 'visible', timeout: 20000 });
+    await patientLocator.click();
   }
 
   /**

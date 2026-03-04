@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 import * as path from 'path';
 
 /**
@@ -291,66 +291,50 @@ export class CreatePatientPage {
     }
   }
 
-  /**
-   * Verify basic patient information
-   * @param patientData - Patient data to verify
-   */
-  async verifyBasicInformation(patientData: {
-    firstName: string;
-    middleName?: string;
-    lastName: string;
-    gender: string;
-    dateOfBirth: string;
-  }) {
-    await expect(this.page.locator(this.selectors.firstNameInput)).toHaveValue(patientData.firstName);
-    if (patientData.middleName) {
-      await expect(this.page.locator(this.selectors.middleNameInput)).toHaveValue(patientData.middleName);
-    }
-    await expect(this.page.locator(this.selectors.lastNameInput)).toHaveValue(patientData.lastName);
-    await expect(this.page.getByRole('combobox', { name: /gender/i })).toContainText(patientData.gender);
-    await expect(this.page.locator(this.selectors.dateOfBirthInput)).toHaveValue(patientData.dateOfBirth);
+  async getFirstName(): Promise<string> {
+    return this.page.locator(this.selectors.firstNameInput).inputValue();
   }
-
-  /**
-   * Verify contact information
-   * @param phoneNumber - Phone number to verify
-   * @param email - Email to verify
-   */
-  async verifyContactInformation(phoneNumber: string, email: string) {
-    await expect(this.page.getByRole('textbox', { name: /^Phone number$/i })).toHaveValue(phoneNumber);
-    await expect(this.page.getByRole('textbox', { name: /Email/i })).toHaveValue(email);
+  async getMiddleName(): Promise<string> {
+    return this.page.locator(this.selectors.middleNameInput).inputValue();
   }
-
-  /**
-   * Verify address information
-   * @param address - Address object to verify
-   */
-  async verifyAddressInformation(address: {
-    houseNumber: string;
-    locality: string;
-    city: string;
-    pinCode: string;
-    district: string;
-    state: string;
-  }) {
-    await this.page.locator('text=Address information').scrollIntoViewIfNeeded();
-    await expect(this.page.locator(this.selectors.houseNumberInput)).toHaveValue(address.houseNumber);
-    await expect(this.page.locator(this.selectors.localitySectorInput)).toHaveValue(address.locality);
-    await expect(this.page.locator(this.selectors.cityVillageInput)).toHaveValue(address.city);
-    await expect(this.page.locator(this.selectors.pinCodeDropdown)).toHaveValue(address.pinCode);
-    await expect(this.page.locator(this.selectors.districtDropdown)).toHaveValue(address.district);
-    await expect(this.page.locator(this.selectors.stateDropdown)).toHaveValue(address.state);
+  async getLastName(): Promise<string> {
+    return this.page.locator(this.selectors.lastNameInput).inputValue();
   }
-
-  /**
-   * Verify relationship
-   * @param relationshipType - Expected relationship type
-   * @param patientName - Expected patient name
-   */
-  async verifyRelationship(relationshipType: string, patientName: string) {
-    await this.page.locator(this.selectors.relationshipsSection).scrollIntoViewIfNeeded();
-    await expect(this.page.locator(this.selectors.existingRelationshipType)).toHaveText(relationshipType);
-    await expect(this.page.locator(this.selectors.existingRelationshipPatientLink)).toHaveText(patientName);
+  async getGender(): Promise<string | null> {
+    return this.page.getByRole('combobox', { name: /gender/i }).textContent();
+  }
+  async getDateOfBirth(): Promise<string> {
+    return this.page.locator(this.selectors.dateOfBirthInput).inputValue();
+  }
+  async getPhoneNumber(): Promise<string> {
+    return this.page.getByRole('textbox', { name: /^Phone number$/i }).inputValue();
+  }
+  async getEmail(): Promise<string> {
+    return this.page.getByRole('textbox', { name: /Email/i }).inputValue();
+  }
+  async getHouseNumber(): Promise<string> {
+    return this.page.locator(this.selectors.houseNumberInput).inputValue();
+  }
+  async getLocality(): Promise<string> {
+    return this.page.locator(this.selectors.localitySectorInput).inputValue();
+  }
+  async getCity(): Promise<string> {
+    return this.page.locator(this.selectors.cityVillageInput).inputValue();
+  }
+  async getPinCode(): Promise<string> {
+    return this.page.locator(this.selectors.pinCodeDropdown).inputValue();
+  }
+  async getDistrict(): Promise<string> {
+    return this.page.locator(this.selectors.districtDropdown).inputValue();
+  }
+  async getState(): Promise<string> {
+    return this.page.locator(this.selectors.stateDropdown).inputValue();
+  }
+  async getRelationshipType(): Promise<string | null> {
+    return this.page.locator(this.selectors.existingRelationshipType).textContent();
+  }
+  async getRelationshipPatientName(): Promise<string | null> {
+    return this.page.locator(this.selectors.existingRelationshipPatientLink).textContent();
   }
 
   /**

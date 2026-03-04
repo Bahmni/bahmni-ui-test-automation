@@ -11,9 +11,9 @@ import { faker } from '@faker-js/faker';
 
 test.describe.serial('Duplicate Medication Tests', () => {
   test('Adding an active medication in different dosage in a new consultation shows duplicate error', async ({
-    clinicalSetup,
+    isolatedClinicalSetup,
   }) => {
-    const { bahmni, page } = clinicalSetup;
+    const { actions, bahmni, page } = isolatedClinicalSetup;
 
     const pair = faker.helpers.arrayElement(DUPLICATE_MEDICATION_PAIRS);
 
@@ -30,20 +30,15 @@ test.describe.serial('Duplicate Medication Tests', () => {
 
     // Step 1: Add first dosage in consultation and save
     await expect(page).toHaveURL(/.*clinical\/.*/);
-    await bahmni.clinicalPage.clickNewConsultation();
-    await bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
-    await bahmni.newConsultationPage.addMedication(firstMedication);
-    await bahmni.newConsultationPage.saveConsultation();
+    await actions.clinical.addMedicationInConsultation(firstMedication);
     await expect(page).toHaveURL(/.*clinical\/.*(?<!consultation)$/);
-    await bahmni.clinicalPage.verifyMedicationDisplayed(firstMedication);
+    await actions.clinical.verifyMedicationDisplayed(firstMedication);
 
-    // Step 2: Open a new consultation and try adding a different dosage of the same drug
-    await bahmni.clinicalPage.clickNewConsultation();
-    await bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
-    await bahmni.newConsultationPage.searchAndSelectMedication(pair.secondDosage);
+    // Step 2: Open a new consultation and search for a different dosage of the same drug
+    await actions.clinical.searchMedicationInNewConsultation(pair.secondDosage);
 
     // Step 3: Verify the duplicate medication error message is displayed
-    await bahmni.newConsultationPage.verifyDuplicateMedicationError();
+    await actions.clinical.verifyDuplicateMedicationError();
 
     // Cancel the second consultation to restore clean state
     await bahmni.newConsultationPage.cancelConsultation();

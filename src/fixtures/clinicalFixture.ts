@@ -1,6 +1,6 @@
 import { test as base, BrowserContext } from '@playwright/test';
 import { PageFactory } from '../pages/PageFactory';
-import { config } from '../config/env.config';
+import { ActionFactory } from '../actions/ActionFactory';
 import { generatePatientData, PatientData } from '../../test-data/patientData';
 import { Page } from '@playwright/test';
 
@@ -8,6 +8,7 @@ type SharedClinicalContext = {
   context: BrowserContext;
   page: Page;
   bahmni: PageFactory;
+  actions: ActionFactory;
   patientData: PatientData;
   patientId: string;
 };
@@ -15,6 +16,14 @@ type SharedClinicalContext = {
 type ClinicalFixtures = {
   clinicalSetup: {
     bahmni: PageFactory;
+    actions: ActionFactory;
+    patientData: PatientData;
+    patientId: string;
+    page: Page;
+  };
+  isolatedClinicalSetup: {
+    bahmni: PageFactory;
+    actions: ActionFactory;
     patientData: PatientData;
     patientId: string;
     page: Page;
@@ -41,44 +50,19 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
       const context = await browser.newContext();
       const page = await context.newPage();
       const bahmni = new PageFactory(page);
-      const adminUser = config.getUser('admin');
+      const actions = new ActionFactory(bahmni);
       const patientData = generatePatientData();
 
-      // Login and navigate to registration (only once!)
-      await bahmni.loginPage.goto();
-      await bahmni.loginPage.login(adminUser.username, adminUser.password);
-      await bahmni.locationPage.selectLocation(config.defaults.location);
-      await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
-      await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
-
-      // Create patient with basic information
-      await bahmni.createPatientPage.createPatient({
-        firstName: patientData.firstName,
-        lastName: patientData.lastName,
-        gender: patientData.gender,
-        dateOfBirth: patientData.dateOfBirth,
-        middleName: patientData.middleName,
-      });
-
-      // Save patient
-      await bahmni.createPatientPage.savePatient();
-
-      // Get the patient ID
-      await page.waitForURL(/.*registration\/patient\/[a-f0-9-]+/);
-      const patientId = await bahmni.createPatientPage.getPatientId();
+      // Login and create patient (only once per worker)
+      await actions.auth.loginAsAdmin();
+      const patientId = await actions.registration.registerPatientWithMandatoryDetails(patientData);
 
       // Start OPD visit
       await bahmni.createPatientPage.saveAndStartOPDVisit();
       await page.waitForLoadState('networkidle');
 
-      // Navigate to Clinical module (only once!)
-      await bahmni.createPatientPage.navigateToHomePage();
-      await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.CLINICAL);
-
-      // Select new-active tab and click on patient
-      await bahmni.activePatientsPage.selectTab('new-active');
-      await bahmni.activePatientsPage.waitForPatientList();
-      await bahmni.activePatientsPage.selectPatientById(patientId);
+      // Navigate to Clinical module (only once per worker)
+      await actions.clinical.navigateToPatientClinical(patientId);
 
       // Wait for clinical page to load fully
       await page.waitForLoadState('networkidle', { timeout: 10000 });
@@ -88,6 +72,7 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
         context,
         page,
         bahmni,
+        actions,
         patientData,
         patientId,
       });
@@ -100,29 +85,47 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
 
   // Test-scoped fixture: uses shared context, ensures we're on clinical page
   clinicalSetup: async ({ sharedClinicalContext }, use) => {
-    const { page, bahmni, patientData, patientId } = sharedClinicalContext;
+    const { page, bahmni, actions, patientData, patientId } = sharedClinicalContext;
 
     // Ensure we're on the clinical dashboard (not in a consultation)
     const currentUrl = page.url();
     if (currentUrl.includes('/consultation')) {
-      // If we're in a consultation, navigate back to clinical dashboard
-      await bahmni.createPatientPage.navigateToHomePage();
-      await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.CLINICAL);
-      await bahmni.activePatientsPage.selectTab('new-active');
-      await bahmni.activePatientsPage.waitForPatientList();
-      await bahmni.activePatientsPage.selectPatientById(patientId);
+      await actions.clinical.navigateToPatientClinical(patientId);
       await page.waitForLoadState('networkidle', { timeout: 10000 });
     }
 
     // Provide the setup context to the test
     await use({
       bahmni,
+      actions,
       patientData,
       patientId,
       page,
     });
 
     // No teardown needed - keeping session alive for next test
+  },
+
+  // Test-scoped fixture: creates a fresh patient and context per test for full isolation
+  isolatedClinicalSetup: async ({ browser }, use) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const bahmni = new PageFactory(page);
+    const actions = new ActionFactory(bahmni);
+    const patientData = generatePatientData();
+
+    await actions.auth.loginAsAdmin();
+    const patientId = await actions.registration.registerPatientWithMandatoryDetails(patientData);
+
+    await bahmni.createPatientPage.saveAndStartOPDVisit();
+    await page.waitForLoadState('networkidle');
+
+    await actions.clinical.navigateToPatientClinical(patientId);
+    await page.waitForLoadState('networkidle', { timeout: 10000 });
+
+    await use({ bahmni, actions, patientData, patientId, page });
+
+    await context.close();
   },
 });
 

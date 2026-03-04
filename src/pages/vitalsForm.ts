@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 /**
  * VitalsForm class for Bahmni Vitals observation form
@@ -153,9 +153,6 @@ export class VitalsForm {
     await textarea.waitFor({ state: 'visible', timeout: 5000 });
     await textarea.fill(note);
 
-    // Verify the note is displayed in the open form
-    await expect(textarea).toHaveValue(note);
-
     // Click the active notes button to close the textarea
     await this.page.locator(this.selectors.notesToggleButtonActive).click();
     await textarea.waitFor({ state: 'hidden', timeout: 5000 });
@@ -259,59 +256,13 @@ export class VitalsForm {
     await this.saveForm();
   }
 
-  /**
-   * Verify the vitals form data is displayed correctly in the modal
-   * Note: Modal should already be open before calling this method
-   * @param vitalsData - Expected vital signs data to verify
-   */
-  async verifyVitalsData(vitalsData: {
-    pulse?: string;
-    oxygenSaturation?: string;
-    respiratoryRate?: string;
-    temperature?: string;
-    systolicBP?: string;
-    diastolicBP?: string;
-    bodyPosition?: string;
-    notes?: { pulse?: string; temperature?: string; systolicBP?: string; diastolicBP?: string };
-  }) {
-    const modal = this.page.locator('[data-testid="form-details-modal"]');
-    await modal.waitFor({ state: 'visible', timeout: 5000 });
+  getFormModal() {
+    return this.page.locator('[data-testid="form-details-modal"]');
+  }
 
-    if (vitalsData.pulse) {
-      await expect(modal.locator(`text=${vitalsData.pulse}`).first()).toBeVisible();
-    }
-    if (vitalsData.oxygenSaturation) {
-      await expect(modal.locator(`text=${vitalsData.oxygenSaturation}`).first()).toBeVisible();
-    }
-    if (vitalsData.respiratoryRate) {
-      await expect(modal.locator(`text=${vitalsData.respiratoryRate}`).first()).toBeVisible();
-    }
-    if (vitalsData.temperature) {
-      await expect(modal.locator(`text=${vitalsData.temperature}`).first()).toBeVisible();
-    }
-    if (vitalsData.systolicBP) {
-      await expect(modal.locator(`text=${vitalsData.systolicBP}`).first()).toBeVisible();
-    }
-    if (vitalsData.diastolicBP) {
-      await expect(modal.locator(`text=${vitalsData.diastolicBP}`).first()).toBeVisible();
-    }
-    if (vitalsData.bodyPosition) {
-      await expect(modal.locator(`text=${vitalsData.bodyPosition}`).first()).toBeVisible();
-    }
-    if (vitalsData.notes) {
-      if (vitalsData.notes.pulse) {
-        await expect(modal.locator(`text=${vitalsData.notes.pulse}`).first()).toBeVisible();
-      }
-      if (vitalsData.notes.temperature) {
-        await expect(modal.locator(`text=${vitalsData.notes.temperature}`).first()).toBeVisible();
-      }
-      if (vitalsData.notes.systolicBP) {
-        await expect(modal.locator(`text=${vitalsData.notes.systolicBP}`).first()).toBeVisible();
-      }
-      if (vitalsData.notes.diastolicBP) {
-        await expect(modal.locator(`text=${vitalsData.notes.diastolicBP}`).first()).toBeVisible();
-      }
-    }
+  async getFormModalText(): Promise<string | null> {
+    await this.getFormModal().waitFor({ state: 'visible', timeout: 5000 });
+    return this.getFormModal().textContent();
   }
 
   /**

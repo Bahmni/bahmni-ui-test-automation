@@ -9,124 +9,93 @@ import { vitalsFaker } from '../../test-data/vitalsData';
 
 test.describe.serial('Clinical Consultation Tests', () => {
   test('Add allergy with severity and reaction in consultation', async ({ clinicalSetup }) => {
-    const { bahmni, page } = clinicalSetup;
+    const { actions, page } = clinicalSetup;
     const allergyData = generateAllergyData(ALLERGENS.PENICILLIN, SEVERITY_LEVELS.MILD, REACTIONS.RASH);
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
-    await bahmni.clinicalPage.clickNewConsultation();
-    await bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
-    await bahmni.newConsultationPage.addAllergyWithDetails(
-      allergyData.allergen,
-      allergyData.severity,
-      allergyData.reaction
-    );
-    await bahmni.newConsultationPage.saveConsultation();
+    await actions.clinical.addAllergyInConsultation(allergyData);
     await expect(page).toHaveURL(/.*clinical\/.*(?<!consultation)$/);
-    await bahmni.clinicalPage.verifyAllergyDisplayed(allergyData);
+    await actions.clinical.verifyAllergyDisplayed(allergyData);
   });
 
   test('Order investigation and procedure in consultation', async ({ clinicalSetup }) => {
-    const { bahmni, page } = clinicalSetup;
+    const { actions, page } = clinicalSetup;
     const investigation = medicalFaker.investigation_single();
     const investigation_panel = medicalFaker.investigation_panel();
     const investigation_radiology = medicalFaker.investigation_radiology();
-
     const procedure = medicalFaker.procedure();
+
     await expect(page).toHaveURL(/.*clinical\/.*/);
-    await bahmni.clinicalPage.clickNewConsultation();
-    await bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
-    await bahmni.newConsultationPage.addInvestigation(investigation);
-    await bahmni.newConsultationPage.addInvestigation(investigation_panel);
-    await bahmni.newConsultationPage.addInvestigation(procedure);
-    await bahmni.newConsultationPage.addInvestigation(investigation_radiology);
-    await bahmni.newConsultationPage.saveConsultation();
-    await bahmni.clinicalPage.verifyInvestigationOrProcedureDisplayed(procedure, 'Procedures');
-    await bahmni.clinicalPage.verifyInvestigationOrProcedureDisplayed(investigation, 'Lab Investigations');
-    await bahmni.clinicalPage.verifyInvestigationOrProcedureDisplayed(investigation_panel, 'Lab Investigations');
-    await bahmni.clinicalPage.verifyInvestigationOrProcedureDisplayed(
+    await actions.clinical.addInvestigationsInConsultation([
+      investigation,
+      investigation_panel,
+      procedure,
       investigation_radiology,
-      'Radiology Investigations'
-    );
+    ]);
+    await actions.clinical.verifyInvestigationOrProcedureDisplayed(procedure, 'Procedures');
+    await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation, 'Lab Investigations');
+    await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation_panel, 'Lab Investigations');
+    await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation_radiology, 'Radiology Investigations');
   });
 
   test('Add condition and diagnosis in consultation', async ({ clinicalSetup }) => {
     test.setTimeout(60000);
-    const { bahmni, page } = clinicalSetup;
+    const { actions, page } = clinicalSetup;
     const condition = diagnosisFaker.diagnosis();
     const diagnosis = diagnosisFaker.diagnosis();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
-    await bahmni.clinicalPage.clickNewConsultation();
-    await bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
-    await bahmni.newConsultationPage.addCondition(condition);
-    await bahmni.newConsultationPage.addDiagnosis(diagnosis);
-    await bahmni.newConsultationPage.saveDiagnosesAndConditions();
-    await bahmni.clinicalPage.verifyConditionDisplayed(condition);
-    await bahmni.clinicalPage.verifyDiagnosisDisplayed(diagnosis);
+    await actions.clinical.addConditionAndDiagnosisInConsultation(condition, diagnosis);
+    await actions.clinical.verifyConditionDisplayed(condition);
+    await actions.clinical.verifyDiagnosisDisplayed(diagnosis);
   });
 
   test('Add medication in consultation', async ({ clinicalSetup }) => {
-    const { bahmni, page } = clinicalSetup;
+    const { actions, page } = clinicalSetup;
     const medication = medicationFaker.medication();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
-    await bahmni.clinicalPage.clickNewConsultation();
-    await bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
-    await bahmni.newConsultationPage.addMedication(medication);
-    await bahmni.newConsultationPage.saveConsultation();
-    await bahmni.clinicalPage.verifyMedicationDisplayed(medication);
+    await actions.clinical.addMedicationInConsultation(medication);
+    await actions.clinical.verifyMedicationDisplayed(medication);
   });
 
   test('Add vaccination in consultation', async ({ clinicalSetup }) => {
-    const { bahmni, page } = clinicalSetup;
+    const { actions, page } = clinicalSetup;
     const vaccination = vaccinationFaker.vaccination();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
-    await bahmni.clinicalPage.clickNewConsultation();
-    await bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
-    await bahmni.newConsultationPage.addVaccination(vaccination);
-    await bahmni.newConsultationPage.saveConsultation();
+    await actions.clinical.addVaccinationInConsultation(vaccination);
 
     // TODO: Remove this refresh once the bug is fixed - vaccinations don't display without refresh
     await page.reload();
     await page.waitForLoadState('networkidle');
 
-    await bahmni.clinicalPage.verifyVaccinationDisplayed(vaccination);
+    await actions.clinical.verifyVaccinationDisplayed(vaccination);
   });
 
   test('Add vitals observation form in consultation', async ({ clinicalSetup }) => {
     test.setTimeout(60000);
-    const { bahmni, page } = clinicalSetup;
+    const { actions, bahmni, page } = clinicalSetup;
     const vitalsData = vitalsFaker.normalVitals();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
-    await bahmni.clinicalPage.clickNewConsultation();
-    await bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
-    await bahmni.newConsultationPage.openVitalsForm();
-    await bahmni.vitalsForm.waitForFormToLoad();
-    await bahmni.vitalsForm.fillAndSaveVitals(vitalsData);
-    await bahmni.newConsultationPage.saveConsultation();
-    await bahmni.clinicalPage.verifyObservationsSection(vitalsData.pulse);
-    await bahmni.clinicalPage.verifyVitalsFlowSheet(vitalsData);
-    await bahmni.clinicalPage.verifyAndOpenObservationForm('Vitals');
-    await bahmni.vitalsForm.verifyVitalsData(vitalsData);
+    await actions.clinical.addVitalsInConsultation(vitalsData);
+    await actions.clinical.verifyObservationsSection(vitalsData.pulse);
+    await actions.clinical.verifyVitalsFlowSheet(vitalsData);
+    await actions.clinical.openObservationForm('Vitals');
+    await actions.clinical.verifyVitalsData(vitalsData);
     await bahmni.vitalsForm.closeModal();
   });
 
   test('Add admission letter observation form in consultation', async ({ clinicalSetup }) => {
     test.setTimeout(60000);
-    const { bahmni, page } = clinicalSetup;
+    const { actions, bahmni, page } = clinicalSetup;
     const admissionLetterData = admissionLetterFaker.simpleAdmissionLetter();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
-    await bahmni.clinicalPage.clickNewConsultation();
-    await bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
-    await bahmni.newConsultationPage.searchAndOpenObservationForm('Admission Letter');
-    await bahmni.admissionLetterForm.waitForFormToLoad();
-    await bahmni.admissionLetterForm.fillAndSaveAdmissionLetter(admissionLetterData);
-    await bahmni.newConsultationPage.saveConsultation();
-    await bahmni.clinicalPage.verifyAndOpenObservationForm('Admission Letter');
-    await bahmni.admissionLetterForm.verifyAdmissionLetterData(admissionLetterData);
+    await actions.clinical.addAdmissionLetterInConsultation(admissionLetterData);
+    await actions.clinical.openObservationForm('Admission Letter');
+    await actions.clinical.verifyAdmissionLetterData(admissionLetterData);
     await bahmni.admissionLetterForm.closeModal();
   });
 });

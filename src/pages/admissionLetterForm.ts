@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 /**
  * AdmissionLetterForm class for Bahmni Admission Letter observation form
@@ -47,12 +47,9 @@ export class AdmissionLetterForm {
     comments: string;
     referredToDoctor: string;
   }) {
-    // Fill fields using nth() since all are textareas without unique identifiers
-    const textareas = this.page.locator('textarea');
-
-    await textareas.nth(0).fill(admissionData.referringToHospital);
-    await textareas.nth(1).fill(admissionData.comments);
-    await textareas.nth(2).fill(admissionData.referredToDoctor);
+    await this.page.getByRole('textbox', { name: 'Referring to Hospital' }).fill(admissionData.referringToHospital);
+    await this.page.getByRole('textbox', { name: 'Comments' }).fill(admissionData.comments);
+    await this.page.getByRole('textbox', { name: 'Referred to Doctor' }).fill(admissionData.referredToDoctor);
   }
 
   /**
@@ -67,8 +64,6 @@ export class AdmissionLetterForm {
    */
   async saveForm() {
     await this.page.locator(this.selectors.saveFormButton).click();
-    // Wait for form to be saved and closed
-    await this.page.locator(this.selectors.formHeading).waitFor({ state: 'hidden', timeout: 5000 });
   }
 
   /**
@@ -91,23 +86,13 @@ export class AdmissionLetterForm {
     await this.saveForm();
   }
 
-  /**
-   * Verify the admission letter form data is displayed correctly in the modal
-   * Note: Modal should already be open before calling this method
-   * The modal displays data in read-only format with labels and values
-   * @param admissionData - Expected form data to verify
-   */
-  async verifyAdmissionLetterData(admissionData: {
-    referringToHospital: string;
-    comments: string;
-    referredToDoctor: string;
-  }) {
-    // Get the modal
-    const modal = this.page.locator('[data-testid="form-details-modal"]');
-    await modal.waitFor({ state: 'visible', timeout: 5000 });
-    await expect(modal.locator(`text=${admissionData.referringToHospital}`)).toBeVisible();
-    await expect(modal.locator(`text=${admissionData.comments}`)).toBeVisible();
-    await expect(modal.locator(`text=${admissionData.referredToDoctor}`)).toBeVisible();
+  getFormModal() {
+    return this.page.locator('[data-testid="form-details-modal"]');
+  }
+
+  async getFormModalText(): Promise<string | null> {
+    await this.getFormModal().waitFor({ state: 'visible', timeout: 5000 });
+    return this.getFormModal().textContent();
   }
 
   /**

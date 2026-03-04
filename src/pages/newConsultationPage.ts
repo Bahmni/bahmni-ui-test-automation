@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { MedicationData } from '../../test-data/medicationData';
 
 /**
@@ -51,6 +51,10 @@ export class NewConsultationPage {
     // Action buttons - Using data-testid
     cancelButton: '[data-testid="action-area-secondary-button"]',
     doneButton: '[data-testid="action-area-primary-button"]',
+
+    // Toast notification (Carbon Design System)
+    saveSuccessToast: '.cds--toast-notification',
+    saveSuccessToastCloseButton: 'button[title="close notification"]',
 
     // New Consultation button (on clinical page)
     newConsultationButton: '[data-testid="consultation-action-button"]',
@@ -179,12 +183,23 @@ export class NewConsultationPage {
   }
 
   /**
+   * Wait for the save success toast notification and dismiss it
+   */
+  async dismissSaveNotification() {
+    const toast = this.page.locator(this.selectors.saveSuccessToast);
+    await toast.waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator(this.selectors.saveSuccessToastCloseButton).click();
+    await toast.waitFor({ state: 'hidden', timeout: 5000 });
+  }
+
+  /**
    * Click Done button to save all added diagnoses and conditions
    */
   async saveDiagnosesAndConditions() {
     const doneButton = this.page.locator(this.selectors.doneButton);
     await doneButton.waitFor({ state: 'visible', timeout: 5000 });
     await doneButton.click();
+    await this.dismissSaveNotification();
     // Wait for navigation back to consultation page
     await this.page.waitForURL(/.*clinical\/.*(?<!\/consultation\/diagnoses)$/, { timeout: 10000 });
   }
@@ -343,10 +358,11 @@ export class NewConsultationPage {
   }
 
   /**
-   * Save the consultation
+   * Save the consultation and dismiss the success notification
    */
   async saveConsultation() {
     await this.page.locator(this.selectors.doneButton).click();
+    await this.dismissSaveNotification();
   }
 
   /**
@@ -363,13 +379,9 @@ export class NewConsultationPage {
     });
   }
 
-  /**
-   * Verify duplicate medication error notification is displayed
-   * This error appears when trying to prescribe a medication that is already active
-   */
-  async verifyDuplicateMedicationError() {
+  async getDuplicateMedicationNotificationText(): Promise<string | null> {
     const notification = this.page.locator('.cds--inline-notification');
     await notification.waitFor({ state: 'visible', timeout: 5000 });
-    await expect(notification).toContainText(this.DUPLICATE_DRUG_ERROR);
+    return notification.textContent();
   }
 }

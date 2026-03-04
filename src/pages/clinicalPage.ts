@@ -298,15 +298,26 @@ export class ClinicalPage {
     return await this.page.locator(sectionMap[section]).isVisible();
   }
 
+  private async getDisplayedNamesFromTable(
+    tableSelector: string,
+    section: Parameters<typeof this.navigateToSection>[0]
+  ): Promise<string[]> {
+    await this.navigateToSection(section);
+    await this.page.locator(tableSelector).locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+    return this.page.locator(tableSelector).locator('tbody tr td:first-child').allTextContents();
+  }
+
   async getDisplayedAllergens(): Promise<string[]> {
-    await this.navigateToSection('Allergies');
-    await this.page.locator(this.selectors.allergiesTable).locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
-    return this.page.locator(this.selectors.allergiesTable).locator('tbody tr td:first-child').allTextContents();
+    return this.getDisplayedNamesFromTable(this.selectors.allergiesTable, 'Allergies');
   }
 
   async getDisplayedAllergyReactions(): Promise<string[]> {
     await this.navigateToSection('Allergies');
-    await this.page.locator(this.selectors.allergiesTable).locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+    await this.page
+      .locator(this.selectors.allergiesTable)
+      .locator('tbody tr')
+      .first()
+      .waitFor({ state: 'visible', timeout: 10000 });
     return this.page.locator(this.selectors.allergiesTable).locator('tbody tr td:nth-child(2)').allTextContents();
   }
 
@@ -330,27 +341,19 @@ export class ClinicalPage {
   }
 
   async getDisplayedConditionNames(): Promise<string[]> {
-    await this.navigateToSection('Conditions and Diagnoses');
-    await this.page.locator(this.selectors.conditionsTable).locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
-    return this.page.locator(this.selectors.conditionsTable).locator('tbody tr td:first-child').allTextContents();
+    return this.getDisplayedNamesFromTable(this.selectors.conditionsTable, 'Conditions and Diagnoses');
   }
 
   async getDisplayedDiagnosisNames(): Promise<string[]> {
-    await this.navigateToSection('Conditions and Diagnoses');
-    await this.page.locator(this.selectors.diagnosesTable).locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
-    return this.page.locator(this.selectors.diagnosesTable).locator('tbody tr td:first-child').allTextContents();
+    return this.getDisplayedNamesFromTable(this.selectors.diagnosesTable, 'Conditions and Diagnoses');
   }
 
   async getDisplayedMedicationNames(): Promise<string[]> {
-    await this.navigateToSection('Medications');
-    await this.page.locator(this.selectors.medicationsTable).locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
-    return this.page.locator(this.selectors.medicationsTable).locator('tbody tr td:first-child').allTextContents();
+    return this.getDisplayedNamesFromTable(this.selectors.medicationsTable, 'Medications');
   }
 
   async getDisplayedVaccinationNames(): Promise<string[]> {
-    await this.navigateToSection('Vaccinations');
-    await this.page.locator(this.selectors.vaccinationsTable).locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
-    return this.page.locator(this.selectors.vaccinationsTable).locator('tbody tr td:first-child').allTextContents();
+    return this.getDisplayedNamesFromTable(this.selectors.vaccinationsTable, 'Vaccinations');
   }
 
   getBasicDetailsArticle() {

@@ -1,4 +1,4 @@
-import { test as base, BrowserContext } from '@playwright/test';
+import { test as base, expect as baseExpect, BrowserContext } from '@playwright/test';
 import { PageFactory } from '../pages/PageFactory';
 import { ActionFactory } from '../actions/ActionFactory';
 import { generatePatientData, PatientData } from '../../test-data/patientData';
@@ -129,4 +129,15 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
   },
 });
 
-export { expect } from '@playwright/test';
+export const expect = baseExpect.extend({
+  toContainItemMatching(received: string[], expected: string) {
+    const match = received.some((item) => item.toLowerCase().includes(expected.toLowerCase()));
+    return {
+      pass: match,
+      message: () =>
+        match
+          ? `Expected list not to contain item matching "${expected}", but found it in: [${received.join(', ')}]`
+          : `Expected list to contain item matching "${expected}", but got: [${received.join(', ')}]`,
+    };
+  },
+});

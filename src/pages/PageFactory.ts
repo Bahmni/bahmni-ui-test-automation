@@ -8,11 +8,13 @@ import { ClinicalPage } from './clinicalPage';
 import { ConsultationDashboard } from './consultationDashboard';
 import { NewConsultationPage } from './newConsultationPage';
 import { ActivePatientsPage } from './activePatients';
-import { AdmissionLetterForm } from './admissionLetterForm';
-import { DeathNoteForm } from './deathNoteForm';
-import { HistoryAndExaminationForm } from './historyAndExaminationForm';
-import { VitalsForm } from './vitalsForm';
-import { SecondVitalsForm } from './secondVitalsForm';
+import { AdmissionLetterForm } from './obsForms/admissionLetterForm';
+import { DeathNoteForm } from './obsForms/deathNoteForm';
+import { DiabetesProgressForm } from './obsForms/diabetesProgressForm';
+import { HistoryAndExaminationForm } from './obsForms/historyAndExaminationForm';
+import { MalariaForm } from './obsForms/malariaForm';
+import { VitalsForm } from './obsForms/vitalsForm';
+import { SecondVitalsForm } from './obsForms/secondVitalsForm';
 
 /**
  * PageFactory class to initialize all page objects
@@ -30,7 +32,9 @@ export class PageFactory {
   readonly activePatientsPage: ActivePatientsPage;
   readonly admissionLetterForm: AdmissionLetterForm;
   readonly deathNoteForm: DeathNoteForm;
+  readonly diabetesProgressForm: DiabetesProgressForm;
   readonly historyAndExaminationForm: HistoryAndExaminationForm;
+  readonly malariaForm: MalariaForm;
   readonly vitalsForm: VitalsForm;
   readonly secondVitalsForm: SecondVitalsForm;
 
@@ -46,7 +50,9 @@ export class PageFactory {
     this.activePatientsPage = new ActivePatientsPage(page);
     this.admissionLetterForm = new AdmissionLetterForm(page);
     this.deathNoteForm = new DeathNoteForm(page);
+    this.diabetesProgressForm = new DiabetesProgressForm(page);
     this.historyAndExaminationForm = new HistoryAndExaminationForm(page);
+    this.malariaForm = new MalariaForm(page);
     this.vitalsForm = new VitalsForm(page);
     this.secondVitalsForm = new SecondVitalsForm(page);
   }

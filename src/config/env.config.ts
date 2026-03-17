@@ -61,13 +61,21 @@ export const config = {
       username: getRequiredEnv('USER_RECEPTIONIST_USERNAME'),
       password: getRequiredEnv('USER_RECEPTIONIST_PASSWORD'),
     },
+    frontdesk: {
+      username: getRequiredEnv('USER_FRONTDESK_USERNAME'),
+      password: getRequiredEnv('USER_FRONTDESK_PASSWORD'),
+    },
+    clinicalRead: {
+      username: getRequiredEnv('USER_CLINICAL_READONLY_USERNAME'),
+      password: getRequiredEnv('USER_CLINICAL_READONLY_PASSWORD'),
+    },
   },
 
   // Default user
   defaultUser: getOptionalEnv('DEFAULT_USER', 'admin'),
 
   // Helper method to get user credentials by role
-  getUser(role: 'admin' | 'doctor' | 'nurse' | 'receptionist' = 'admin') {
+  getUser(role: 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'frontdesk' | 'clinicalRead' = 'admin') {
     return this.users[role];
   },
 

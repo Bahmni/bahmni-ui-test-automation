@@ -1,11 +1,10 @@
-import { test, expect } from '../../src/fixtures/clinicalFixture';
-import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../test-data/allergyData';
-import { medicalFaker } from '../../test-data/investigationData';
-import { diagnosisFaker } from '../../test-data/diagnosisData';
-import { medicationFaker } from '../../test-data/medicationData';
-import { vaccinationFaker } from '../../test-data/vaccinationData';
-import { admissionLetterFaker } from '../../test-data/admissionLetterData';
-import { vitalsFaker } from '../../test-data/vitalsData';
+import { test, expect } from '../../../src/fixtures/clinicalFixture';
+import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../../test-data/allergyData';
+import { medicalFaker } from '../../../test-data/investigationData';
+import { diagnosisFaker } from '../../../test-data/diagnosisData';
+import { medicationFaker } from '../../../test-data/medicationData';
+import { vaccinationFaker } from '../../../test-data/vaccinationData';
+import { vitalsFaker } from '../../../test-data/vitalsData';
 
 test.describe.serial('Clinical Consultation Tests', () => {
   test('Add allergy with severity and reaction in consultation', async ({ clinicalSetup }) => {
@@ -79,23 +78,11 @@ test.describe.serial('Clinical Consultation Tests', () => {
     const vitalsData = vitalsFaker.normalVitals();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
-    await actions.clinical.addVitalsInConsultation(vitalsData);
-    await actions.clinical.verifyObservationsSection(vitalsData.pulse);
-    await actions.clinical.verifyVitalsFlowSheet(vitalsData);
-    await actions.clinical.openObservationForm('Vitals');
-    await actions.clinical.verifyVitalsData(vitalsData);
+    await actions.observation.addVitalsInConsultation(vitalsData);
+    await actions.observation.verifyObservationsSection(vitalsData.pulse);
+    await actions.observation.verifyVitalsFlowSheet(vitalsData);
+    await actions.observation.openObservationForm('Vitals');
+    await actions.observation.verifyVitalsData(vitalsData);
     await bahmni.vitalsForm.closeModal();
-  });
-
-  test('Add admission letter observation form in consultation', async ({ clinicalSetup }) => {
-    test.setTimeout(60000);
-    const { actions, bahmni, page } = clinicalSetup;
-    const admissionLetterData = admissionLetterFaker.simpleAdmissionLetter();
-
-    await expect(page).toHaveURL(/.*clinical\/.*/);
-    await actions.clinical.addAdmissionLetterInConsultation(admissionLetterData);
-    await actions.clinical.openObservationForm('Admission Letter');
-    await actions.clinical.verifyAdmissionLetterData(admissionLetterData);
-    await bahmni.admissionLetterForm.closeModal();
   });
 });

@@ -131,6 +131,13 @@ export class ClinicalPage {
   }
 
   /**
+   * Returns the New Consultation button locator (for visibility assertions)
+   */
+  getNewConsultationButton() {
+    return this.page.locator(this.selectors.newConsultationButton);
+  }
+
+  /**
    * Get patient details from the header
    */
   async getPatientDetails() {
@@ -387,7 +394,9 @@ export class ClinicalPage {
     if (isExpanded === 'false' || isExpanded === null) {
       await formButton.click();
     }
-    const dateLink = formsSection.locator('a').first();
+    // Scope link click to the specific form's list item to avoid clicking a different form's link
+    const formListItem = formsSection.locator(`li:has(button:has-text("${formName}"))`);
+    const dateLink = formListItem.locator('a').first();
     await dateLink.scrollIntoViewIfNeeded();
     await dateLink.waitFor({ state: 'visible', timeout: 10000 });
     await dateLink.click();

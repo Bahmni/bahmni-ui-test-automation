@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { PageFactory } from '../../src/pages/PageFactory';
-import { ActionFactory } from '../../src/actions/ActionFactory';
-import { generatePatientData } from '../../test-data/patientData';
+import { PageFactory } from '../../../src/pages/PageFactory';
+import { ActionFactory } from '../../../src/actions/ActionFactory';
+import { generatePatientData } from '../../../test-data/patientData';
 
-test.describe('Bahmni sanity Tests', () => {
+test.describe('Patient registration tests', () => {
   test('Register and verify patient details', async ({ page }) => {
     const bahmni = new PageFactory(page);
     const actions = new ActionFactory(bahmni);

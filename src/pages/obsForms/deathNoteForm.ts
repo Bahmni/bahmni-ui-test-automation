@@ -61,6 +61,7 @@ export class DeathNoteForm {
   async waitForFormToLoad() {
     await this.page.locator(this.selectors.formHeading).waitFor({ state: 'visible', timeout: 10000 });
     await this.page.locator(this.selectors.saveFormButton).waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.getByRole('textbox', { name: 'Date of death' }).waitFor({ state: 'visible', timeout: 20000 });
   }
 
   /**
@@ -68,7 +69,7 @@ export class DeathNoteForm {
    * @param dateOfDeath - Date in format (e.g., "10/02/2026")
    */
   async fillDateOfDeath(dateOfDeath: string) {
-    await this.page.locator(this.selectors.dateOfDeathInput).fill(dateOfDeath);
+    await this.page.getByRole('textbox', { name: 'Date of death' }).fill(dateOfDeath);
   }
 
   /**
@@ -76,8 +77,7 @@ export class DeathNoteForm {
    * @param cause - Cause of death from PROBABLE_CAUSE constants
    */
   async selectProbableCauseOfDeath(cause: string) {
-    const causeSelector = `button:has-text("${cause}")`;
-    await this.page.locator(causeSelector).click();
+    await this.page.getByRole('button', { name: cause, exact: true }).click();
   }
 
   /**
@@ -85,8 +85,9 @@ export class DeathNoteForm {
    * @param broughtInDead - "Yes" or "No"
    */
   async selectBroughtInDead(broughtInDead: 'Yes' | 'No') {
-    const selector = broughtInDead === 'Yes' ? this.selectors.broughtInDeadYes : this.selectors.broughtInDeadNo;
-    await this.page.locator(selector).click();
+    // Brought in dead is the last Yes/No button group in the form
+    const buttons = this.page.getByRole('button', { name: broughtInDead, exact: true });
+    await buttons.last().click();
   }
 
   /**
@@ -133,5 +134,15 @@ export class DeathNoteForm {
   }) {
     await this.fillDeathNoteForm(deathNoteData);
     await this.saveForm();
+  }
+
+  getFormModal() {
+    return this.page.locator('[data-testid="form-details-modal"]');
+  }
+
+  async closeModal() {
+    await this.page.keyboard.press('Escape');
+    const modal = this.page.locator('[data-testid="form-details-modal"]');
+    await modal.waitFor({ state: 'hidden', timeout: 5000 });
   }
 }

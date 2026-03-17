@@ -40,8 +40,7 @@ test.describe.serial('Observation form Tests', () => {
     await expect(page).toHaveURL(/.*clinical\/.*/);
     await actions.observation.addDeathNoteInConsultation(deathNoteData);
     await actions.observation.openObservationForm('Death Note');
-    // TODO: Data loads with a delay — re-enable once root cause is fixed
-    //await actions.observation.verifyDeathNoteData(deathNoteData);
+    await actions.observation.verifyDeathNoteData(deathNoteData);
     await bahmni.deathNoteForm.closeModal();
   });
 
@@ -53,8 +52,7 @@ test.describe.serial('Observation form Tests', () => {
     await expect(page).toHaveURL(/.*clinical\/.*/);
     await actions.observation.addDiabetesProgressInConsultation(diabetesProgressData);
     await actions.observation.openObservationForm('Diabetes Progress');
-    // TODO: Data loads with a delay — re-enable once root cause is fixed
-    // await actions.observation.verifyDiabetesProgressData(diabetesProgressData);
+    await actions.observation.verifyDiabetesProgressData(diabetesProgressData);
     await bahmni.diabetesProgressForm.closeModal();
   });
 
@@ -66,8 +64,7 @@ test.describe.serial('Observation form Tests', () => {
     await expect(page).toHaveURL(/.*clinical\/.*/);
     await actions.observation.addMalariaInConsultation(malariaData);
     await actions.observation.openObservationForm('Malaria');
-    // TODO: Data loads with a delay — re-enable once root cause is fixed
-    //await actions.observation.verifyMalariaData(malariaData);
+    await actions.observation.verifyMalariaData(malariaData);
     await bahmni.malariaForm.closeModal();
   });
 });

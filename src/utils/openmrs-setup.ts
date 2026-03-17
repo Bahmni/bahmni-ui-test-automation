@@ -42,19 +42,29 @@ function parseCSVLine(line: string): string[] {
 function parseRolesCSV(filePath: string): RoleDefinition[] {
   const lines = readFileSync(filePath, 'utf-8')
     .split('\n')
-    .filter(line => line.trim());
+    .filter((line) => line.trim());
 
   return lines
     .slice(1) // skip header
-    .map(line => parseCSVLine(line))
-    .filter(cols => cols.length >= 2 && cols[1])
-    .map(cols => ({
+    .map((line) => parseCSVLine(line))
+    .filter((cols) => cols.length >= 2 && cols[1])
+    .map((cols) => ({
       uuid: cols[0] || undefined,
       name: cols[1],
       username: cols[2] || undefined,
       description: cols[3] || '',
-      inheritedRoles: cols[4] ? cols[4].split(';').map(s => s.trim()).filter(Boolean) : [],
-      privileges: cols[5] ? cols[5].split(';').map(s => s.trim()).filter(Boolean) : [],
+      inheritedRoles: cols[4]
+        ? cols[4]
+            .split(';')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
+      privileges: cols[5]
+        ? cols[5]
+            .split(';')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
     }));
 }
 
@@ -112,10 +122,9 @@ async function fetchUserPersonUuid(username: string, baseUrl: string, auth: stri
  */
 async function providerExistsForPerson(identifier: string, baseUrl: string, auth: string): Promise<boolean> {
   try {
-    const response = await fetch(
-      `${baseUrl}/openmrs/ws/rest/v1/provider?q=${identifier}&v=default`,
-      { headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' } }
-    );
+    const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/provider?q=${identifier}&v=default`, {
+      headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
+    });
     if (!response.ok) return false;
     const data = await response.json();
     return (data.results ?? []).some((p: { identifier?: string }) => p.identifier === identifier);
@@ -128,12 +137,7 @@ async function providerExistsForPerson(identifier: string, baseUrl: string, auth
  * Create a Provider record linked to the given person UUID.
  * Required for users whose role (or inherited roles) includes Provider.
  */
-async function createProvider(
-  identifier: string,
-  personUuid: string,
-  baseUrl: string,
-  auth: string
-): Promise<void> {
+async function createProvider(identifier: string, personUuid: string, baseUrl: string, auth: string): Promise<void> {
   try {
     const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/provider`, {
       method: 'POST',
@@ -207,7 +211,7 @@ async function setupUsers(roles: RoleDefinition[], baseUrl: string) {
   const { uuidByName: roleUuidByName, providerRoles } = await fetchExistingRoles(baseUrl, auth);
   const passwordMap = buildPasswordMap();
 
-  for (const role of roles.filter(r => r.username)) {
+  for (const role of roles.filter((r) => r.username)) {
     const username = role.username!;
     if (existingUsernames.has(username)) {
       console.log(`  ✓ User "${username}" already exists (skipped)`);
@@ -260,9 +264,7 @@ async function fetchExistingRoles(
       if (name) {
         names.add(name);
         if (r.uuid) uuidByName.set(name, r.uuid);
-        const inheritsProvider = r.inheritedRoles?.some(
-          (ir: any) => (ir.display ?? ir.name) === 'Provider'
-        );
+        const inheritsProvider = r.inheritedRoles?.some((ir: any) => (ir.display ?? ir.name) === 'Provider');
         if (inheritsProvider) providerRoles.add(name);
       }
     }
@@ -283,8 +285,8 @@ async function createRole(
   const body: Record<string, unknown> = {
     name: role.name,
     description: role.description,
-    privileges: role.privileges.map(p => ({ privilege: p })),
-    inheritedRoles: role.inheritedRoles.map(r => ({ name: r })),
+    privileges: role.privileges.map((p) => ({ privilege: p })),
+    inheritedRoles: role.inheritedRoles.map((r) => ({ name: r })),
   };
   if (role.uuid) body.uuid = role.uuid;
 
@@ -326,10 +328,13 @@ async function syncRolePrivileges(
     if (!res.ok) return;
     const data = await res.json();
     const existing = new Set<string>((data.privileges ?? []).map((p: any) => p.display ?? p.name));
-    const missing = role.privileges.filter(p => !existing.has(p));
+    const missing = role.privileges.filter((p) => !existing.has(p));
     if (missing.length === 0) return;
 
-    const updated = [...(data.privileges ?? []).map((p: any) => ({ privilege: p.display ?? p.name })), ...missing.map(p => ({ privilege: p }))];
+    const updated = [
+      ...(data.privileges ?? []).map((p: any) => ({ privilege: p.display ?? p.name })),
+      ...missing.map((p) => ({ privilege: p })),
+    ];
     const update = await fetch(`${baseUrl}/openmrs/ws/rest/v1/role/${roleUuid}`, {
       method: 'POST',
       headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
@@ -361,7 +366,7 @@ async function setupRoles(baseUrl: string): Promise<RoleDefinition[]> {
 
   // For existing roles sync any missing privileges; collect new roles to create
   const syncPromises: Promise<void>[] = [];
-  let pending = roles.filter(r => {
+  let pending = roles.filter((r) => {
     if (existingRoles.has(r.name)) {
       const uuid = uuidByName.get(r.name);
       if (uuid) syncPromises.push(syncRolePrivileges(r, uuid, baseUrl, auth));
@@ -386,7 +391,7 @@ async function setupRoles(baseUrl: string): Promise<RoleDefinition[]> {
   }
 
   if (pending.length > 0) {
-    console.warn(`  ⚠ Could not create role(s): ${pending.map(r => r.name).join(', ')}`);
+    console.warn(`  ⚠ Could not create role(s): ${pending.map((r) => r.name).join(', ')}`);
   }
 
   console.log('✓ Role setup complete\n');

@@ -22,7 +22,9 @@ export class DiabetesProgressForm {
   async waitForFormToLoad() {
     await this.page.locator(this.selectors.formHeading).waitFor({ state: 'visible', timeout: 10000 });
     await this.page.locator(this.selectors.saveFormButton).waitFor({ state: 'visible', timeout: 10000 });
-    await this.page.getByRole('textbox', { name: 'Date of last patient visit' }).waitFor({ state: 'visible', timeout: 20000 });
+    await this.page
+      .getByRole('textbox', { name: 'Date of last patient visit' })
+      .waitFor({ state: 'visible', timeout: 20000 });
   }
 
   async fillLastPatientVisitDate(date: string) {

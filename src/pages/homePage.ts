@@ -1,4 +1,5 @@
 import { Page } from '@playwright/test';
+import { config } from '../config/env.config';
 
 /**
  * HomePage class for Bahmni dashboard/home page
@@ -40,6 +41,14 @@ export class HomePage {
 
   constructor(page: Page) {
     this.page = page;
+  }
+
+  /**
+   * Navigate to the Bahmni home dashboard
+   */
+  async goto() {
+    await this.page.goto(config.urls.dashboard);
+    await this.page.waitForLoadState('networkidle');
   }
 
   /**

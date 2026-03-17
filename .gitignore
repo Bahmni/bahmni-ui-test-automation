@@ -23,6 +23,7 @@ allure-report/
 # Claude Code
 .claude
 .playwright-mcp
+CLAUDE.md
 
 # IDE
 .vscode/

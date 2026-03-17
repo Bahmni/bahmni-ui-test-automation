@@ -25,7 +25,7 @@
     "tests/**/*",
     "test-data/**/*",
     "playwright.config.ts",
-    "global-setup.ts",
+    "src/utils/openmrs-setup.ts",
     "global-teardown.ts"
   ],
   "exclude": ["node_modules", "dist", "reports", "eslint.config.js"]

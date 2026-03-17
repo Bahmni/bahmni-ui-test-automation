@@ -15,12 +15,14 @@ dotenv.config({ path: path.resolve(process.cwd(), `.env.${env}`) });
  */
 export default defineConfig({
   /* Global setup file - runs once before all tests */
-  globalSetup: require.resolve('./global-setup'),
+  globalSetup: require.resolve('./src/utils/openmrs-setup'),
 
   /* Global teardown file - runs once after all tests */
   globalTeardown: require.resolve('./global-teardown'),
 
   testDir: './tests',
+  /* Global test timeout - clinical tests need extra time for fixture setup (login+register+navigate) */
+  timeout: 120000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -56,7 +58,7 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: 'off',
 
     /* Maximum time each action such as `click()` can take */
     actionTimeout: parseInt(process.env.TIMEOUT || '30000'),
@@ -86,7 +88,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     },
 
     // {

@@ -1,4 +1,4 @@
-import { test, expect } from '../../src/fixtures/clinicalFixture';
+import { test, expect } from '../../../src/fixtures/clinicalFixture';
 import {
   DUPLICATE_MEDICATION_PAIRS,
   DOSAGE_UNITS,
@@ -6,7 +6,7 @@ import {
   DURATION_UNITS,
   INSTRUCTIONS,
   ROUTES,
-} from '../../test-data/medicationData';
+} from '../../../test-data/medicationData';
 import { faker } from '@faker-js/faker';
 
 test.describe.serial('Duplicate Medication Tests', () => {

@@ -1,9 +1,7 @@
-import { expect } from '@playwright/test';
+import { expect } from '../fixtures/clinicalFixture';
 import { PageFactory } from '../pages/PageFactory';
 import { AllergyData } from '../../test-data/allergyData';
 import { MedicationData } from '../../test-data/medicationData';
-import { VitalsData } from '../../test-data/vitalsData';
-import { AdmissionLetterData } from '../../test-data/admissionLetterData';
 
 const DUPLICATE_DRUG_ERROR =
   'One or more drugs you are trying to order are already active. Please change the start date of the conflicting drug or remove them from the new prescription.';
@@ -38,14 +36,6 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.saveConsultation();
   }
 
-  async addVitalsInConsultation(vitalsData: VitalsData) {
-    await this.startNewConsultation();
-    await this.bahmni.newConsultationPage.openVitalsForm();
-    await this.bahmni.vitalsForm.waitForFormToLoad();
-    await this.bahmni.vitalsForm.fillAndSaveVitals(vitalsData);
-    await this.bahmni.newConsultationPage.saveConsultation();
-  }
-
   async addInvestigationsInConsultation(investigations: string[]) {
     await this.startNewConsultation();
     for (const investigation of investigations) {
@@ -61,14 +51,6 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.saveDiagnosesAndConditions();
   }
 
-  async addAdmissionLetterInConsultation(admissionLetterData: AdmissionLetterData) {
-    await this.startNewConsultation();
-    await this.bahmni.newConsultationPage.searchAndOpenObservationForm('Admission Letter');
-    await this.bahmni.admissionLetterForm.waitForFormToLoad();
-    await this.bahmni.admissionLetterForm.fillAndSaveAdmissionLetter(admissionLetterData);
-    await this.bahmni.newConsultationPage.saveConsultation();
-  }
-
   async searchMedicationInNewConsultation(medicationName: string) {
     await this.startNewConsultation();
     await this.bahmni.newConsultationPage.searchAndSelectMedication(medicationName);
@@ -81,11 +63,17 @@ export class ClinicalActions {
     await this.bahmni.activePatientsPage.selectPatientById(patientId);
   }
 
+  async navigateToClinicalFromHome(patientId: string) {
+    await this.bahmni.homePage.navigateToModule(this.bahmni.homePage.MODULES.CLINICAL);
+    await this.bahmni.activePatientsPage.selectTab('new-active');
+    await this.bahmni.activePatientsPage.selectPatientById(patientId);
+  }
+
   async verifyAllergyDisplayed(allergyData: AllergyData) {
     const allergens = await this.bahmni.clinicalPage.getDisplayedAllergens();
-    expect(allergens.some((a) => a.toLowerCase().includes(allergyData.allergen.toLowerCase()))).toBe(true);
+    expect(allergens).toContainItemMatching(allergyData.allergen);
     const reactions = await this.bahmni.clinicalPage.getDisplayedAllergyReactions();
-    expect(reactions.some((r) => r.toLowerCase().includes(allergyData.reaction.toLowerCase()))).toBe(true);
+    expect(reactions).toContainItemMatching(allergyData.reaction);
   }
 
   async verifyInvestigationOrProcedureDisplayed(
@@ -100,60 +88,30 @@ export class ClinicalActions {
 
   async verifyConditionDisplayed(conditionName: string) {
     const conditions = await this.bahmni.clinicalPage.getDisplayedConditionNames();
-    expect(conditions.some((c) => c.toLowerCase().includes(conditionName.toLowerCase()))).toBe(true);
+    expect(conditions).toContainItemMatching(conditionName);
   }
 
   async verifyDiagnosisDisplayed(diagnosisName: string) {
     const diagnoses = await this.bahmni.clinicalPage.getDisplayedDiagnosisNames();
-    expect(diagnoses.some((d) => d.toLowerCase().includes(diagnosisName.toLowerCase()))).toBe(true);
+    expect(diagnoses).toContainItemMatching(diagnosisName);
   }
 
   async verifyMedicationDisplayed(medication: MedicationData) {
     // The UI displays only the base drug name, stripping " (Form)- GenericName" suffix
-    const displayName = medication.name.split(/\s+\(/)[0].toLowerCase();
+    const displayName = medication.name.split(/\s+\(/)[0];
     const medications = await this.bahmni.clinicalPage.getDisplayedMedicationNames();
-    expect(medications.some((m) => m.toLowerCase().includes(displayName))).toBe(true);
+    expect(medications).toContainItemMatching(displayName);
   }
 
   async verifyVaccinationDisplayed(vaccination: MedicationData) {
     // The UI displays only the base drug name, stripping " (Form)- GenericName" suffix
-    const displayName = vaccination.name.split(/\s+\(/)[0].toLowerCase();
+    const displayName = vaccination.name.split(/\s+\(/)[0];
     const vaccinations = await this.bahmni.clinicalPage.getDisplayedVaccinationNames();
-    expect(vaccinations.some((v) => v.toLowerCase().includes(displayName))).toBe(true);
+    expect(vaccinations).toContainItemMatching(displayName);
   }
 
-  async verifyObservationsSection(pulse: string) {
-    await this.bahmni.clinicalPage.navigateToSection('Basic Details');
-    await expect(this.bahmni.clinicalPage.getBasicDetailsArticle()).toContainText(pulse);
-  }
-
-  async verifyVitalsFlowSheet(vitals: VitalsData) {
-    await this.bahmni.clinicalPage.navigateToSection('Vitals Flow Sheet');
-    const table = this.bahmni.clinicalPage.getVitalsFlowSheetTable();
-    await expect(table).toContainText(vitals.pulse);
-    await expect(table).toContainText(vitals.oxygenSaturation);
-    await expect(table).toContainText(vitals.systolicBP);
-    await expect(table).toContainText(vitals.diastolicBP);
-  }
-
-  async openObservationForm(formName: string) {
-    await this.bahmni.clinicalPage.openObservationFormModal(formName);
-  }
-
-  async verifyVitalsData(vitalsData: VitalsData) {
-    const modal = this.bahmni.vitalsForm.getFormModal();
-    await expect(modal).toContainText(vitalsData.pulse);
-    await expect(modal).toContainText(vitalsData.oxygenSaturation);
-    await expect(modal).toContainText(vitalsData.temperature);
-    await expect(modal).toContainText(vitalsData.systolicBP);
-    await expect(modal).toContainText(vitalsData.diastolicBP);
-  }
-
-  async verifyAdmissionLetterData(admissionLetterData: AdmissionLetterData) {
-    const modal = this.bahmni.admissionLetterForm.getFormModal();
-    await expect(modal).toContainText(admissionLetterData.referringToHospital);
-    await expect(modal).toContainText(admissionLetterData.comments);
-    await expect(modal).toContainText(admissionLetterData.referredToDoctor);
+  async verifyNewConsultationButtonNotVisible() {
+    await expect(this.bahmni.clinicalPage.getNewConsultationButton()).not.toBeVisible();
   }
 
   async verifyDuplicateMedicationError() {

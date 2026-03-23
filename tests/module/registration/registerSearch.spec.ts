@@ -79,10 +79,8 @@ test.describe('Patient registration tests', () => {
       patientData1.firstName + ' ' + patientData1.lastName
     );
 
-    // Click patient link which opens in new tab and returns new page instance
     const patient1Page = await bahmni.createPatientPage.clickPatientLink();
 
-    // Verify relationship on the opened patient's record (new tab - different page context)
     const relType = await patient1Page.getRelationshipType();
     expect(relType?.trim()).toContain('Son');
     const relName = await patient1Page.getRelationshipPatientName();

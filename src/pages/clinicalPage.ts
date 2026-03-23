@@ -385,6 +385,20 @@ export class ClinicalPage {
     return this.getVitalsFlowSheetTable().textContent();
   }
 
+  getLabResultRow(testName: string) {
+    return this.page
+      .locator('tr')
+      .filter({ has: this.page.locator(`[data-testid$="-testName"]:has-text("${testName}")`) });
+  }
+
+  getLabResultValueCell(testName: string) {
+    return this.getLabResultRow(testName).locator('[data-testid$="-result"] > div');
+  }
+
+  getLabReferenceRangeCell(testName: string) {
+    return this.getLabResultRow(testName).locator('[data-testid$="-referenceRange"]');
+  }
+
   async openObservationFormModal(formName: string): Promise<void> {
     await this.navigateToSection('Forms');
     const formsSection = this.page.locator('article:has(p:has-text("Forms"))');

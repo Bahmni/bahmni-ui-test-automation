@@ -65,7 +65,6 @@ test.describe.serial('Clinical Consultation Tests', () => {
     await expect(page).toHaveURL(/.*clinical\/.*/);
     await actions.clinical.addVaccinationInConsultation(vaccination);
 
-    // TODO: Remove this refresh once the bug is fixed - vaccinations don't display without refresh
     await page.reload();
     await page.waitForLoadState('networkidle');
 

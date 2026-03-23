@@ -2,6 +2,7 @@ import { expect } from '../fixtures/clinicalFixture';
 import { PageFactory } from '../pages/PageFactory';
 import { AllergyData } from '../../test-data/allergyData';
 import { MedicationData } from '../../test-data/medicationData';
+import { AnemiaReportData, AtypicalLymphReportData } from '../../test-data/labOrderData';
 
 const DUPLICATE_DRUG_ERROR =
   'One or more drugs you are trying to order are already active. Please change the start date of the conflicting drug or remove them from the new prescription.';
@@ -80,7 +81,6 @@ export class ClinicalActions {
     name: string,
     section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations'
   ) {
-    // The UI displays panel investigations without the " (Panel)" suffix
     const displayName = name.replace(/ \(Panel\)$/, '');
     await this.bahmni.clinicalPage.navigateToSection(section);
     await expect(this.bahmni.clinicalPage.getSectionArticle(section)).toContainText(displayName);
@@ -97,17 +97,58 @@ export class ClinicalActions {
   }
 
   async verifyMedicationDisplayed(medication: MedicationData) {
-    // The UI displays only the base drug name, stripping " (Form)- GenericName" suffix
     const displayName = medication.name.split(/\s+\(/)[0];
     const medications = await this.bahmni.clinicalPage.getDisplayedMedicationNames();
     expect(medications).toContainItemMatching(displayName);
   }
 
   async verifyVaccinationDisplayed(vaccination: MedicationData) {
-    // The UI displays only the base drug name, stripping " (Form)- GenericName" suffix
     const displayName = vaccination.name.split(/\s+\(/)[0];
     const vaccinations = await this.bahmni.clinicalPage.getDisplayedVaccinationNames();
     expect(vaccinations).toContainItemMatching(displayName);
+  }
+
+  async verifyAnemiaLabResults(reportData: AnemiaReportData) {
+    await this.bahmni.clinicalPage.navigateToSection('Lab Investigations');
+
+    const haemoglobinCell = this.bahmni.clinicalPage.getLabResultValueCell('Haemoglobin');
+    await expect(haemoglobinCell).toContainText(reportData.haemoglobin.value.toString());
+    await expect(haemoglobinCell).toContainText(reportData.haemoglobin.unit);
+    await expect(haemoglobinCell).toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Haemoglobin')).toHaveText('10.4 - 17.8');
+
+    const hematocritCell = this.bahmni.clinicalPage.getLabResultValueCell('Hematocrit');
+    await expect(hematocritCell).toContainText(reportData.hematocrit.value.toString());
+    await expect(hematocritCell).toContainText(reportData.hematocrit.unit);
+    await expect(hematocritCell).toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Hematocrit')).toHaveText('32.3 - 51.9');
+
+    const plateletsCell = this.bahmni.clinicalPage.getLabResultValueCell('Platelets');
+    await expect(plateletsCell).toContainText(reportData.platelets.value.toString());
+    await expect(plateletsCell).toContainText(reportData.platelets.unit);
+    await expect(plateletsCell).toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Platelets')).toHaveText('134 - 419');
+
+    const sickleCellCell = this.bahmni.clinicalPage.getLabResultValueCell('Sickle cell screening test');
+    await expect(sickleCellCell).toContainText(reportData.sickleCellTest);
+    await expect(sickleCellCell).toHaveClass(/abnormalResult/);
+
+    const reticulocytesCell = this.bahmni.clinicalPage.getLabResultValueCell('Reticulocytes (%)');
+    await expect(reticulocytesCell).toContainText(reportData.reticulocytes.value.toString());
+    await expect(reticulocytesCell).toContainText(reportData.reticulocytes.unit);
+    await expect(reticulocytesCell).not.toHaveClass(/abnormalResult/);
+  }
+
+  async verifyAtypicalLymphLabResults(reportData: AtypicalLymphReportData) {
+    await this.bahmni.clinicalPage.navigateToSection('Lab Investigations');
+
+    const cell = this.bahmni.clinicalPage.getLabResultValueCell('Absolute atypical lymphocyte count');
+    await expect(cell).toContainText(reportData.atypicalLymphCount.value.toString());
+    await expect(cell).toContainText(reportData.atypicalLymphCount.unit);
+    await expect(cell).not.toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Absolute atypical lymphocyte count')).toHaveText(
+      '1 - 50'
+    );
   }
 
   async verifyNewConsultationButtonNotVisible() {

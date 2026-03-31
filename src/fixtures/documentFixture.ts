@@ -19,8 +19,20 @@ const DOCUMENT_TYPE = 'Patient File';
 const TOTAL_DOCUMENTS = 2;
 
 const DOCUMENTS_TO_UPLOAD = [
-  { fileName: 'PatientHistory', filePath: 'test-data/patientHistory.pdf', fileType: 'pdf', format: 'pdf', contentType: 'application/pdf' },
-  { fileName: 'Prescription', filePath: 'test-data/prescription.png', fileType: 'image', format: 'png', contentType: 'image/png' },
+  {
+    fileName: 'PatientHistory',
+    filePath: 'test-data/patientHistory.pdf',
+    fileType: 'pdf',
+    format: 'pdf',
+    contentType: 'application/pdf',
+  },
+  {
+    fileName: 'Prescription',
+    filePath: 'test-data/prescription.png',
+    fileType: 'image',
+    format: 'png',
+    contentType: 'image/png',
+  },
 ];
 
 export const test = base.extend<DocumentFixtures>({

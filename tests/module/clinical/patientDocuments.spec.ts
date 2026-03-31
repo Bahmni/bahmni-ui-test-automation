@@ -1,4 +1,10 @@
-import { test, expect, DOCUMENT_IDENTIFIER, DOCUMENT_TYPE, TOTAL_DOCUMENTS } from '../../../src/fixtures/documentFixture';
+import {
+  test,
+  expect,
+  DOCUMENT_IDENTIFIER,
+  DOCUMENT_TYPE,
+  TOTAL_DOCUMENTS,
+} from '../../../src/fixtures/documentFixture';
 
 test.describe('Patient Document Tests', () => {
   test('View uploaded patient documents in clinical dashboard', async ({ documentSetup }) => {

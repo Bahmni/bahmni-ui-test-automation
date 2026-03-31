@@ -12,6 +12,29 @@ interface RoleDefinition {
   privileges: string[];
 }
 
+interface OpenMRSUser {
+  uuid: string;
+  username: string;
+  person?: { uuid: string };
+}
+
+interface OpenMRSRole {
+  uuid: string;
+  display?: string;
+  name?: string;
+  inheritedRoles?: Array<{ display?: string; name?: string }>;
+  privileges?: Array<{ display?: string; name?: string }>;
+}
+
+interface OpenMRSRelationship {
+  aIsToB: string;
+  bIsToA: string;
+}
+
+interface OpenMRSResultSet<T> {
+  results: T[];
+}
+
 /**
  * Parse a single CSV line respecting double-quoted fields
  */
@@ -94,7 +117,7 @@ async function fetchExistingUsernames(baseUrl: string, auth: string): Promise<Se
     });
     if (!response.ok) return new Set();
     const data = await response.json();
-    return new Set((data.results ?? []).map((u: any) => u.username).filter(Boolean));
+    return new Set((data as OpenMRSResultSet<OpenMRSUser>).results.map((u) => u.username).filter(Boolean));
   } catch {
     return new Set();
   }
@@ -110,7 +133,7 @@ async function fetchUserPersonUuid(username: string, baseUrl: string, auth: stri
     });
     if (!response.ok) return null;
     const data = await response.json();
-    const user = data.results?.find((u: any) => u.username === username);
+    const user = (data as OpenMRSResultSet<OpenMRSUser>).results?.find((u) => u.username === username);
     return user?.person?.uuid ?? null;
   } catch {
     return null;
@@ -145,7 +168,7 @@ async function createProvider(identifier: string, personUuid: string, baseUrl: s
       body: JSON.stringify({ identifier, person: personUuid, retired: false }),
     });
     if (response.ok) {
-      const data: any = await response.json();
+      const data = (await response.json()) as { uuid: string };
       console.log(`    ↳ Provider record created for "${identifier}" (UUID: ${data.uuid})`);
     } else {
       const errorText = await response.text();
@@ -184,7 +207,7 @@ async function createUser(
     });
 
     if (response.ok) {
-      const data: any = await response.json();
+      const data = (await response.json()) as OpenMRSUser;
       console.log(`  ✓ Created user "${username}" with role "${roleName}" (UUID: ${data.uuid})`);
       return { success: true, personUuid: data.person?.uuid };
     } else {
@@ -212,7 +235,7 @@ async function setupUsers(roles: RoleDefinition[], baseUrl: string) {
   const passwordMap = buildPasswordMap();
 
   for (const role of roles.filter((r) => r.username)) {
-    const username = role.username!;
+    const username = role.username as string;
     if (existingUsernames.has(username)) {
       console.log(`  ✓ User "${username}" already exists (skipped)`);
       const personUuid = await fetchUserPersonUuid(username, baseUrl, auth);
@@ -259,12 +282,12 @@ async function fetchExistingRoles(
     const uuidByName = new Map<string, string>();
     const providerRoles = new Set<string>();
 
-    for (const r of data.results ?? []) {
+    for (const r of (data as OpenMRSResultSet<OpenMRSRole>).results ?? []) {
       const name = r.display ?? r.name;
       if (name) {
         names.add(name);
         if (r.uuid) uuidByName.set(name, r.uuid);
-        const inheritsProvider = r.inheritedRoles?.some((ir: any) => (ir.display ?? ir.name) === 'Provider');
+        const inheritsProvider = r.inheritedRoles?.some((ir) => (ir.display ?? ir.name) === 'Provider');
         if (inheritsProvider) providerRoles.add(name);
       }
     }
@@ -298,7 +321,7 @@ async function createRole(
     });
 
     if (response.ok) {
-      const data: any = await response.json();
+      const data = (await response.json()) as { uuid: string };
       console.log(`  ✓ Created role "${role.name}" (UUID: ${data.uuid})`);
       return { success: true };
     } else {
@@ -327,12 +350,12 @@ async function syncRolePrivileges(
     });
     if (!res.ok) return;
     const data = await res.json();
-    const existing = new Set<string>((data.privileges ?? []).map((p: any) => p.display ?? p.name));
+    const existing = new Set<string>(((data as OpenMRSRole).privileges ?? []).map((p) => p.display ?? p.name));
     const missing = role.privileges.filter((p) => !existing.has(p));
     if (missing.length === 0) return;
 
     const updated = [
-      ...(data.privileges ?? []).map((p: any) => ({ privilege: p.display ?? p.name })),
+      ...((data as OpenMRSRole).privileges ?? []).map((p) => ({ privilege: p.display ?? p.name })),
       ...missing.map((p) => ({ privilege: p })),
     ];
     const update = await fetch(`${baseUrl}/openmrs/ws/rest/v1/role/${roleUuid}`, {
@@ -418,8 +441,8 @@ async function checkRelationshipExists(aIsToB: string, bIsToA: string, baseUrl: 
     }
 
     const data = await response.json();
-    const exists = data.results?.some(
-      (rel: any) => (rel.aIsToB === aIsToB && rel.bIsToA === bIsToA) || (rel.aIsToB === bIsToA && rel.bIsToA === aIsToB)
+    const exists = (data as OpenMRSResultSet<OpenMRSRelationship>).results?.some(
+      (rel) => (rel.aIsToB === aIsToB && rel.bIsToA === bIsToA) || (rel.aIsToB === bIsToA && rel.bIsToA === aIsToB)
     );
 
     return exists;
@@ -459,7 +482,7 @@ async function createRelationshipType(aIsToB: string, bIsToA: string, baseUrl: s
     });
 
     if (response.ok) {
-      const data: any = await response.json();
+      const data = (await response.json()) as { uuid: string };
       console.log(`  ✓ Created: ${aIsToB}-${bIsToA} (UUID: ${data.uuid})`);
       return { success: true, uuid: data.uuid };
     } else {
@@ -502,7 +525,9 @@ async function setupRelationshipTypes(baseUrl: string) {
  */
 async function globalSetup(playwrightConfig: FullConfig) {
   const baseUrl =
-    (playwrightConfig as any).use?.baseURL || process.env.BASE_URL || 'https://localhost/bahmni/home/index.html';
+    (playwrightConfig as unknown as { use?: { baseURL?: string } }).use?.baseURL ||
+    process.env.BASE_URL ||
+    'https://localhost/bahmni/home/index.html';
 
   // Allow self-signed certificates for all Node.js fetch calls (same as ignoreHTTPSErrors in browser)
   if (process.env.IGNORE_HTTPS_ERRORS === 'true') {

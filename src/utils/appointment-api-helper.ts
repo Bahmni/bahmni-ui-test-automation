@@ -18,10 +18,9 @@ export class AppointmentApiHelper {
   }
 
   async getFirstAvailableServiceUuid(): Promise<string> {
-    const response = await this.request.get(
-      `${this.baseUrl}/openmrs/ws/rest/v1/appointmentService/all/full`,
-      { headers: this.getAuthHeaders() }
-    );
+    const response = await this.request.get(`${this.baseUrl}/openmrs/ws/rest/v1/appointmentService/all/full`, {
+      headers: this.getAuthHeaders(),
+    });
 
     if (!response.ok()) {
       throw new Error(`Failed to fetch appointment services: ${response.status()} ${await response.text()}`);
@@ -52,22 +51,19 @@ export class AppointmentApiHelper {
   }
 
   async createAppointment(params: CreateAppointmentParams): Promise<void> {
-    const response = await this.request.post(
-      `${this.baseUrl}/openmrs/ws/rest/v1/appointments`,
-      {
-        data: {
-          patientUuid: params.patientUuid,
-          serviceUuid: params.serviceUuid,
-          startDateTime: params.dates.startDateTime,
-          endDateTime: params.dates.endDateTime,
-          appointmentKind: 'Scheduled',
-          status: params.status,
-          locationUuid: params.locationUuid,
-          providers: [],
-        },
-        headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
-      }
-    );
+    const response = await this.request.post(`${this.baseUrl}/openmrs/ws/rest/v1/appointments`, {
+      data: {
+        patientUuid: params.patientUuid,
+        serviceUuid: params.serviceUuid,
+        startDateTime: params.dates.startDateTime,
+        endDateTime: params.dates.endDateTime,
+        appointmentKind: 'Scheduled',
+        status: params.status,
+        locationUuid: params.locationUuid,
+        providers: [],
+      },
+      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
+    });
 
     if (!response.ok()) {
       throw new Error(`Failed to create appointment: ${response.status()} ${await response.text()}`);

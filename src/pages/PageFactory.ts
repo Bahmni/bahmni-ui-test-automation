@@ -15,6 +15,8 @@ import { HistoryAndExaminationForm } from './obsForms/historyAndExaminationForm'
 import { MalariaForm } from './obsForms/malariaForm';
 import { VitalsForm } from './obsForms/vitalsForm';
 import { SecondVitalsForm } from './obsForms/secondVitalsForm';
+import { PatientDocumentsPage } from './patientDocumentsPage';
+import { AppointmentsDisplayControlPage } from './appointmentsDisplayControlPage';
 
 /**
  * PageFactory class to initialize all page objects
@@ -37,6 +39,8 @@ export class PageFactory {
   readonly malariaForm: MalariaForm;
   readonly vitalsForm: VitalsForm;
   readonly secondVitalsForm: SecondVitalsForm;
+  readonly patientDocumentsPage: PatientDocumentsPage;
+  readonly appointmentsDisplayControl: AppointmentsDisplayControlPage;
 
   constructor(page: Page) {
     this.loginPage = new LoginPage(page);
@@ -55,5 +59,7 @@ export class PageFactory {
     this.malariaForm = new MalariaForm(page);
     this.vitalsForm = new VitalsForm(page);
     this.secondVitalsForm = new SecondVitalsForm(page);
+    this.patientDocumentsPage = new PatientDocumentsPage(page);
+    this.appointmentsDisplayControl = new AppointmentsDisplayControlPage(page);
   }
 }

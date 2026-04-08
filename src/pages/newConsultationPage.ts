@@ -374,5 +374,4 @@ export class NewConsultationPage {
       timeout: 10000,
     });
   }
-
 }

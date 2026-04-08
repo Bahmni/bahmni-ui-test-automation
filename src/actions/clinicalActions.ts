@@ -146,5 +146,4 @@ export class ClinicalActions {
   async verifyNewConsultationButtonNotVisible() {
     await expect(this.bahmni.clinicalPage.getNewConsultationButton()).not.toBeVisible();
   }
-
 }

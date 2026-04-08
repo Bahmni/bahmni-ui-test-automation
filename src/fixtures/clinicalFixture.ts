@@ -98,7 +98,6 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
 
     // No teardown needed - keeping session alive for next test
   },
-
 });
 
 export const expect = baseExpect.extend({

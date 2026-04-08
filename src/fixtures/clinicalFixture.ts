@@ -21,13 +21,6 @@ type ClinicalFixtures = {
     patientId: string;
     page: Page;
   };
-  isolatedClinicalSetup: {
-    bahmni: PageFactory;
-    actions: ActionFactory;
-    patientData: PatientData;
-    patientId: string;
-    page: Page;
-  };
 };
 
 type WorkerFixtures = {
@@ -104,28 +97,6 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
     });
 
     // No teardown needed - keeping session alive for next test
-  },
-
-  // Test-scoped fixture: creates a fresh patient and context per test for full isolation
-  isolatedClinicalSetup: async ({ browser }, use) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    const bahmni = new PageFactory(page);
-    const actions = new ActionFactory(bahmni);
-    const patientData = generatePatientData();
-
-    await actions.auth.loginAsAdmin();
-    const patientId = await actions.registration.registerPatientWithMandatoryDetails(patientData);
-
-    await bahmni.createPatientPage.saveAndStartOPDVisit();
-    await page.waitForLoadState('networkidle');
-
-    await actions.clinical.navigateToPatientClinical(patientId);
-    await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-    await use({ bahmni, actions, patientData, patientId, page });
-
-    await context.close();
   },
 });
 

@@ -8,10 +8,6 @@ import { MedicationData } from '../../test-data/medicationData';
 export class NewConsultationPage {
   private readonly page: Page;
 
-  // Error message selectors
-  private readonly DUPLICATE_DRUG_ERROR =
-    'One or more drugs you are trying to order are already active. Please change the start date of the conflicting drug or remove them from the new prescription.';
-
   // Locator selectors
   private readonly selectors = {
     // Heading
@@ -377,11 +373,5 @@ export class NewConsultationPage {
       state: 'visible',
       timeout: 10000,
     });
-  }
-
-  async getDuplicateMedicationNotificationText(): Promise<string | null> {
-    const notification = this.page.locator('.cds--inline-notification');
-    await notification.waitFor({ state: 'visible', timeout: 5000 });
-    return notification.textContent();
   }
 }

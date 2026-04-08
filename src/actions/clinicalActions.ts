@@ -4,9 +4,6 @@ import { AllergyData } from '../../test-data/allergyData';
 import { MedicationData } from '../../test-data/medicationData';
 import { AnemiaReportData, AtypicalLymphReportData } from '../../test-data/labOrderData';
 
-const DUPLICATE_DRUG_ERROR =
-  'One or more drugs you are trying to order are already active. Please change the start date of the conflicting drug or remove them from the new prescription.';
-
 export class ClinicalActions {
   constructor(private readonly bahmni: PageFactory) {}
 
@@ -50,11 +47,6 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.addCondition(condition);
     await this.bahmni.newConsultationPage.addDiagnosis(diagnosis);
     await this.bahmni.newConsultationPage.saveDiagnosesAndConditions();
-  }
-
-  async searchMedicationInNewConsultation(medicationName: string) {
-    await this.startNewConsultation();
-    await this.bahmni.newConsultationPage.searchAndSelectMedication(medicationName);
   }
 
   async navigateToPatientClinical(patientId: string) {
@@ -153,10 +145,5 @@ export class ClinicalActions {
 
   async verifyNewConsultationButtonNotVisible() {
     await expect(this.bahmni.clinicalPage.getNewConsultationButton()).not.toBeVisible();
-  }
-
-  async verifyDuplicateMedicationError() {
-    const text = await this.bahmni.newConsultationPage.getDuplicateMedicationNotificationText();
-    expect(text).toContain(DUPLICATE_DRUG_ERROR);
   }
 }

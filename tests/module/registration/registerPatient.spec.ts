@@ -26,6 +26,7 @@ test.describe('Patient registration tests', () => {
     await bahmni.createPatientPage.uploadPhoto('patient-photo.png');
     await bahmni.createPatientPage.fillAddressInformation(patientData.address);
     await bahmni.createPatientPage.savePatient();
+    await bahmni.createPatientPage.verifySuccessNotification();
 
     await expect(page).toHaveURL(/.*registration\/patient\/[a-f0-9-]+/);
     const patientId = await bahmni.createPatientPage.getPatientId();
@@ -57,6 +58,7 @@ test.describe('Patient registration tests', () => {
     });
 
     await bahmni.createPatientPage.savePatient();
+    await bahmni.createPatientPage.verifySuccessNotification();
     await bahmni.createPatientPage.navigateToHomePage();
     await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
@@ -73,6 +75,7 @@ test.describe('Patient registration tests', () => {
       patientData1.firstName + ' ' + patientData1.lastName
     );
     await bahmni.createPatientPage.savePatient();
+    await bahmni.createPatientPage.verifySuccessNotification();
 
     await actions.registration.verifyPatientRelationship(
       'Father',

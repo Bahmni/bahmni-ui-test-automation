@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 import * as path from 'path';
 
 /**
@@ -27,7 +27,7 @@ export class CreatePatientPage {
   private readonly selectors = {
     // Header elements
     homeLink: 'a:has-text("Home")',
-    searchPatientLink: 'a:has-text("Search Patient")',
+    searchPatientLink: 'a:has-text("Registration")',
 
     // Photo upload - No IDs available
     uploadPhotoButton: 'button:has-text("Upload photo")',
@@ -73,7 +73,6 @@ export class CreatePatientPage {
     passportInput: 'input[placeholder="Passport"]',
 
     // Relationships
-    relationshipsSection: 'text=Relationships Information',
     addAnotherRelationshipButton: 'button:has-text("Add another")',
     relationshipTypeComboBox: '[data-testid="new-relationship-type-combobox"]',
     patientSearchComboBox: '[data-testid="new-relationship-patient-search-combobox"]',
@@ -89,6 +88,16 @@ export class CreatePatientPage {
 
   constructor(page: Page) {
     this.page = page;
+  }
+
+  private async expandSectionIfCollapsed(sectionTitle: string, signalSelector: string) {
+    const signal = this.page.locator(signalSelector);
+    if (!(await signal.isVisible())) {
+      const button = this.page.getByRole('button', { name: sectionTitle, exact: true });
+      await button.scrollIntoViewIfNeeded();
+      await button.click();
+      await signal.waitFor({ state: 'visible' });
+    }
   }
 
   /**
@@ -116,6 +125,7 @@ export class CreatePatientPage {
 
     await this.selectGender(gender);
     await this.page.locator(this.selectors.dateOfBirthInput).fill(dateOfBirth);
+    await this.page.keyboard.press('Escape');
   }
 
   /**
@@ -162,7 +172,7 @@ export class CreatePatientPage {
     locality: string;
     houseNumber: string;
   }) {
-    await this.page.locator('text=Address information').scrollIntoViewIfNeeded();
+    await this.expandSectionIfCollapsed('Address information', this.selectors.stateDropdown);
 
     await this.page.locator(this.selectors.stateDropdown).click();
     await this.page.locator(this.selectors.stateDropdown).fill(address.state);
@@ -187,6 +197,7 @@ export class CreatePatientPage {
    * @param alternatePhone - Alternate phone number (optional)
    */
   async fillContactInformation(phoneNumber: string, alternatePhone?: string) {
+    await this.expandSectionIfCollapsed('Contact information', this.selectors.phoneNumberInput);
     await this.page.getByRole('textbox', { name: /^Phone number$/i }).fill(phoneNumber);
 
     if (alternatePhone) {
@@ -199,6 +210,7 @@ export class CreatePatientPage {
    * @param email - Email address
    */
   async fillEmail(email: string) {
+    await this.expandSectionIfCollapsed('Additional information', this.selectors.emailInput);
     await this.page.getByRole('textbox', { name: /Email/i }).fill(email);
   }
 
@@ -223,8 +235,7 @@ export class CreatePatientPage {
    * @param relatedPersonName - Name of the related person to search for
    */
   async addRelationshipForPatient(relationshipType: string, relatedPersonName: string) {
-    // Scroll to relationships section
-    await this.page.locator(this.selectors.relationshipsSection).scrollIntoViewIfNeeded();
+    await this.expandSectionIfCollapsed('Relationship information', this.selectors.relationshipTypeComboBox);
 
     // Click relationship type combobox
     await this.page.locator(this.selectors.relationshipTypeComboBox).click();
@@ -250,8 +261,7 @@ export class CreatePatientPage {
    * @param identifiers - Object containing identifier fields
    */
   async fillAdditionalIdentifiers(identifiers: { drivingLicence: string; nationalId: string; passport: string }) {
-    await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await this.page.locator(this.selectors.drivingLicenceInput).waitFor({ state: 'visible' });
+    await this.expandSectionIfCollapsed('Additional information', this.selectors.drivingLicenceInput);
     await this.page.locator(this.selectors.drivingLicenceInput).fill(identifiers.drivingLicence);
     await this.page.locator(this.selectors.nationalIdInput).fill(identifiers.nationalId);
     await this.page.locator(this.selectors.passportInput).fill(identifiers.passport);
@@ -307,27 +317,35 @@ export class CreatePatientPage {
     return this.page.locator(this.selectors.dateOfBirthInput).inputValue();
   }
   async getPhoneNumber(): Promise<string> {
+    await this.expandSectionIfCollapsed('Contact information', this.selectors.phoneNumberInput);
     return this.page.getByRole('textbox', { name: /^Phone number$/i }).inputValue();
   }
   async getEmail(): Promise<string> {
+    await this.expandSectionIfCollapsed('Additional information', this.selectors.emailInput);
     return this.page.getByRole('textbox', { name: /Email/i }).inputValue();
   }
   async getHouseNumber(): Promise<string> {
+    await this.expandSectionIfCollapsed('Address information', this.selectors.houseNumberInput);
     return this.page.locator(this.selectors.houseNumberInput).inputValue();
   }
   async getLocality(): Promise<string> {
+    await this.expandSectionIfCollapsed('Address information', this.selectors.houseNumberInput);
     return this.page.locator(this.selectors.localitySectorInput).inputValue();
   }
   async getCity(): Promise<string> {
+    await this.expandSectionIfCollapsed('Address information', this.selectors.houseNumberInput);
     return this.page.locator(this.selectors.cityVillageInput).inputValue();
   }
   async getPinCode(): Promise<string> {
+    await this.expandSectionIfCollapsed('Address information', this.selectors.houseNumberInput);
     return this.page.locator(this.selectors.pinCodeDropdown).inputValue();
   }
   async getDistrict(): Promise<string> {
+    await this.expandSectionIfCollapsed('Address information', this.selectors.houseNumberInput);
     return this.page.locator(this.selectors.districtDropdown).inputValue();
   }
   async getState(): Promise<string> {
+    await this.expandSectionIfCollapsed('Address information', this.selectors.houseNumberInput);
     return this.page.locator(this.selectors.stateDropdown).inputValue();
   }
   async getRelationshipType(): Promise<string | null> {
@@ -368,6 +386,10 @@ export class CreatePatientPage {
    */
   async savePatient() {
     await this.page.locator(this.selectors.saveButton).click();
+  }
+
+  async verifySuccessNotification() {
+    await expect(this.page.getByText('Patient saved successfully')).toBeVisible();
   }
 
   /**

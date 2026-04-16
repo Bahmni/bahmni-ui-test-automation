@@ -40,6 +40,24 @@ export class RegistrationActions {
     await this.bahmni.registrationSearchPage.searchAndOpenPatientById(patientId);
   }
 
+  async editPatient(patientData: PatientData) {
+    await this.bahmni.createPatientPage.fillBasicInformation(
+      patientData.firstName,
+      patientData.lastName,
+      patientData.gender,
+      patientData.dateOfBirth,
+      patientData.middleName
+    );
+    await this.bahmni.createPatientPage.fillContactInformation(patientData.phoneNumber);
+    await this.bahmni.createPatientPage.fillEmail(patientData.email);
+    await this.bahmni.createPatientPage.fillAddressInformation(patientData.address);
+  }
+
+  async searchAndOpenPatientByName(firstName: string, lastName: string) {
+    await this.bahmni.createPatientPage.clickSearchPatient();
+    await this.bahmni.registrationSearchPage.searchAndOpenPatient(firstName, lastName);
+  }
+
   async verifyPatientBasicInformation(patientData: PatientData) {
     expect(await this.bahmni.createPatientPage.getFirstName()).toBe(patientData.firstName);
     expect(await this.bahmni.createPatientPage.getMiddleName()).toBe(patientData.middleName);

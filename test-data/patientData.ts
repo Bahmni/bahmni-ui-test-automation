@@ -39,7 +39,12 @@ export function generatePatientData(): PatientData {
     middleName,
     lastName,
     gender: faker.helpers.arrayElement(['Male', 'Female', 'Other']),
-    dateOfBirth: faker.date.birthdate({ min: 18, max: 80, mode: 'age' }).toLocaleDateString('en-GB'),
+    dateOfBirth: (() => {
+      const dob = faker.date.birthdate({ min: 18, max: 80, mode: 'age' });
+      const mm = String(dob.getMonth() + 1).padStart(2, '0');
+      const dd = String(dob.getDate()).padStart(2, '0');
+      return `${mm}/${dd}/${dob.getFullYear()}`;
+    })(),
     phoneNumber: faker.string.numeric(10),
     email: faker.internet.email({ firstName: firstName.toLowerCase(), lastName: lastName.toLowerCase() }),
     address: {

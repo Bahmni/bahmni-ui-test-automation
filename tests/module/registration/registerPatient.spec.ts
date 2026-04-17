@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { PageFactory } from '../../../src/pages/PageFactory';
-import { ActionFactory } from '../../../src/actions/ActionFactory';
-import { generatePatientData } from '../../../test-data/patientData';
+import { PageFactory } from '../../../src/ui/pages/PageFactory';
+import { ActionFactory } from '../../../src/ui/actions/ActionFactory';
+import { generatePatientData } from '../../../test-data/common/patientData';
 
 test.describe('Patient registration tests', () => {
   test('Register and verify patient details', async ({ page }) => {

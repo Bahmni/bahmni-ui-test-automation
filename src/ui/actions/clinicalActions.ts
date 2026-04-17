@@ -1,8 +1,12 @@
 import { expect } from '../fixtures/clinicalFixture';
 import { PageFactory } from '../pages/PageFactory';
-import { AllergyData } from '../../test-data/allergyData';
-import { MedicationData } from '../../test-data/medicationData';
-import { AnemiaReportData, AtypicalLymphReportData, EchocardiogramReportData } from '../../test-data/labOrderData';
+import { AllergyData } from '../../../test-data/common/allergyData';
+import { MedicationData } from '../../../test-data/common/medicationData';
+import {
+  AnemiaReportData,
+  AtypicalLymphReportData,
+  EchocardiogramReportData,
+} from '../../../test-data/common/labOrderData';
 
 export class ClinicalActions {
   constructor(private readonly bahmni: PageFactory) {}

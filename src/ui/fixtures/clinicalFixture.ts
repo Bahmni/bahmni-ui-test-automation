@@ -1,7 +1,7 @@
 import { test as base, expect as baseExpect, BrowserContext } from '@playwright/test';
 import { PageFactory } from '../pages/PageFactory';
 import { ActionFactory } from '../actions/ActionFactory';
-import { generatePatientData, PatientData } from '../../test-data/patientData';
+import { generatePatientData, PatientData } from '../../../test-data/common/patientData';
 import { Page } from '@playwright/test';
 
 type SharedClinicalContext = {

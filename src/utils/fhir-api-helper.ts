@@ -1,6 +1,10 @@
 import { APIRequestContext } from '@playwright/test';
 import { config } from '../config/env.config';
-import { AnemiaReportData, AtypicalLymphReportData, EchocardiogramReportData } from '../../test-data/labOrderData';
+import {
+  AnemiaReportData,
+  AtypicalLymphReportData,
+  EchocardiogramReportData,
+} from '../../test-data/common/labOrderData';
 
 export class FhirApiHelper {
   private readonly fhirBaseUrl: string;

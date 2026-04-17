@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "required": ["uuid", "visitType", "startDatetime"],
+  "properties": {
+    "uuid": { "type": "string", "minLength": 1 },
+    "display": { "type": "string" },
+    "visitType": {
+      "type": "object",
+      "required": ["uuid", "display"],
+      "properties": {
+        "uuid": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    },
+    "startDatetime": { "type": "string" },
+    "stopDatetime": { "type": ["string", "null"] },
+    "patient": {
+      "type": "object",
+      "properties": {
+        "uuid": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "uuid": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    }
+  }
+}

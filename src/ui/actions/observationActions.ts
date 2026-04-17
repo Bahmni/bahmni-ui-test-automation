@@ -1,10 +1,10 @@
 import { expect } from '../fixtures/clinicalFixture';
 import { PageFactory } from '../pages/PageFactory';
-import { VitalsData } from '../../test-data/vitalsData';
-import { AdmissionLetterData } from '../../test-data/admissionLetterData';
-import { DeathNoteData } from '../../test-data/deathNoteData';
-import { DiabetesProgressData } from '../../test-data/diabetesProgressData';
-import { MalariaData } from '../../test-data/malariaData';
+import { VitalsData } from '../../../test-data/common/vitalsData';
+import { AdmissionLetterData } from '../../../test-data/common/admissionLetterData';
+import { DeathNoteData } from '../../../test-data/common/deathNoteData';
+import { DiabetesProgressData } from '../../../test-data/common/diabetesProgressData';
+import { MalariaData } from '../../../test-data/common/malariaData';
 
 export class ObservationActions {
   constructor(private readonly bahmni: PageFactory) {}

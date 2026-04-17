@@ -1,9 +1,9 @@
-import { test, expect } from '../../../src/fixtures/clinicalFixture';
-import { admissionLetterFaker } from '../../../test-data/admissionLetterData';
-import { deathNoteFaker } from '../../../test-data/deathNoteData';
-import { diabetesProgressFaker } from '../../../test-data/diabetesProgressData';
-import { malariaFaker } from '../../../test-data/malariaData';
-import { vitalsFaker } from '../../../test-data/vitalsData';
+import { test, expect } from '../../../src/ui/fixtures/clinicalFixture';
+import { admissionLetterFaker } from '../../../test-data/common/admissionLetterData';
+import { deathNoteFaker } from '../../../test-data/common/deathNoteData';
+import { diabetesProgressFaker } from '../../../test-data/common/diabetesProgressData';
+import { malariaFaker } from '../../../test-data/common/malariaData';
+import { vitalsFaker } from '../../../test-data/common/vitalsData';
 
 test.describe.serial('Observation form Tests', () => {
   test('Add admission letter observation form in consultation', async ({ clinicalSetup }) => {

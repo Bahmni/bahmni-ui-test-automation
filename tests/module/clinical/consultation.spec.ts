@@ -1,10 +1,10 @@
-import { test, expect } from '../../../src/fixtures/clinicalFixture';
-import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../../test-data/allergyData';
-import { medicalFaker } from '../../../test-data/investigationData';
-import { diagnosisFaker } from '../../../test-data/diagnosisData';
-import { medicationFaker } from '../../../test-data/medicationData';
-import { vaccinationFaker } from '../../../test-data/vaccinationData';
-import { vitalsFaker } from '../../../test-data/vitalsData';
+import { test, expect } from '../../../src/ui/fixtures/clinicalFixture';
+import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../../test-data/common/allergyData';
+import { medicalFaker } from '../../../test-data/common/investigationData';
+import { diagnosisFaker } from '../../../test-data/common/diagnosisData';
+import { medicationFaker } from '../../../test-data/common/medicationData';
+import { vaccinationFaker } from '../../../test-data/common/vaccinationData';
+import { vitalsFaker } from '../../../test-data/common/vitalsData';
 
 test.describe.serial('Clinical Consultation Tests', () => {
   test('Add allergy with severity and reaction in consultation', async ({ clinicalSetup }) => {

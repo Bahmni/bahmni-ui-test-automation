@@ -13,11 +13,11 @@
     "rootDir": "./",
     "baseUrl": "./",
     "paths": {
-      "@pages/*": ["src/pages/*"],
+      "@ui/*": ["src/ui/*"],
+      "@api/*": ["src/api/*"],
       "@utils/*": ["src/utils/*"],
-      "@fixtures/*": ["src/fixtures/*"],
-      "@test-data/*": ["test-data/*"],
-      "@config/*": ["config/*"]
+      "@config/*": ["src/config/*"],
+      "@test-data/*": ["test-data/*"]
     }
   },
   "include": [

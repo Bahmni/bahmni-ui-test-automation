@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { MedicationData } from '../../test-data/medicationData';
+import { MedicationData } from '../../../test-data/common/medicationData';
 
 /**
  * NewConsultationPage class for Bahmni new consultation page

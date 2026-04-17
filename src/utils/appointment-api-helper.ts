@@ -1,6 +1,6 @@
 import { APIRequestContext } from '@playwright/test';
 import { config } from '../config/env.config';
-import { AppointmentDates } from '../../test-data/appointmentData';
+import { AppointmentDates } from '../../test-data/common/appointmentData';
 
 interface CreateAppointmentParams {
   patientUuid: string;

@@ -383,7 +383,7 @@ async function setupRoles(baseUrl: string): Promise<RoleDefinition[]> {
   console.log('Setting up roles...');
 
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const csvPath = resolve(process.cwd(), 'test-data/roles.csv');
+  const csvPath = resolve(process.cwd(), 'test-data/common/roles.csv');
   const roles = parseRolesCSV(csvPath);
   const { names: existingRoles, uuidByName } = await fetchExistingRoles(baseUrl, auth);
 

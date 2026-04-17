@@ -1,5 +1,5 @@
 import { PageFactory } from '../pages/PageFactory';
-import { config } from '../config/env.config';
+import { config } from '../../config/env.config';
 
 export class AuthActions {
   constructor(private readonly bahmni: PageFactory) {}

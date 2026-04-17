@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { config } from '../config/env.config';
+import { config } from '../../config/env.config';
 
 /**
  * LoginPage class for Bahmni EMR login page

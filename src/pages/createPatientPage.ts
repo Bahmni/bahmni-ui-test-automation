@@ -125,7 +125,7 @@ export class CreatePatientPage {
 
     await this.selectGender(gender);
     await this.page.locator(this.selectors.dateOfBirthInput).fill(dateOfBirth);
-    await this.page.keyboard.press('Escape');
+    await this.page.keyboard.press('Enter');
   }
 
   /**

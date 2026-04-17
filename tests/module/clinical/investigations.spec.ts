@@ -4,6 +4,8 @@ import {
   anemiaReportData,
   ATYPICAL_LYMPH_NAME,
   atypicalLymphReportData,
+  ECHOCARDIOGRAM_NAME,
+  echocardiogramReportData,
 } from '../../../test-data/labOrderData';
 import { FhirApiHelper } from '../../../src/utils/fhir-api-helper';
 
@@ -40,5 +42,36 @@ test.describe('Lab Orders', () => {
 
     await actions.clinical.verifyAnemiaLabResults(anemiaReportData);
     await actions.clinical.verifyAtypicalLymphLabResults(atypicalLymphReportData);
+  });
+});
+
+test.describe('Radiology Investigations', () => {
+  test('validate radiology report - order echocardiogram and verify report results', async ({
+    clinicalSetup,
+    request,
+  }) => {
+    const { actions, page } = clinicalSetup;
+    const fhirApi = new FhirApiHelper(request);
+
+    await expect(page).toHaveURL(/.*clinical\/.*/);
+
+    await actions.clinical.addInvestigationsInConsultation([ECHOCARDIOGRAM_NAME]);
+    await expect(page).toHaveURL(/.*clinical\/.*(?<!consultation)$/);
+
+    const patientUuid = fhirApi.getPatientUuidFromUrl(page.url());
+    const encounterUuid = await fhirApi.getLatestEncounterUuid(patientUuid);
+    const [echoServiceRequestUuid] = await fhirApi.getLatestServiceRequestUuids(patientUuid, 1);
+
+    await fhirApi.postEchocardiogramReport(
+      patientUuid,
+      encounterUuid,
+      echoServiceRequestUuid,
+      echocardiogramReportData
+    );
+
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    await actions.clinical.verifyRadiologyReport(echocardiogramReportData);
   });
 });

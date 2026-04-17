@@ -32,3 +32,43 @@ export const anemiaReportData: AnemiaReportData = {
   hemoglobinElectrophoresis: 'HbSS pattern detected — consistent with sickle cell disease',
   platelets: { value: 89, unit: '10^3/mL' },
 };
+
+export const ECHOCARDIOGRAM_NAME = 'Echocardiogram';
+
+export interface EchocardiogramReportData {
+  effectiveDate: string;
+  summary: string;
+  impression: string;
+  radiologyNotes: string;
+  ejectionFraction: { value: number; unit: string };
+  echocardiogramComment: string;
+  leftVentricularSystolicFunction: string;
+  leftVentricularVolume: string;
+  heartAndGreatVessels: string;
+  noPericardialEffusion: string;
+  radiologyResults: string;
+  cardiacExamination: string;
+  improvementSeen: string;
+  combinedVentricularSize: { value: number; unit: string };
+  evidenceOfCardiacEnlargement: string;
+  abnormalHeartSounds: string;
+}
+
+export const echocardiogramReportData: EchocardiogramReportData = {
+  effectiveDate: '2026-03-05',
+  summary: 'Mild mitral regurgitation. Left ventricular function preserved. No significant wall motion abnormality.',
+  impression: 'Mild MR, clinically insignificant. Overall cardiac function within normal limits.',
+  radiologyNotes: 'Annual follow-up recommended. No urgent intervention required.',
+  ejectionFraction: { value: 35, unit: '%' },
+  echocardiogramComment: 'Good acoustic window. Study technically adequate.',
+  leftVentricularSystolicFunction: 'Normal ejection fraction',
+  leftVentricularVolume: 'Normal',
+  heartAndGreatVessels: 'Mild mitral regurgitation. No stenosis detected.',
+  noPericardialEffusion: 'Confirmed. No pericardial effusion identified.',
+  radiologyResults: 'Regular rate and rhythm. No additional heart sounds.',
+  cardiacExamination: 'S1 and S2 normal. Soft systolic murmur at apex. No gallop.',
+  improvementSeen: 'Yes',
+  combinedVentricularSize: { value: 48, unit: 'mm' },
+  evidenceOfCardiacEnlargement: 'No evidence of cardiac enlargement.',
+  abnormalHeartSounds: 'Soft systolic murmur at apex, consistent with mild MR.',
+};

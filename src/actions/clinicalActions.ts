@@ -2,7 +2,7 @@ import { expect } from '../fixtures/clinicalFixture';
 import { PageFactory } from '../pages/PageFactory';
 import { AllergyData } from '../../test-data/allergyData';
 import { MedicationData } from '../../test-data/medicationData';
-import { AnemiaReportData, AtypicalLymphReportData } from '../../test-data/labOrderData';
+import { AnemiaReportData, AtypicalLymphReportData, EchocardiogramReportData } from '../../test-data/labOrderData';
 
 export class ClinicalActions {
   constructor(private readonly bahmni: PageFactory) {}
@@ -140,6 +140,70 @@ export class ClinicalActions {
     await expect(cell).not.toHaveClass(/abnormalResult/);
     await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Absolute atypical lymphocyte count')).toHaveText(
       '1 - 50'
+    );
+  }
+
+  async verifyRadiologyReport(reportData: EchocardiogramReportData) {
+    await this.bahmni.clinicalPage.navigateToSection('Radiology Investigations');
+    await expect(this.bahmni.clinicalPage.getRadiologyViewReportLink()).toBeVisible();
+    await this.bahmni.clinicalPage.getRadiologyViewReportLink().click();
+    const reportPanel = this.bahmni.clinicalPage.getRadiologyReportPanel();
+    await reportPanel.waitFor({ state: 'visible' });
+
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('Summary')).toContainText(reportData.summary);
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('Impression')).toContainText(
+      reportData.impression
+    );
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('Radiology Notes')).toContainText(
+      reportData.radiologyNotes
+    );
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('Ejection Fraction')).toContainText(
+      reportData.ejectionFraction.value.toString()
+    );
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('Echocardiogram comment')).toContainText(
+      reportData.echocardiogramComment
+    );
+    await expect(
+      this.bahmni.clinicalPage.getRadiologyObservationValue('Left ventricular systolic function')
+    ).toContainText(reportData.leftVentricularSystolicFunction);
+    await expect(
+      this.bahmni.clinicalPage.getRadiologyObservationValue(
+        'Left ventricular volume estimated from ultrasound (qualitative)'
+      )
+    ).toContainText(reportData.leftVentricularVolume);
+    await expect(
+      this.bahmni.clinicalPage.getRadiologyObservationValue('Heart and great vessels examination (text)')
+    ).toContainText(reportData.heartAndGreatVessels);
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('No pericardial effusion')).toContainText(
+      reportData.noPericardialEffusion
+    );
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('Radiology results')).toContainText(
+      reportData.radiologyResults
+    );
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('Cardiac examination (text)')).toContainText(
+      reportData.cardiacExamination
+    );
+    await expect(
+      this.bahmni.clinicalPage.getRadiologyObservationValue('Improvement seen on echocardiogram')
+    ).toContainText(reportData.improvementSeen);
+    await expect(
+      this.bahmni.clinicalPage.getRadiologyObservationValue('Combined right and left lateral ventricular size (mm)')
+    ).toContainText(reportData.combinedVentricularSize.value.toString());
+    await expect(
+      this.bahmni.clinicalPage.getRadiologyObservationValue('Evidence of cardiac enlargement')
+    ).toContainText(reportData.evidenceOfCardiacEnlargement);
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('Abnormal heart sounds')).toContainText(
+      reportData.abnormalHeartSounds
+    );
+
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('Ejection Fraction')).toHaveClass(
+      /_abnormalValue_/
+    );
+    await expect(
+      this.bahmni.clinicalPage.getRadiologyObservationValue('Heart and great vessels examination (text)')
+    ).toHaveClass(/_abnormalValue_/);
+    await expect(this.bahmni.clinicalPage.getRadiologyObservationValue('Abnormal heart sounds')).toHaveClass(
+      /_abnormalValue_/
     );
   }
 

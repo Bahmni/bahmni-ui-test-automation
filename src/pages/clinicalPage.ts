@@ -399,6 +399,22 @@ export class ClinicalPage {
     return this.getLabResultRow(testName).locator('[data-testid$="-referenceRange"]');
   }
 
+  getRadiologyViewReportLink() {
+    return this.page.getByText('View Report');
+  }
+
+  getRadiologyReportPanel() {
+    return this.page.getByRole('dialog');
+  }
+
+  getRadiologyObservationValue(observationName: string) {
+    return this.getRadiologyReportPanel().locator(`[data-testid^="observation-value-${observationName}"]`);
+  }
+
+  getRadiologyObservationLabel(observationName: string) {
+    return this.getRadiologyReportPanel().locator(`[data-testid^="observation-label-${observationName}"]`);
+  }
+
   async openObservationFormModal(formName: string): Promise<void> {
     await this.navigateToSection('Forms');
     const formsSection = this.page.locator('article:has(p:has-text("Forms"))');

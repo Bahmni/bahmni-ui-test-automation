@@ -13,7 +13,7 @@ test.describe('Patient registration tests', () => {
     await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
 
-    await bahmni.createPatientPage.createPatient({
+    await bahmni.createPatientPage.fillPatientDetails({
       firstName: patientData.firstName,
       lastName: patientData.lastName,
       gender: patientData.gender,
@@ -24,8 +24,8 @@ test.describe('Patient registration tests', () => {
     });
 
     await bahmni.createPatientPage.uploadPhoto('patient-photo.png');
-    await bahmni.createPatientPage.fillAddressInformation(patientData.address);
     await bahmni.createPatientPage.savePatient();
+    await bahmni.createPatientPage.verifySuccessNotification();
 
     await expect(page).toHaveURL(/.*registration\/patient\/[a-f0-9-]+/);
     const patientId = await bahmni.createPatientPage.getPatientId();
@@ -35,8 +35,8 @@ test.describe('Patient registration tests', () => {
 
     await expect(page).toHaveURL(/.*registration\/patient\/[a-f0-9-]+/);
     await actions.registration.verifyPatientBasicInformation(patientData);
-    await actions.registration.verifyPatientContactInformation(patientData.phoneNumber, patientData.email);
-    await actions.registration.verifyPatientAddressInformation(patientData.address);
+    await actions.registration.verifyPatientContactInformation(patientData.phoneNumber!, patientData.email!);
+    await actions.registration.verifyPatientAddressInformation(patientData.address!);
   });
 
   test('Verify patient relationship', async ({ page }) => {
@@ -49,7 +49,7 @@ test.describe('Patient registration tests', () => {
     await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
 
-    await bahmni.createPatientPage.createPatient({
+    await bahmni.createPatientPage.fillPatientDetails({
       firstName: patientData1.firstName,
       lastName: patientData1.lastName,
       gender: patientData1.gender,
@@ -57,11 +57,12 @@ test.describe('Patient registration tests', () => {
     });
 
     await bahmni.createPatientPage.savePatient();
+    await bahmni.createPatientPage.verifySuccessNotification();
     await bahmni.createPatientPage.navigateToHomePage();
     await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
 
-    await bahmni.createPatientPage.createPatient({
+    await bahmni.createPatientPage.fillPatientDetails({
       firstName: patientData2.firstName,
       lastName: patientData2.lastName,
       gender: patientData2.gender,
@@ -73,6 +74,7 @@ test.describe('Patient registration tests', () => {
       patientData1.firstName + ' ' + patientData1.lastName
     );
     await bahmni.createPatientPage.savePatient();
+    await bahmni.createPatientPage.verifySuccessNotification();
 
     await actions.registration.verifyPatientRelationship(
       'Father',

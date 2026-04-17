@@ -8,16 +8,7 @@ export class RegistrationActions {
   async registerPatient(patientData: PatientData): Promise<string> {
     await this.bahmni.homePage.navigateToModule(this.bahmni.homePage.MODULES.REGISTRATION_NEW);
     await this.bahmni.registrationSearchPage.clickCreateNewPatientBtn();
-    await this.bahmni.createPatientPage.createPatient({
-      firstName: patientData.firstName,
-      lastName: patientData.lastName,
-      gender: patientData.gender,
-      dateOfBirth: patientData.dateOfBirth,
-      middleName: patientData.middleName,
-      phoneNumber: patientData.phoneNumber,
-      email: patientData.email,
-    });
-    await this.bahmni.createPatientPage.fillAddressInformation(patientData.address);
+    await this.bahmni.createPatientPage.fillPatientDetails(patientData);
     await this.bahmni.createPatientPage.savePatient();
     return this.bahmni.createPatientPage.getPatientId();
   }
@@ -25,7 +16,7 @@ export class RegistrationActions {
   async registerPatientWithMandatoryDetails(patientData: PatientData): Promise<string> {
     await this.bahmni.homePage.navigateToModule(this.bahmni.homePage.MODULES.REGISTRATION_NEW);
     await this.bahmni.registrationSearchPage.clickCreateNewPatientBtn();
-    await this.bahmni.createPatientPage.createPatient({
+    await this.bahmni.createPatientPage.fillPatientDetails({
       firstName: patientData.firstName,
       lastName: patientData.lastName,
       gender: patientData.gender,
@@ -38,6 +29,15 @@ export class RegistrationActions {
   async searchAndOpenPatient(patientId: string) {
     await this.bahmni.createPatientPage.clickSearchPatient();
     await this.bahmni.registrationSearchPage.searchAndOpenPatientById(patientId);
+  }
+
+  async editPatient(patientData: PatientData) {
+    await this.bahmni.createPatientPage.fillPatientDetails(patientData);
+  }
+
+  async searchAndOpenPatientByName(firstName: string, lastName: string) {
+    await this.bahmni.createPatientPage.clickSearchPatient();
+    await this.bahmni.registrationSearchPage.searchAndOpenPatient(firstName, lastName);
   }
 
   async verifyPatientBasicInformation(patientData: PatientData) {
@@ -54,7 +54,7 @@ export class RegistrationActions {
     expect(await this.bahmni.createPatientPage.getEmail()).toBe(email);
   }
 
-  async verifyPatientAddressInformation(address: PatientData['address']) {
+  async verifyPatientAddressInformation(address: NonNullable<PatientData['address']>) {
     expect(await this.bahmni.createPatientPage.getHouseNumber()).toBe(address.houseNumber);
     expect(await this.bahmni.createPatientPage.getLocality()).toBe(address.locality);
     expect(await this.bahmni.createPatientPage.getCity()).toBe(address.city);

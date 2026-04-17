@@ -1,6 +1,6 @@
 import { APIRequestContext } from '@playwright/test';
 import { config } from '../config/env.config';
-import { AnemiaReportData, AtypicalLymphReportData } from '../../test-data/labOrderData';
+import { AnemiaReportData, AtypicalLymphReportData, EchocardiogramReportData } from '../../test-data/labOrderData';
 
 export class FhirApiHelper {
   private readonly fhirBaseUrl: string;
@@ -87,6 +87,308 @@ export class FhirApiHelper {
     if (!response.ok()) {
       throw new Error(`Failed to post diagnostic report: ${response.status()} ${await response.text()}`);
     }
+  }
+
+  async postEchocardiogramReport(
+    patientUuid: string,
+    encounterUuid: string,
+    serviceRequestUuid: string,
+    reportData: EchocardiogramReportData
+  ): Promise<void> {
+    const bundle = this.buildEchocardiogramBundle(patientUuid, encounterUuid, serviceRequestUuid, reportData);
+    const response = await this.request.post(`${this.fhirBaseUrl}/DiagnosticReport/$submit-bundle`, {
+      data: bundle,
+      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/fhir+json' },
+    });
+    if (!response.ok()) {
+      throw new Error(`Failed to post echocardiogram report: ${response.status()} ${await response.text()}`);
+    }
+  }
+
+  private buildEchocardiogramBundle(
+    patientUuid: string,
+    encounterUuid: string,
+    serviceRequestUuid: string,
+    reportData: EchocardiogramReportData
+  ) {
+    const effectiveDateTime = `${reportData.effectiveDate}T08:02:46.000Z`;
+    const patientRef = `Patient/${patientUuid}`;
+    const encounterRef = `Encounter/${encounterUuid}`;
+    const abnormalInterpretation = [
+      {
+        coding: [
+          {
+            system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation',
+            code: 'A',
+            display: 'Abnormal',
+          },
+        ],
+      },
+    ];
+
+    return {
+      resourceType: 'Bundle',
+      type: 'collection',
+      entry: [
+        {
+          fullUrl: 'urn:uuid:dr-echocardiogram',
+          resource: {
+            resourceType: 'DiagnosticReport',
+            basedOn: [{ reference: `ServiceRequest/${serviceRequestUuid}` }],
+            status: 'final',
+            category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v2-0074', code: 'LAB' }] }],
+            code: {
+              coding: [{ code: '159567AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Echocardiogram' }],
+              text: 'Echocardiogram',
+            },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            result: [
+              { reference: 'urn:uuid:obs-summary' },
+              { reference: 'urn:uuid:obs-impression' },
+              { reference: 'urn:uuid:obs-radiology-notes' },
+              { reference: 'urn:uuid:obs-ejection-fraction' },
+              { reference: 'urn:uuid:obs-echo-comment' },
+              { reference: 'urn:uuid:obs-lv-systolic' },
+              { reference: 'urn:uuid:obs-lv-volume' },
+              { reference: 'urn:uuid:obs-heart-great-vessels' },
+              { reference: 'urn:uuid:obs-pericardial' },
+              { reference: 'urn:uuid:obs-radiology-results' },
+              { reference: 'urn:uuid:obs-cardiac-exam' },
+              { reference: 'urn:uuid:obs-improvement' },
+              { reference: 'urn:uuid:obs-ventricular-size' },
+              { reference: 'urn:uuid:obs-cardiac-enlargement' },
+              { reference: 'urn:uuid:obs-abnormal-sounds' },
+            ],
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-summary',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb', display: 'Summary' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.summary,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-impression',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: 'd51e7bc5-5e07-11ef-8f7c-0242ac120002', display: 'Impression' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.impression,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-radiology-notes',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: 'ae6e5490-ade9-486e-8268-9e4efd45b07e', display: 'Radiology Notes' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.radiologyNotes,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-ejection-fraction',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: '159571AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Ejection Fraction' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueQuantity: {
+              value: reportData.ejectionFraction.value,
+              unit: reportData.ejectionFraction.unit,
+              system: 'http://unitsofmeasure.org',
+              code: reportData.ejectionFraction.unit,
+            },
+            interpretation: abnormalInterpretation,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-echo-comment',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: '159573AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Echocardiogram comment' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.echocardiogramComment,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-lv-systolic',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: {
+              coding: [{ code: '167023AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Left ventricular systolic function' }],
+            },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueCodeableConcept: {
+              coding: [
+                { code: '159568AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: reportData.leftVentricularSystolicFunction },
+              ],
+            },
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-lv-volume',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: {
+              coding: [
+                {
+                  code: '166952AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+                  display: 'Left ventricular volume estimated from ultrasound (qualitative)',
+                },
+              ],
+            },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueCodeableConcept: {
+              coding: [{ code: '1115AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: reportData.leftVentricularVolume }],
+            },
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-heart-great-vessels',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: {
+              coding: [
+                { code: '160944AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Heart and great vessels examination (text)' },
+              ],
+            },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.heartAndGreatVessels,
+            interpretation: abnormalInterpretation,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-pericardial',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: '166946AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'No pericardial effusion' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.noPericardialEffusion,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-radiology-results',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: '1392AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Radiology results' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.radiologyResults,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-cardiac-exam',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: '163046AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Cardiac examination (text)' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.cardiacExamination,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-improvement',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: {
+              coding: [{ code: '5455efa4-e42d-46d8-9146-bf2dd5a65f1e', display: 'Improvement seen on echocardiogram' }],
+            },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueCodeableConcept: {
+              coding: [{ code: '1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: reportData.improvementSeen }],
+            },
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-ventricular-size',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: {
+              coding: [
+                {
+                  code: '164326AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+                  display: 'Combined right and left lateral ventricular size (mm)',
+                },
+              ],
+            },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueQuantity: {
+              value: reportData.combinedVentricularSize.value,
+              unit: reportData.combinedVentricularSize.unit,
+              system: 'http://unitsofmeasure.org',
+              code: reportData.combinedVentricularSize.unit,
+            },
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-cardiac-enlargement',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: {
+              coding: [{ code: '5158AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Evidence of cardiac enlargement' }],
+            },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.evidenceOfCardiacEnlargement,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-abnormal-sounds',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: '1117AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Abnormal heart sounds' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.abnormalHeartSounds,
+            interpretation: abnormalInterpretation,
+          },
+        },
+      ],
+    };
   }
 
   private buildAtypicalLymphBundle(

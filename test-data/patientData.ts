@@ -7,13 +7,13 @@ import { faker } from '@faker-js/faker';
 
 export interface PatientData {
   firstName: string;
-  middleName: string;
   lastName: string;
   gender: string;
   dateOfBirth: string;
-  phoneNumber: string;
-  email: string;
-  address: {
+  middleName?: string;
+  phoneNumber?: string;
+  email?: string;
+  address?: {
     state: string;
     district: string;
     pinCode: string;
@@ -21,7 +21,7 @@ export interface PatientData {
     locality: string;
     houseNumber: string;
   };
-  identifiers: {
+  identifiers?: {
     drivingLicence: string;
     nationalId: string;
     passport: string;

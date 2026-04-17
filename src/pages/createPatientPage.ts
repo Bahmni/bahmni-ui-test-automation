@@ -275,7 +275,7 @@ export class CreatePatientPage {
    * Complete patient registration flow
    * @param patientData - Object containing all patient information
    */
-  async createPatient(patientData: {
+  async fillPatientDetails(patientData: {
     firstName: string;
     lastName: string;
     gender: string;
@@ -283,6 +283,14 @@ export class CreatePatientPage {
     middleName?: string;
     phoneNumber?: string;
     email?: string;
+    address?: {
+      state: string;
+      district: string;
+      pinCode: string;
+      city: string;
+      locality: string;
+      houseNumber: string;
+    };
   }) {
     await this.fillBasicInformation(
       patientData.firstName,
@@ -298,6 +306,10 @@ export class CreatePatientPage {
 
     if (patientData.email) {
       await this.fillEmail(patientData.email);
+    }
+
+    if (patientData.address) {
+      await this.fillAddressInformation(patientData.address);
     }
   }
 

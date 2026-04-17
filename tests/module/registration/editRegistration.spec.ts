@@ -21,7 +21,7 @@ test.describe('Edit patient registration tests', () => {
     await actions.registration.searchAndOpenPatientByName(editedData.firstName, editedData.lastName);
 
     await actions.registration.verifyPatientBasicInformation(editedData);
-    await actions.registration.verifyPatientContactInformation(editedData.phoneNumber, editedData.email);
-    await actions.registration.verifyPatientAddressInformation(editedData.address);
+    await actions.registration.verifyPatientContactInformation(editedData.phoneNumber!, editedData.email!);
+    await actions.registration.verifyPatientAddressInformation(editedData.address!);
   });
 });

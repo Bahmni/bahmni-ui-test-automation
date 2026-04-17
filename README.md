@@ -56,9 +56,11 @@ bahmni-test-automation/
 ## Architecture
 
 ### UI Tests
+
 3-layer architecture: **Pages → Actions → Tests**. Assertions live in the test layer only.
 
 ### API Tests
+
 3-layer architecture: **Endpoints → Controllers → Tests**. Each controller extends `BaseApiController` which handles authentication (Basic Auth) and provides `get/post/put/del` methods returning `{ status, body }`.
 
 Controllers also provide `Raw` variants (`getRaw`, `postRaw`, etc.) that never throw — used for negative tests asserting on 4xx/5xx responses.

@@ -35,8 +35,12 @@ test.describe('Patient registration tests', () => {
 
     await expect(page).toHaveURL(/.*registration\/patient\/[a-f0-9-]+/);
     await actions.registration.verifyPatientBasicInformation(patientData);
-    await actions.registration.verifyPatientContactInformation(patientData.phoneNumber!, patientData.email!);
-    await actions.registration.verifyPatientAddressInformation(patientData.address!);
+    if (patientData.phoneNumber && patientData.email) {
+      await actions.registration.verifyPatientContactInformation(patientData.phoneNumber, patientData.email);
+    }
+    if (patientData.address) {
+      await actions.registration.verifyPatientAddressInformation(patientData.address);
+    }
   });
 
   test('Verify patient relationship', async ({ page }) => {

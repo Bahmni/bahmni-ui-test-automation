@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "required": ["resourceType"],
+  "properties": {
+    "resourceType": { "type": "string", "const": "Bundle" },
+    "type": { "type": "string" },
+    "total": { "type": "number" },
+    "entry": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["resource"],
+        "properties": {
+          "resource": {
+            "type": "object",
+            "required": ["resourceType", "id"],
+            "properties": {
+              "resourceType": { "type": "string" },
+              "id": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

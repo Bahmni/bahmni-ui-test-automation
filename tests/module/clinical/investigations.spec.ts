@@ -1,4 +1,4 @@
-import { test, expect } from '../../../src/fixtures/clinicalFixture';
+import { test, expect } from '../../../src/ui/fixtures/clinicalFixture';
 import {
   ANEMIA_PANEL_NAME,
   anemiaReportData,
@@ -6,7 +6,7 @@ import {
   atypicalLymphReportData,
   ECHOCARDIOGRAM_NAME,
   echocardiogramReportData,
-} from '../../../test-data/labOrderData';
+} from '../../../test-data/common/labOrderData';
 import { FhirApiHelper } from '../../../src/utils/fhir-api-helper';
 
 test.describe('Lab Orders', () => {

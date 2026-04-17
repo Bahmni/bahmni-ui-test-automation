@@ -1,4 +1,4 @@
-import { test, expect } from '../../../src/fixtures/appointmentFixture';
+import { test, expect } from '../../../src/ui/fixtures/appointmentFixture';
 
 test.describe('Appointments Display Control', () => {
   test('Upcoming appointments sorted ASC and past appointments sorted DESC', async ({ appointmentSetup }) => {

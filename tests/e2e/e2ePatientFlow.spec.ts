@@ -1,10 +1,10 @@
 import { test } from '@playwright/test';
-import { PageFactory } from '../../src/pages/PageFactory';
-import { ActionFactory } from '../../src/actions/ActionFactory';
-import { generatePatientData } from '../../test-data/patientData';
-import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../test-data/allergyData';
-import { medicationFaker } from '../../test-data/medicationData';
-import { diagnosisFaker } from '../../test-data/diagnosisData';
+import { PageFactory } from '../../src/ui/pages/PageFactory';
+import { ActionFactory } from '../../src/ui/actions/ActionFactory';
+import { generatePatientData } from '../../test-data/common/patientData';
+import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../test-data/common/allergyData';
+import { medicationFaker } from '../../test-data/common/medicationData';
+import { diagnosisFaker } from '../../test-data/common/diagnosisData';
 
 test('E2E patient flow', async ({ browser }) => {
   const context = await browser.newContext();

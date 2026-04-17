@@ -42,7 +42,7 @@ export default defineConfig({
         environmentInfo: {
           'Node Version': process.version,
           Environment: env,
-          'Base URL': process.env.BASE_URL || 'https://docker.standard.mybahmni.in',
+          'Base URL': process.env.BASE_URL || 'https://localhost',
         },
       },
     ],
@@ -53,7 +53,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.BASE_URL || 'https://docker.standard.mybahmni.in',
+    baseURL: process.env.BASE_URL || 'https://localhost',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'retain-on-failure',
@@ -88,7 +88,19 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testMatch: ['**/tests/e2e/**', '**/tests/module/**'],
       use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+    },
+
+    {
+      name: 'api',
+      testMatch: ['**/tests/api/**'],
+      timeout: 30000,
+      use: {
+        baseURL: process.env.BASE_URL || 'https://localhost',
+        extraHTTPHeaders: { Accept: 'application/json' },
+        ignoreHTTPSErrors: process.env.IGNORE_HTTPS_ERRORS === 'true',
+      },
     },
 
     // {

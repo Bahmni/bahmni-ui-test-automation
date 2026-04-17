@@ -1,11 +1,15 @@
 import { test as base, expect } from '@playwright/test';
 import { PageFactory } from '../pages/PageFactory';
 import { ActionFactory } from '../actions/ActionFactory';
-import { generatePatientData, PatientData } from '../../test-data/patientData';
-import { DocumentApiHelper } from '../utils/document-api-helper';
+import { generatePatientData, PatientData } from '../../../test-data/common/patientData';
+import { AppointmentApiHelper } from '../../utils/appointment-api-helper';
+import {
+  generateUpcomingAppointmentDates,
+  generatePastAppointmentDates,
+} from '../../../test-data/common/appointmentData';
 
-type DocumentFixtures = {
-  documentSetup: {
+type AppointmentFixtures = {
+  appointmentSetup: {
     bahmni: PageFactory;
     actions: ActionFactory;
     patientData: PatientData;
@@ -14,29 +18,8 @@ type DocumentFixtures = {
   };
 };
 
-const DOCUMENT_IDENTIFIER = 'patientImageAndHistory';
-const DOCUMENT_TYPE = 'Patient File';
-const TOTAL_DOCUMENTS = 2;
-
-const DOCUMENTS_TO_UPLOAD = [
-  {
-    fileName: 'PatientHistory',
-    filePath: 'test-data/patientHistory.pdf',
-    fileType: 'pdf',
-    format: 'pdf',
-    contentType: 'application/pdf',
-  },
-  {
-    fileName: 'Prescription',
-    filePath: 'test-data/prescription.png',
-    fileType: 'image',
-    format: 'png',
-    contentType: 'image/png',
-  },
-];
-
-export const test = base.extend<DocumentFixtures>({
-  documentSetup: async ({ browser, playwright }, use) => {
+export const test = base.extend<AppointmentFixtures>({
+  appointmentSetup: async ({ browser, playwright }, use) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const bahmni = new PageFactory(page);
@@ -49,10 +32,43 @@ export const test = base.extend<DocumentFixtures>({
     await page.waitForLoadState('networkidle');
 
     const apiContext = await playwright.request.newContext();
-    const documentApi = new DocumentApiHelper(apiContext);
+    const appointmentApi = new AppointmentApiHelper(apiContext);
+    const serviceUuid = await appointmentApi.getFirstAvailableServiceUuid();
+    const locationUuid = await appointmentApi.getLocationUuid('OPD-1');
+
     const patientUuid = await getPatientUuid(apiContext, patientId);
 
-    await documentApi.uploadAndRegisterDocuments(patientUuid, DOCUMENTS_TO_UPLOAD);
+    await appointmentApi.createAppointment({
+      patientUuid,
+      serviceUuid,
+      dates: generateUpcomingAppointmentDates(2, 10),
+      status: 'Scheduled',
+      locationUuid,
+    });
+
+    await appointmentApi.createAppointment({
+      patientUuid,
+      serviceUuid,
+      dates: generateUpcomingAppointmentDates(5, 14),
+      status: 'Scheduled',
+      locationUuid,
+    });
+
+    await appointmentApi.createAppointment({
+      patientUuid,
+      serviceUuid,
+      dates: generatePastAppointmentDates(3, 10),
+      status: 'Completed',
+      locationUuid,
+    });
+
+    await appointmentApi.createAppointment({
+      patientUuid,
+      serviceUuid,
+      dates: generatePastAppointmentDates(7, 14),
+      status: 'Completed',
+      locationUuid,
+    });
 
     await actions.clinical.navigateToPatientClinical(patientId);
     await page.waitForLoadState('networkidle', { timeout: 10000 });
@@ -68,7 +84,7 @@ async function getPatientUuid(
   apiContext: import('@playwright/test').APIRequestContext,
   patientId: string
 ): Promise<string> {
-  const { config } = await import('../config/env.config');
+  const { config } = await import('../../config/env.config');
   const { username, password } = config.users.admin;
   const encoded = Buffer.from(`${username}:${password}`).toString('base64');
 
@@ -83,4 +99,3 @@ async function getPatientUuid(
 }
 
 export { expect };
-export { DOCUMENT_IDENTIFIER, DOCUMENT_TYPE, TOTAL_DOCUMENTS };

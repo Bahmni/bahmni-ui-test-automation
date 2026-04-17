@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { PageFactory } from '../pages/PageFactory';
-import { PatientData } from '../../test-data/patientData';
+import { PatientData } from '../../../test-data/common/patientData';
 
 export class RegistrationActions {
   constructor(private readonly bahmni: PageFactory) {}

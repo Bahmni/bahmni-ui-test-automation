@@ -1,0 +1,45 @@
+{
+  "type": "object",
+  "required": ["patient"],
+  "properties": {
+    "patient": {
+      "type": "object",
+      "required": ["uuid", "person"],
+      "properties": {
+        "uuid": { "type": "string", "minLength": 1 },
+        "display": { "type": "string" },
+        "person": {
+          "type": "object",
+          "required": ["gender", "birthdate", "names"],
+          "properties": {
+            "gender": { "type": "string", "enum": ["M", "F"] },
+            "birthdate": { "type": "string" },
+            "names": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["givenName", "familyName"],
+                "properties": {
+                  "givenName": { "type": "string" },
+                  "middleName": { "type": "string" },
+                  "familyName": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "identifiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "uuid": { "type": "string" },
+              "identifier": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

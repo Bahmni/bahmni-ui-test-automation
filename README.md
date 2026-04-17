@@ -1,6 +1,6 @@
-# Bahmni UI Automation
+# Bahmni Test Automation
 
-Automated test suite for Bahmni 3.0 UI - includes functional, end-to-end, and visual regression testing using Playwright.
+Automated test suite for Bahmni 3.0 — includes UI functional tests and API tests using Playwright.
 
 ## Prerequisites
 
@@ -26,31 +26,49 @@ These prerequisites are automatically created on first run and skipped on subseq
 ## Project Structure
 
 ```
-bahmni-ui-automation/
+bahmni-test-automation/
 ├── src/
-│   ├── pages/           # Page Object Models
-│   ├── fixtures/        # Test fixtures
-│   ├── utils/           # Utility functions
-│   └── config/          # Configuration files
-├── tests/               # Test specifications
-├── test-data/           # Test data files
-├── reports/             # Test reports
-├── global-setup.ts      # Global setup (runs before all tests)
-├── global-teardown.ts   # Global teardown (runs after all tests)
-├── playwright.config.ts # Playwright configuration
-└── package.json         # Project dependencies
+│   ├── api/                # API automation framework
+│   │   ├── endpoints.ts    # REST and FHIR URL path constants
+│   │   ├── controllers/    # Domain controllers (Patient, Visit, Location, FHIR)
+│   │   ├── fixtures/       # API test fixture (worker-scoped)
+│   │   ├── types/          # Request/response TypeScript interfaces
+│   │   └── ApiFactory.ts   # Entry point — instantiates all controllers
+│   ├── ui/                 # UI automation framework
+│   │   ├── pages/          # Page Object Models
+│   │   ├── actions/        # Business flow action layer
+│   │   └── fixtures/       # UI test fixtures (clinical, appointment, document)
+│   ├── config/             # Environment configuration (shared)
+│   └── utils/              # Shared utilities (schema validator, API helpers)
+├── tests/
+│   ├── api/                # Standalone API test specs
+│   │   ├── openmrs/        # OpenMRS REST API tests
+│   │   └── fhir/           # FHIR R4 API tests
+│   ├── e2e/                # End-to-end UI tests
+│   └── module/             # Module-level UI tests
+├── test-data/
+│   ├── common/             # Shared test data (UI + API)
+│   └── api/                # API-specific payloads, constants, schemas
+├── playwright.config.ts
+└── package.json
 ```
 
-## Page Object Model
+## Architecture
 
-Page objects are created using the `/page` command with data-test-id attributes prioritized for stable locators.
+### UI Tests
+3-layer architecture: **Pages → Actions → Tests**. Assertions live in the test layer only.
+
+### API Tests
+3-layer architecture: **Endpoints → Controllers → Tests**. Each controller extends `BaseApiController` which handles authentication (Basic Auth) and provides `get/post/put/del` methods returning `{ status, body }`.
+
+Controllers also provide `Raw` variants (`getRaw`, `postRaw`, etc.) that never throw — used for negative tests asserting on 4xx/5xx responses.
 
 ## Environment Configuration
 
 The project supports multiple environments through `.env` files:
 
 - `.env.local` - For local testing (https://localhost)
-- `.env.dev` - For development environment (https://docker.standard.mybahmni.in)
+- `.env.dev` - For development environment
 
 Create above files by using .env.example for your environment.
 
@@ -74,42 +92,64 @@ sudo security add-trusted-cert -d -r trustRoot -p ssl -k /Library/Keychains/Syst
 
 ## Running Tests
 
+### UI Tests
+
 ```bash
-# Run all tests
+# Run all UI tests (local)
 npm run test:local
-# Run all tests in dev env
+
+# Run all UI tests (dev)
 npm run test:dev
+
 # Run with headed browser
 npm run test:headed:local
+
 # Run specific test file
-npm run test:local -- tests/sanity.spec.ts --project=chromium
+npm run test:local -- tests/module/clinical/consultation.spec.ts --project=chromium
+
 # Run specific browser
 npm run test:chromium
-npm run test:firefox
+```
+
+### API Tests
+
+```bash
+# Run all API tests
+npm run test:api
+
+# Run API tests (local with SSL cert)
+npm run test:api:local
+
+# Run specific API test file
+npm run test:api -- tests/api/openmrs/registration.spec.ts
 ```
 
 ## Test Reports
 
-### Allure Reports are generated in:
+### Allure Reports
 
-- Allure: `reports/allure-results`
+```bash
+# Generate report
+npm run allure:generate
+
+# Open report
+npm run allure:open
+```
+
+Reports are generated in `reports/allure-results`.
 
 ## Code Quality
-
-### Linting
 
 ```bash
 # Check for lint errors
 npm run lint
+
 # Fix lint errors automatically
 npm run lint:fix
-```
 
-### Formatting
-
-```bash
 # Check code formatting
 npm run format:check
+
 # Format code
 npm run format
 ```
@@ -129,20 +169,14 @@ If you see `TypeError: fetch failed` errors during global setup:
 
 1. Check if Bahmni is running: `docker ps`
 2. Verify BASE_URL in `.env` file matches your instance
-3. Test direct access: `curl -k https://localhost` (for local) or `curl https://docker.standard.mybahmni.in` (for dev)
-
-### Browser Not Launching
-
-```bash
-npx playwright install
-```
+3. Test direct access: `curl -k https://localhost` (for local) or `curl https://your-dev-url` (for dev)
 
 ## Contributing
 
 1. Follow the existing code style (enforced by ESLint and Prettier)
-2. Use data-test-id attributes for locators whenever possible
+2. Use data-test-id attributes for UI locators whenever possible
 3. Write descriptive test names
-4. Update documentation for new features
+4. API tests: one controller call per test, assert `{ status, body }`
 5. Run `npm run lint:fix` and `npm run format` before committing
 
 ## License

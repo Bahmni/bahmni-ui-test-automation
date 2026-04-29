@@ -133,10 +133,7 @@ export function buildAllergyBundle(
  * Single ConsultationBundle that creates one Encounter and many AllergyIntolerance entries.
  * Used to seed >10 allergies in one round-trip for pagination testing.
  */
-export function buildBundleWithMultipleAllergies(
-  ctx: BundleContext,
-  allergyCodes: string[]
-): Record<string, unknown> {
+export function buildBundleWithMultipleAllergies(ctx: BundleContext, allergyCodes: string[]): Record<string, unknown> {
   const ts = pastTimestamp();
   const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
   const allergyEntries = allergyCodes.map((code) => ({
@@ -201,9 +198,7 @@ function diagnosisConditionEntry(
       subject: { reference: `Patient/${ctx.patientUuid}` },
       category: [
         {
-          coding: [
-            { system: 'http://terminology.hl7.org/CodeSystem/condition-category', code: 'encounter-diagnosis' },
-          ],
+          coding: [{ system: 'http://terminology.hl7.org/CodeSystem/condition-category', code: 'encounter-diagnosis' }],
         },
       ],
       code: { coding: [{ code: conceptCode }] },
@@ -235,9 +230,7 @@ function problemListConditionEntry(
       subject: { reference: `Patient/${ctx.patientUuid}` },
       category: [
         {
-          coding: [
-            { system: 'http://terminology.hl7.org/CodeSystem/condition-category', code: 'problem-list-item' },
-          ],
+          coding: [{ system: 'http://terminology.hl7.org/CodeSystem/condition-category', code: 'problem-list-item' }],
         },
       ],
       code: { coding: [{ code: conceptCode }] },

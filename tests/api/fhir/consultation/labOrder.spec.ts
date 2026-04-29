@@ -1,9 +1,6 @@
 import { test, expect } from '../../../../src/api/fixtures/apiFixture';
 import { getBundleEntriesByType } from '../../../../src/utils/fhir-bundle-utils';
-import {
-  buildAnemiaPanelOrderBundle,
-  buildLabOrderBundle,
-} from '../../../../test-data/api/consultationBundlePayload';
+import { buildAnemiaPanelOrderBundle, buildLabOrderBundle } from '../../../../test-data/api/consultationBundlePayload';
 import { LAB_CONCEPTS, SERVER_PAGE_MAX } from '../../../../test-data/api/constants';
 import {
   ConsultationContext,

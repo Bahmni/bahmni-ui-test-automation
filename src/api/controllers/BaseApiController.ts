@@ -24,6 +24,20 @@ export abstract class BaseApiController {
     return this.parseOrThrow<T>(response, 'GET', path);
   }
 
+  protected async getFhir<T>(path: string, role: UserRole = 'admin'): Promise<ApiResponse<T>> {
+    const response = await this.request.get(`${this.baseUrl}${path}`, {
+      headers: { ...this.authHeaders(role), Accept: 'application/fhir+json' },
+    });
+    return this.parseOrThrow<T>(response, 'GET', path);
+  }
+
+  protected async getRawFhir<T>(path: string, role: UserRole = 'admin'): Promise<ApiResponse<T>> {
+    const response = await this.request.get(`${this.baseUrl}${path}`, {
+      headers: { ...this.authHeaders(role), Accept: 'application/fhir+json' },
+    });
+    return this.parseRaw<T>(response);
+  }
+
   protected async post<T>(
     path: string,
     body: unknown,

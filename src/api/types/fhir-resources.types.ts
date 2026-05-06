@@ -25,6 +25,8 @@ export interface ConditionEntry {
   category: Array<{ coding: Array<{ code: string }> }>;
   clinicalStatus?: { coding: Array<{ code: string }> };
   encounter?: { reference: string };
+  recordedDate?: string;
+  recorder?: { reference: string };
 }
 
 export interface ServiceRequestEntry {
@@ -33,10 +35,14 @@ export interface ServiceRequestEntry {
   status: string;
   intent: string;
   priority: string;
-  code: { coding: Array<{ code: string }> };
+  code: { coding: Array<{ code: string; display?: string }> };
+  category?: Array<{ coding: Array<{ code: string }> }>;
   subject: { reference: string };
   encounter: { reference: string };
+  requester?: { reference: string };
+  occurrencePeriod?: { start: string };
   note?: Array<{ text: string }>;
+  extension?: Array<{ url: string; valueString?: string }>;
 }
 
 export interface MedicationRequestEntry {
@@ -51,7 +57,8 @@ export interface MedicationRequestEntry {
   dosageInstruction: Array<{
     route: { coding: Array<{ code: string }> };
     doseAndRate: Array<{ doseQuantity: { value: number; code: string } }>;
-    timing: { repeat?: { boundsPeriod?: Record<string, unknown> } };
+    timing: { repeat?: { boundsPeriod?: Record<string, unknown> }; code?: { coding: Array<{ code: string }> } };
+    asNeededBoolean?: boolean;
   }>;
   dispenseRequest: { numberOfRepeatsAllowed: number; quantity: { value: number } };
 }
@@ -66,9 +73,17 @@ export interface ObservationEntry {
   valueQuantity?: { value: number };
   valueCodeableConcept?: { coding: Array<{ code: string; display: string }> };
   valueString?: string;
+  valueBoolean?: boolean;
   hasMember?: Array<{ reference: string }>;
   effectiveDateTime?: string;
   meta?: { lastUpdated?: string };
+}
+
+export interface MedicationEntry {
+  resourceType: string;
+  id: string;
+  code: { coding: Array<{ code: string; display?: string }> };
+  form?: { coding: Array<{ code: string; display?: string }> };
 }
 
 export interface DiagnosticReportEntry {
@@ -77,4 +92,7 @@ export interface DiagnosticReportEntry {
   status: string;
   basedOn: Array<{ reference: string }>;
   subject: { reference: string };
+  encounter?: { reference: string };
+  result?: Array<{ reference: string }>;
+  presentedForm?: Array<{ contentType: string; url: string; title: string; creation?: string }>;
 }

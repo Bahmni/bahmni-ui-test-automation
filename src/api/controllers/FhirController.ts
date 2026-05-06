@@ -1,5 +1,5 @@
 import { BaseApiController } from './BaseApiController';
-import { FHIR } from '../endpoints';
+import { FHIR, REST } from '../endpoints';
 import { ApiResponse, UserRole } from '../types/api.types';
 import { FhirBundle, FhirBundleResponse } from '../types/fhir.types';
 import { SERVICE_REQUEST_CATEGORIES } from '../../../test-data/api/constants';
@@ -81,26 +81,66 @@ export class FhirController extends BaseApiController {
 
   async getLabServiceRequests(
     patientUuid: string,
-    count = 100,
+    count = 200,
     encounterUuid?: string,
+    numberOfVisits = 5,
     role: UserRole = 'admin'
   ): Promise<ApiResponse<FhirBundleResponse>> {
     const encounterFilter = encounterUuid ? `&encounter=${encounterUuid}` : '';
     return this.getFhir<FhirBundleResponse>(
-      `${FHIR.serviceRequest}?_count=${count}&_sort=-_lastUpdated&category=${SERVICE_REQUEST_CATEGORIES.lab}&patient=${patientUuid}${encounterFilter}`,
+      `${FHIR.serviceRequest}?_count=${count}&_sort=-_lastUpdated&category=${SERVICE_REQUEST_CATEGORIES.lab}&patient=${patientUuid}&numberOfVisits=${numberOfVisits}${encounterFilter}`,
+      role
+    );
+  }
+
+  async uploadDocument(
+    patientUuid: string,
+    content: string,
+    fileName: string,
+    fileType: 'image' | 'pdf',
+    format: string,
+    role: UserRole = 'admin'
+  ): Promise<ApiResponse<{ url: string }>> {
+    return this.post<{ url: string }>(
+      REST.visitDocumentUpload,
+      { content, encounterTypeName: 'Patient Document', fileName, fileType, format, patientUuid },
+      role
+    );
+  }
+
+  async getDiagnosticReportsByBasedOn(
+    patientUuid: string,
+    serviceRequestIds: string[],
+    role: UserRole = 'admin'
+  ): Promise<ApiResponse<FhirBundleResponse>> {
+    const basedOn = serviceRequestIds.join(',');
+    return this.getFhir<FhirBundleResponse>(
+      `${FHIR.diagnosticReport}?patient=${patientUuid}&based-on=${basedOn}`,
+      role
+    );
+  }
+
+  async getProcedureServiceRequests(
+    patientUuid: string,
+    count = 200,
+    role: UserRole = 'admin'
+  ): Promise<ApiResponse<FhirBundleResponse>> {
+    return this.getFhir<FhirBundleResponse>(
+      `${FHIR.serviceRequest}?_count=${count}&_sort=-_lastUpdated&category=${SERVICE_REQUEST_CATEGORIES.procedure}&patient=${patientUuid}`,
       role
     );
   }
 
   async getRadiologyServiceRequests(
     patientUuid: string,
-    count = 100,
+    count = 200,
     encounterUuid?: string,
+    numberOfVisits = 5,
     role: UserRole = 'admin'
   ): Promise<ApiResponse<FhirBundleResponse>> {
     const encounterFilter = encounterUuid ? `&encounter=${encounterUuid}` : '';
     return this.getFhir<FhirBundleResponse>(
-      `${FHIR.serviceRequest}?_count=${count}&_sort=-_lastUpdated&category=${SERVICE_REQUEST_CATEGORIES.radiology}&patient=${patientUuid}&_revinclude=ImagingStudy:basedon${encounterFilter}`,
+      `${FHIR.serviceRequest}?_count=${count}&_sort=-_lastUpdated&category=${SERVICE_REQUEST_CATEGORIES.radiology}&patient=${patientUuid}&_revinclude=ImagingStudy:basedon&numberOfVisits=${numberOfVisits}${encounterFilter}`,
       role
     );
   }
@@ -141,9 +181,9 @@ export class FhirController extends BaseApiController {
     return this.getFhir<FhirBundleResponse>(`${FHIR.diagnosticReport}/${reportUuid}/$fetch-bundle`, role);
   }
 
-  async searchMedication(name: string, role: UserRole = 'admin'): Promise<ApiResponse<FhirBundleResponse>> {
+  async searchMedication(name: string, count = 1, role: UserRole = 'admin'): Promise<ApiResponse<FhirBundleResponse>> {
     return this.getFhir<FhirBundleResponse>(
-      `/openmrs/ws/fhir2/R4/Medication?name=${encodeURIComponent(name)}&_count=1`,
+      `/openmrs/ws/fhir2/R4/Medication?name=${encodeURIComponent(name)}&_count=${count}&_sort=-_lastUpdated`,
       role
     );
   }

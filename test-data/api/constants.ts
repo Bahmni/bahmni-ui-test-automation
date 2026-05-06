@@ -25,21 +25,79 @@ export const ENCOUNTER_TYPES = {
 
 export const DRUG_ORDER = {
   routeOral: 'd4634f75-5e07-11ef-8f7c-0242ac120002',
+  routeIntravenous: 'd4631c91-5e07-11ef-8f7c-0242ac120002',
+  routeIntramuscular: 'd4627331-5e07-11ef-8f7c-0242ac120002',
+  routeSubcutaneous: '160245AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  routePerVaginal: 'd46382f3-5e07-11ef-8f7c-0242ac120002',
+  routePerRectum: 'd463e5fc-5e07-11ef-8f7c-0242ac120002',
+  routeSublingual: '165519AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  routeNasogastric: 'd464733f-5e07-11ef-8f7c-0242ac120002',
+  routeIntradermal: 'd55f8c66-5e07-11ef-8f7c-0242ac120002',
+  routeIntraperitoneal: 'd55fdd24-5e07-11ef-8f7c-0242ac120002',
+  routeIntrathecal: 'd5602ce2-5e07-11ef-8f7c-0242ac120002',
+  routeIntraosseous: 'd5607904-5e07-11ef-8f7c-0242ac120002',
+  routeTopical: 'd5d3db65-5e07-11ef-8f7c-0242ac120002',
+  routeNasal: 'd5d40e6d-5e07-11ef-8f7c-0242ac120002',
+  routeInhalation: 'd5d43f88-5e07-11ef-8f7c-0242ac120002',
   doseUnitTablet: '1513AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  doseUnitCapsule: '1608AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  doseUnitMl: '162263AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  doseUnitMg: '161553AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  doseUnitIU: '162264AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  doseUnitDrop: '162356AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  doseUnitTablespoon: '162378AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  doseUnitTeaspoon: '162379AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  doseUnitUnit: '162381AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  doseUnitPuff: '162372AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
   frequencyImmediate: '0',
+  frequencyOnceDaily: 'd46af615-5e07-11ef-8f7c-0242ac120002',
+  frequencyTwiceDaily: 'd46b555c-5e07-11ef-8f7c-0242ac120002',
+  frequencyThriceDaily: 'd46b8d00-5e07-11ef-8f7c-0242ac120002',
+  frequencyFourTimesDaily: 'd46bc54c-5e07-11ef-8f7c-0242ac120002',
+  frequencyEvery2Hours: 'd5575f24-5e07-11ef-8f7c-0242ac120002',
+  frequencyEvery4Hours: 'd55822a0-5e07-11ef-8f7c-0242ac120002',
+  frequencyEvery6Hours: 'd5588018-5e07-11ef-8f7c-0242ac120002',
+  frequencyEvery8Hours: 'd558e36b-5e07-11ef-8f7c-0242ac120002',
+  frequencyEvery12Hours: 'd5593db8-5e07-11ef-8f7c-0242ac120002',
+  frequencyAlternateDays: 'd55a1c1c-5e07-11ef-8f7c-0242ac120002',
+  frequencyOnceWeekly: 'd55a6bba-5e07-11ef-8f7c-0242ac120002',
+  frequencyTwiceWeekly: 'd55ac0e0-5e07-11ef-8f7c-0242ac120002',
+  frequencyEvery3Weeks: 'd55b9313-5e07-11ef-8f7c-0242ac120002',
+} as const;
+
+export const DURATION_UNITS = {
+  minutes: '1733AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  hours: '1822AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  days: '1072AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  weeks: '1073AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  months: '1074AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
 } as const;
 
 export const SERVICE_REQUEST_CATEGORIES = {
-  lab: '3f224d3e-afd7-4e90-8f14-34cf481b6d0f',
+  lab: 'd3560b17-5e07-11ef-8f7c-0242ac120002',
   radiology: 'd3561dc0-5e07-11ef-8f7c-0242ac120002',
+  procedure: '3f224d3e-afd7-4e90-8f14-34cf481b6d0f',
 } as const;
 
 export const LAB_CONCEPTS = {
   haemoglobin: '161432AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
   plateletCount: '159896AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  // Panel concept used by the UI's "Anemia panel (Panel)" investigation order — required
-  // for the DiagnosticReport $submit-bundle flow which expects an order matching the panel.
   anemiaPanel: '161437AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  absoluteImmatureCellCount: '1335AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  completeBloodCount: '1019AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  sickleCell: '160225AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  peripheralSmear: '161423AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  hemoglobinElectrophoresis: '161421AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  hivTest: '1356AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+} as const;
+
+export const RADIOLOGY_CONCEPTS = {
+  echocardiogram: '159567AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  xRaySkullFourViews: '161339AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+} as const;
+
+export const PROCEDURE_CONCEPTS = {
+  reconstructionProcedure: '166790AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
 } as const;
 
 export const VITALS_CONCEPTS = {

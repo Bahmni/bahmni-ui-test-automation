@@ -44,4 +44,8 @@ export class VisitController extends BaseApiController {
   async end(uuid: string, role: UserRole = 'admin'): Promise<ApiResponse<VisitResponse>> {
     return this.post<VisitResponse>(`${REST.visit}/${uuid}`, { stopDatetime: new Date().toISOString() }, role);
   }
+
+  async endVisit(uuid: string, role: UserRole = 'admin'): Promise<ApiResponse<VisitResponse>> {
+    return this.post<VisitResponse>(`${REST.visitEnd}?visitUuid=${uuid}`, { withCredentials: true }, role);
+  }
 }

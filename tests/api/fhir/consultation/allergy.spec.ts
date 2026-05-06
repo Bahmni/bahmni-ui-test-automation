@@ -103,67 +103,18 @@ test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/Allerg
     expect(status).toBe(400);
   });
 
-  test('GET /fhir2/R4/AllergyIntolerance?_count=1 returns at most 1 entry', async ({ api }) => {
-    const { body } = await api.fhir.getAllergyIntolerances(ctx.patientUuid, 1);
+  test('GET /fhir2/R4/AllergyIntolerance — _count=1 returns 1 entry, _count=2 returns 2 entries', async ({ api }) => {
+    await api.fhir.submitConsultationBundle(buildAllergyBundle(ctx, ALLERGY_CODES.aspirin));
 
-    const entryCount = body.entry?.length ?? 0;
-    expect(entryCount).toBeLessThanOrEqual(1);
+    const { body: body1 } = await api.fhir.getAllergyIntolerances(ctx.patientUuid, 1);
+    expect(body1.entry?.length ?? 0).toBe(1);
+
+    const { body: body2 } = await api.fhir.getAllergyIntolerances(ctx.patientUuid, 2);
+    const allergies = getBundleEntriesByType<AllergyIntoleranceEntry>(body2, 'AllergyIntolerance');
+    expect(allergies.length).toBe(2);
   });
 
   test.afterAll(async ({ api }) => {
     await teardownConsultationContext(api, ctx);
   });
 });
-
-/*
- * TODO: Pagination tests temporarily disabled.
- *
- * Per the upstream openmrs-module-fhir2 source (SearchQueryBundleProvider.java), the FHIR
- * default page size when `_count` is not specified is 10 (controlled by global property
- * `fhir2.paging.default`). However, in this test environment, GET without `_count` returns
- * all 12 submitted allergies — suggesting the global property is overridden or the behavior
- * differs from the documented default.
- *
- * Re-enable once the actual configured default is confirmed.
- *
- * test.describe.serial('GET /fhir2/R4/AllergyIntolerance — pagination behavior', () => {
- *   const ALLERGY_COUNT = 12;
- *   let ctx: ConsultationContext;
- *
- *   test.beforeAll(async ({ api }) => {
- *     ctx = await setupConsultationContext(api);
- *
- *     const { body: valueSet } = await api.fhir.getValueSetExpansion(ALLERGY_VALUE_SETS.food);
- *     const allergenCodes = (valueSet.expansion?.contains ?? []).map((c) => c.code).slice(0, ALLERGY_COUNT);
- *
- *     if (allergenCodes.length < ALLERGY_COUNT) {
- *       throw new Error(
- *         `Food allergen ValueSet has only ${allergenCodes.length} codes — need at least ${ALLERGY_COUNT} for pagination test`
- *       );
- *     }
- *
- *     await api.fhir.submitConsultationBundle(buildBundleWithMultipleAllergies(ctx, allergenCodes));
- *   });
- *
- *   test('GET /fhir2/R4/AllergyIntolerance — without _count returns FHIR default page size of 10', async ({ api }) => {
- *     const { body } = await api.fhir.getAllergyIntolerances(ctx.patientUuid);
- *     const allergies = getBundleEntriesByType<AllergyIntoleranceEntry>(body, 'AllergyIntolerance');
- *
- *     expect(allergies.length).toBe(FHIR_DEFAULT_PAGE_SIZE);
- *   });
- *
- *   test('GET /fhir2/R4/AllergyIntolerance?_count=100 — returns more than 10 entries (overrides default page size)', async ({
- *     api,
- *   }) => {
- *     const { body } = await api.fhir.getAllergyIntolerances(ctx.patientUuid, 100);
- *     const allergies = getBundleEntriesByType<AllergyIntoleranceEntry>(body, 'AllergyIntolerance');
- *
- *     expect(allergies.length).toBeGreaterThan(FHIR_DEFAULT_PAGE_SIZE);
- *     expect(allergies.length).toBe(ALLERGY_COUNT);
- *   });
- *
- *   test.afterAll(async ({ api }) => {
- *     await teardownConsultationContext(api, ctx);
- *   });
- * });
- */

@@ -50,6 +50,26 @@ export async function teardownConsultationContext(api: ApiFactory, ctx: Consulta
  * ConsultationBundle responses always contain exactly one Encounter, so this is safe for that case.
  * For resource types where multiple may exist (e.g., ServiceRequest), use `getBundleEntriesByType` directly.
  */
+export async function startNewVisit(
+  api: ApiFactory,
+  ctx: ConsultationContext
+): Promise<{ visitUuid: string; visitEncounterUuid: string }> {
+  const { body: visitTypeBody } = await api.visit.getVisitTypes();
+  const opdType = visitTypeBody.results.find((vt) => vt.display.includes(VISIT_TYPES.opd));
+  if (!opdType) throw new Error('OPD visit type not found');
+
+  const { body: visitBody } = await api.visit.create(
+    buildStartVisitPayload(ctx.patientUuid, opdType.uuid, ctx.locationUuid ?? LOCATIONS.loginLocationUuid)
+  );
+
+  const { body: visitEncounterBundle } = await api.fhir.getVisitEncounters(ctx.patientUuid);
+  const visitEncounters = getBundleEntriesByType<{ id: string }>(visitEncounterBundle, 'Encounter');
+  const newVisitEncounter = visitEncounters.find((e) => e.id !== ctx.visitEncounterUuid);
+  if (!newVisitEncounter) throw new Error('New visit encounter not found after creating visit');
+
+  return { visitUuid: visitBody.uuid, visitEncounterUuid: newVisitEncounter.id };
+}
+
 export function extractFirstUuidFromBundle(
   bundleResponse: { entry?: Array<{ resource: { resourceType: string; id: string } }> },
   resourceType: string

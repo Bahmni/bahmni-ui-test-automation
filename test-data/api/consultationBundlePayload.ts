@@ -10,6 +10,8 @@ import {
   HE_VALUES,
   LAB_CONCEPTS,
   LOCATIONS,
+  PROCEDURE_CONCEPTS,
+  RADIOLOGY_CONCEPTS,
   VITALS_CONCEPTS,
   VITALS_VALUES,
 } from './constants';
@@ -317,6 +319,139 @@ export function buildLabOrderBundle(ctx: BundleContext): Record<string, unknown>
   );
 }
 
+export function buildSingleLabOrderBundle(
+  ctx: BundleContext,
+  labConceptCode: string = LAB_CONCEPTS.absoluteImmatureCellCount
+): Record<string, unknown> {
+  const ts = pastTimestamp();
+  const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
+  return consultationBundle(
+    [
+      encounterEntry,
+      {
+        fullUrl: `urn:uuid:${faker.string.uuid()}`,
+        resource: {
+          resourceType: 'ServiceRequest',
+          status: 'active',
+          intent: 'order',
+          priority: 'routine',
+          code: { coding: [{ code: labConceptCode }] },
+          subject: { reference: `Patient/${ctx.patientUuid}` },
+          encounter: { reference: `urn:uuid:${tempUuid}` },
+          requester: { reference: `Practitioner/${ctx.practitionerUuid}`, type: 'Practitioner' },
+          note: [{ text: 'single lab test' }],
+        },
+        request: { method: 'POST', url: 'ServiceRequest' },
+      },
+    ],
+    ts
+  );
+}
+
+export function buildRadiologyNewEncounterBundle(
+  ctx: BundleContext,
+  radiologyConceptCode: string = RADIOLOGY_CONCEPTS.echocardiogram
+): Record<string, unknown> {
+  const ts = pastTimestamp();
+  const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
+  return consultationBundle(
+    [
+      encounterEntry,
+      {
+        fullUrl: `urn:uuid:${faker.string.uuid()}`,
+        resource: {
+          resourceType: 'ServiceRequest',
+          status: 'active',
+          intent: 'order',
+          priority: 'stat',
+          code: { coding: [{ code: radiologyConceptCode }] },
+          subject: { reference: `Patient/${ctx.patientUuid}` },
+          encounter: { reference: `urn:uuid:${tempUuid}` },
+          requester: { reference: `Practitioner/${ctx.practitionerUuid}`, type: 'Practitioner' },
+          note: [{ text: 'radiology order' }],
+        },
+        request: { method: 'POST', url: 'ServiceRequest' },
+      },
+    ],
+    ts
+  );
+}
+
+export function buildPanelLabOrderBundle(ctx: BundleContext, encounterUuid: string): Record<string, unknown> {
+  const ts = pastTimestamp();
+  return consultationBundle(
+    [
+      existingEncounterEntry(encounterUuid, ctx, ts),
+      {
+        fullUrl: `urn:uuid:${faker.string.uuid()}`,
+        resource: {
+          resourceType: 'ServiceRequest',
+          status: 'active',
+          intent: 'order',
+          priority: 'routine',
+          code: { coding: [{ code: LAB_CONCEPTS.completeBloodCount }] },
+          subject: { reference: `Patient/${ctx.patientUuid}` },
+          encounter: { reference: `Encounter/${encounterUuid}` },
+          requester: { reference: `Practitioner/${ctx.practitionerUuid}`, type: 'Practitioner' },
+          note: [{ text: 'panel test' }],
+        },
+        request: { method: 'POST', url: 'ServiceRequest' },
+      },
+    ],
+    ts
+  );
+}
+
+export function buildRadiologyOrderBundle(ctx: BundleContext, encounterUuid: string): Record<string, unknown> {
+  const ts = pastTimestamp();
+  return consultationBundle(
+    [
+      existingEncounterEntry(encounterUuid, ctx, ts),
+      {
+        fullUrl: `urn:uuid:${faker.string.uuid()}`,
+        resource: {
+          resourceType: 'ServiceRequest',
+          status: 'active',
+          intent: 'order',
+          priority: 'stat',
+          code: { coding: [{ code: RADIOLOGY_CONCEPTS.echocardiogram }] },
+          subject: { reference: `Patient/${ctx.patientUuid}` },
+          encounter: { reference: `Encounter/${encounterUuid}` },
+          requester: { reference: `Practitioner/${ctx.practitionerUuid}`, type: 'Practitioner' },
+          note: [{ text: 'Echo' }],
+        },
+        request: { method: 'POST', url: 'ServiceRequest' },
+      },
+    ],
+    ts
+  );
+}
+
+export function buildProcedureOrderBundle(ctx: BundleContext, encounterUuid: string): Record<string, unknown> {
+  const ts = pastTimestamp();
+  return consultationBundle(
+    [
+      existingEncounterEntry(encounterUuid, ctx, ts),
+      {
+        fullUrl: `urn:uuid:${faker.string.uuid()}`,
+        resource: {
+          resourceType: 'ServiceRequest',
+          status: 'active',
+          intent: 'order',
+          priority: 'stat',
+          code: { coding: [{ code: PROCEDURE_CONCEPTS.reconstructionProcedure }] },
+          subject: { reference: `Patient/${ctx.patientUuid}` },
+          encounter: { reference: `Encounter/${encounterUuid}` },
+          requester: { reference: `Practitioner/${ctx.practitionerUuid}`, type: 'Practitioner' },
+          note: [{ text: 'reconstruction of hand' }],
+        },
+        request: { method: 'POST', url: 'ServiceRequest' },
+      },
+    ],
+    ts
+  );
+}
+
 /**
  * Bundle that creates an Encounter and a single ServiceRequest for the Anemia panel (Panel).
  * Use this to set up an order for the DiagnosticReport $submit-bundle flow tested via
@@ -424,6 +559,104 @@ function medicationRequestEntry(
     },
     request: { method: 'POST', url: 'MedicationRequest' },
   };
+}
+
+const DURATION_MS: Record<string, number> = {
+  min: 60_000,
+  h: 3_600_000,
+  d: 86_400_000,
+  wk: 604_800_000,
+  mo: 2_592_000_000,
+};
+
+const DURATION_MINUTES: Record<string, number> = {
+  min: 1,
+  h: 60,
+  d: 1440,
+  wk: 10_080,
+  mo: 43_200,
+};
+
+const FREQUENCY_INTERVAL_MINUTES: Record<string, number> = {
+  [DRUG_ORDER.frequencyImmediate]: 0,
+  [DRUG_ORDER.frequencyOnceDaily]: 1440,
+  [DRUG_ORDER.frequencyTwiceDaily]: 720,
+  [DRUG_ORDER.frequencyThriceDaily]: 480,
+  [DRUG_ORDER.frequencyFourTimesDaily]: 360,
+  [DRUG_ORDER.frequencyEvery2Hours]: 120,
+  [DRUG_ORDER.frequencyEvery4Hours]: 240,
+  [DRUG_ORDER.frequencyEvery6Hours]: 360,
+  [DRUG_ORDER.frequencyEvery8Hours]: 480,
+  [DRUG_ORDER.frequencyEvery12Hours]: 720,
+  [DRUG_ORDER.frequencyAlternateDays]: 2880,
+  [DRUG_ORDER.frequencyOnceWeekly]: 10_080,
+  [DRUG_ORDER.frequencyTwiceWeekly]: 5040,
+  [DRUG_ORDER.frequencyEvery3Weeks]: 30_240,
+};
+
+export interface MedicationOrderOptions {
+  route: string;
+  doseValue: number;
+  doseUnit: string;
+  priority: 'routine' | 'stat';
+  frequency: string;
+  durationValue: number;
+  durationUcumCode: 'min' | 'h' | 'd' | 'wk' | 'mo';
+  asNeededBoolean?: boolean;
+}
+
+export function calculateTotalQuantity(opts: MedicationOrderOptions): number {
+  const { doseValue, frequency, durationValue, durationUcumCode } = opts;
+  const intervalMinutes = FREQUENCY_INTERVAL_MINUTES[frequency];
+  if (intervalMinutes === 0) return doseValue;
+  const durationInMinutes = durationValue * DURATION_MINUTES[durationUcumCode];
+  const numberOfDoses = Math.ceil(durationInMinutes / intervalMinutes);
+  return parseFloat((doseValue * numberOfDoses).toFixed(2));
+}
+
+export function buildMedicationOrderBundle(
+  ctx: BundleContext,
+  encounterUuid: string,
+  medicationUuid: string,
+  options: MedicationOrderOptions
+): Record<string, unknown> {
+  const ts = pastTimestamp();
+  const endDate = new Date(Date.now() + options.durationValue * DURATION_MS[options.durationUcumCode]).toISOString();
+  return consultationBundle(
+    [
+      existingEncounterEntry(encounterUuid, ctx, ts),
+      {
+        fullUrl: `urn:uuid:${faker.string.uuid()}`,
+        resource: {
+          resourceType: 'MedicationRequest',
+          status: 'active',
+          intent: 'order',
+          medicationReference: { reference: `Medication/${medicationUuid}`, type: 'Medication' },
+          subject: { reference: `Patient/${ctx.patientUuid}` },
+          encounter: { reference: `Encounter/${encounterUuid}` },
+          requester: { reference: `Practitioner/${ctx.practitionerUuid}`, type: 'Practitioner' },
+          dosageInstruction: [
+            {
+              timing: {
+                repeat: { boundsPeriod: { start: ts, end: endDate } },
+                code: { coding: [{ code: options.frequency }] },
+              },
+              asNeededBoolean: options.asNeededBoolean ?? false,
+              route: { coding: [{ code: options.route }] },
+              doseAndRate: [{ doseQuantity: { value: options.doseValue, code: options.doseUnit } }],
+            },
+          ],
+          priority: options.priority,
+          dispenseRequest: {
+            numberOfRepeatsAllowed: 0,
+            quantity: { value: calculateTotalQuantity(options), code: options.doseUnit },
+          },
+        },
+        request: { method: 'POST', url: 'MedicationRequest' },
+      },
+    ],
+    ts
+  );
 }
 
 // ---------------------------------------------------------------------------

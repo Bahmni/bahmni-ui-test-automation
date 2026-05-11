@@ -45,6 +45,7 @@ function assertMedOrder(req: MedicationRequestEntry | undefined, medicationUuid:
   expect(req?.dosageInstruction[0].doseAndRate[0].doseQuantity.code).toBe(opts.doseUnit);
   expect(req?.dosageInstruction[0].asNeededBoolean).toBe(opts.asNeededBoolean ?? false);
   expect(req?.dosageInstruction[0].timing?.code?.coding[0]?.code).toBe(opts.frequency);
+  expect(req?.dosageInstruction[0].timing?.repeat?.boundsPeriod?.start).toBeDefined();
   expect(req?.dispenseRequest.quantity.value).toBe(calculateTotalQuantity(opts));
 }
 

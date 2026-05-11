@@ -57,7 +57,10 @@ export interface MedicationRequestEntry {
   dosageInstruction: Array<{
     route: { coding: Array<{ code: string }> };
     doseAndRate: Array<{ doseQuantity: { value: number; code: string } }>;
-    timing: { repeat?: { boundsPeriod?: Record<string, unknown> }; code?: { coding: Array<{ code: string }> } };
+    timing: {
+      repeat?: { boundsPeriod?: { start?: string; end?: string } };
+      code?: { coding: Array<{ code: string }> };
+    };
     asNeededBoolean?: boolean;
   }>;
   dispenseRequest: { numberOfRepeatsAllowed: number; quantity: { value: number } };

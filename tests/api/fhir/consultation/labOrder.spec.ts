@@ -6,6 +6,7 @@ import {
   buildRadiologyOrderBundle,
   buildProcedureOrderBundle,
   buildRadiologyNewEncounterBundle,
+  buildAllergyBundle,
 } from '../../../../test-data/api/consultationBundlePayload';
 import {
   buildAbsoluteImmatureCellCountDRBundle,
@@ -35,6 +36,8 @@ import {
   DiagnosticReportEntry,
   ObservationEntry,
 } from '../../../../src/api/types/fhir-resources.types';
+import { FhirApiHelper } from '../../../../src/utils/fhir-api-helper';
+import { echocardiogramReportData, xRayArmReportData } from '../../../../test-data/common/labOrderData';
 
 test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/ServiceRequest', () => {
   let ctx: ConsultationContext;
@@ -370,6 +373,87 @@ test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle
     expect(reports[0].result?.length).toBe(1);
     expect(reports[0].presentedForm).toBeUndefined();
     expect(observations[0].valueBoolean).toBe(false);
+  });
+
+  test.afterAll(async ({ api }) => {
+    await teardownConsultationContext(api, ctx);
+  });
+});
+
+test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle (Radiology)', () => {
+  let ctx: ConsultationContext;
+  let encounterUuid: string;
+  let echoServiceRequestUuid: string;
+  let xRayServiceRequestUuid: string;
+  let echoDrId: string;
+  let xRayDrId: string;
+
+  test.beforeAll(async ({ api, request }) => {
+    ctx = await setupConsultationContext(api);
+
+    const { body: allergyBody } = await api.fhir.submitConsultationBundle(buildAllergyBundle(ctx));
+    encounterUuid = extractFirstUuidFromBundle(allergyBody, 'Encounter');
+
+    const { body: echoBody } = await api.fhir.submitConsultationBundle(buildRadiologyOrderBundle(ctx, encounterUuid));
+    echoServiceRequestUuid = extractFirstUuidFromBundle(echoBody, 'ServiceRequest');
+
+    const { body: xRayBody } = await api.fhir.submitConsultationBundle(
+      buildRadiologyOrderBundle(ctx, encounterUuid, RADIOLOGY_CONCEPTS.xRayArm)
+    );
+    xRayServiceRequestUuid = extractFirstUuidFromBundle(xRayBody, 'ServiceRequest');
+
+    const fhirApi = new FhirApiHelper(request);
+    await fhirApi.postEchocardiogramReport(
+      ctx.patientUuid,
+      encounterUuid,
+      echoServiceRequestUuid,
+      echocardiogramReportData
+    );
+    await fhirApi.postXRayArmReport(ctx.patientUuid, encounterUuid, xRayServiceRequestUuid, xRayArmReportData);
+
+    const { body: drBundle } = await api.fhir.getDiagnosticReportsByBasedOn(ctx.patientUuid, [
+      echoServiceRequestUuid,
+      xRayServiceRequestUuid,
+    ]);
+    const reports = getBundleEntriesByType<DiagnosticReportEntry>(drBundle, 'DiagnosticReport');
+    echoDrId = reports.find((r) => r.basedOn[0].reference.includes(echoServiceRequestUuid))?.id ?? '';
+    xRayDrId = reports.find((r) => r.basedOn[0].reference.includes(xRayServiceRequestUuid))?.id ?? '';
+  });
+
+  test('Echocardiogram — $fetch-bundle returns 15 mixed observations with correct values', async ({ api }) => {
+    const { body } = await api.fhir.getDiagnosticReportBundle(echoDrId);
+    const reports = getBundleEntriesByType<DiagnosticReportEntry>(body, 'DiagnosticReport');
+    const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
+
+    expect(reports[0].status).toBe('final');
+    expect(reports[0].result?.length).toBe(15);
+    expect(observations.length).toBe(15);
+
+    const ejectionFraction = observations.find((o) => o.code.coding[0].code === '159571AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+    const lvFunction = observations.find((o) => o.code.coding[0].code === '167023AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+    const summary = observations.find((o) => o.code.coding[0].code === 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb');
+
+    expect(ejectionFraction?.valueQuantity?.value).toBe(echocardiogramReportData.ejectionFraction.value);
+    expect(lvFunction?.valueCodeableConcept?.coding[0].code).toBe('159568AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+    expect(summary?.valueString).toBe(echocardiogramReportData.summary);
+  });
+
+  test('X-ray arm — $fetch-bundle returns 8 observations with text, coded and numeric values', async ({ api }) => {
+    const { body } = await api.fhir.getDiagnosticReportBundle(xRayDrId);
+    const reports = getBundleEntriesByType<DiagnosticReportEntry>(body, 'DiagnosticReport');
+    const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
+
+    expect(reports[0].status).toBe('final');
+    expect(reports[0].result?.length).toBe(8);
+    expect(observations.length).toBe(8);
+
+    const summary = observations.find((o) => o.code.coding[0].code === 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb');
+    const swelling = observations.find((o) => o.code.coding[0].code === '163894AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+    const armLength = observations.find((o) => o.code.coding[0].code === '1ff70b07-1ef6-49fa-9f4b-37cc10900a5a');
+
+    expect(summary?.valueString).toBe(xRayArmReportData.summary);
+    expect(swelling?.valueCodeableConcept?.coding[0].code).toBe('1066AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+    expect(armLength?.valueQuantity?.value).toBe(xRayArmReportData.armLengthDiscrepancyCm);
   });
 
   test.afterAll(async ({ api }) => {

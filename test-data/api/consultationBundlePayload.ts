@@ -402,7 +402,11 @@ export function buildPanelLabOrderBundle(ctx: BundleContext, encounterUuid: stri
   );
 }
 
-export function buildRadiologyOrderBundle(ctx: BundleContext, encounterUuid: string): Record<string, unknown> {
+export function buildRadiologyOrderBundle(
+  ctx: BundleContext,
+  encounterUuid: string,
+  radiologyConceptCode: string = RADIOLOGY_CONCEPTS.echocardiogram
+): Record<string, unknown> {
   const ts = pastTimestamp();
   return consultationBundle(
     [
@@ -414,11 +418,11 @@ export function buildRadiologyOrderBundle(ctx: BundleContext, encounterUuid: str
           status: 'active',
           intent: 'order',
           priority: 'stat',
-          code: { coding: [{ code: RADIOLOGY_CONCEPTS.echocardiogram }] },
+          code: { coding: [{ code: radiologyConceptCode }] },
           subject: { reference: `Patient/${ctx.patientUuid}` },
           encounter: { reference: `Encounter/${encounterUuid}` },
           requester: { reference: `Practitioner/${ctx.practitionerUuid}`, type: 'Practitioner' },
-          note: [{ text: 'Echo' }],
+          note: [{ text: 'Radiology order' }],
         },
         request: { method: 'POST', url: 'ServiceRequest' },
       },

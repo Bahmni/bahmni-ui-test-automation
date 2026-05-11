@@ -33,6 +33,32 @@ export const anemiaReportData: AnemiaReportData = {
   platelets: { value: 89, unit: '10^3/mL' },
 };
 
+export const X_RAY_ARM_NAME = 'X-ray, arm';
+
+export interface XRayArmReportData {
+  effectiveDate: string;
+  summary: string;
+  impression: string;
+  radiologyNotes: string;
+  radiologyResults: string;
+  swellingPresent: 'Yes' | 'No';
+  boneTenderness: 'Yes' | 'No' | 'Unknown';
+  injuryPresent: 'Yes' | 'No';
+  armLengthDiscrepancyCm: number;
+}
+
+export const xRayArmReportData: XRayArmReportData = {
+  effectiveDate: '2026-05-01',
+  summary: 'No fracture or dislocation detected. Bone cortex intact bilaterally. Soft tissue planes unremarkable.',
+  impression: 'Normal arm X-ray. No acute bony abnormality detected.',
+  radiologyNotes: 'AP and lateral views obtained. Recommend clinical follow-up if symptoms persist.',
+  radiologyResults: 'Cortical margins intact. Joint spaces preserved. No periosteal reaction.',
+  swellingPresent: 'No',
+  boneTenderness: 'No',
+  injuryPresent: 'No',
+  armLengthDiscrepancyCm: 0.2,
+};
+
 export const ECHOCARDIOGRAM_NAME = 'Echocardiogram';
 
 export interface EchocardiogramReportData {

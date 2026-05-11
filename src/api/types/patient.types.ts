@@ -28,9 +28,22 @@ export interface PatientIdentifier {
   voided: boolean;
 }
 
+export interface ManualPatientIdentifier {
+  identifier: string;
+  identifierType: string;
+  preferred: boolean;
+  voided: boolean;
+}
+
+export type PatientIdentifierEntry = PatientIdentifier | ManualPatientIdentifier;
+
 export interface PatientRelationship {
   relationshipType: { uuid: string };
   personB: { uuid: string };
+}
+
+export interface RelationshipTypeResponse {
+  results: Array<{ uuid: string; aIsToB: string; bIsToA: string }>;
 }
 
 export interface CreatePatientRequest {
@@ -46,7 +59,7 @@ export interface CreatePatientRequest {
       deathDate: null;
       causeOfDeath: string;
     };
-    identifiers: PatientIdentifier[];
+    identifiers: PatientIdentifierEntry[];
   };
   relationships: PatientRelationship[];
 }
@@ -60,9 +73,14 @@ export interface PatientProfileResponse {
       display: string;
       gender: string;
       birthdate: string;
+      birthdateEstimated: boolean;
       names: Array<{ givenName: string; middleName?: string; familyName: string }>;
       addresses: Array<PatientAddress & { uuid: string }>;
       attributes: Array<{ uuid: string; display: string; value: string | { uuid: string; display: string } }>;
+      relationships?: Array<{
+        relationshipType: { uuid: string; display: string };
+        personB: { uuid: string; display: string };
+      }>;
     };
     identifiers: Array<{ uuid: string; identifier: string; display: string }>;
   };

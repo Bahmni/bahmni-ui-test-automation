@@ -1,5 +1,10 @@
 import { faker } from '@faker-js/faker';
-import { CreatePatientRequest, PatientAddress, PersonAttribute } from '../../src/api/types/patient.types';
+import {
+  CreatePatientRequest,
+  PatientAddress,
+  PersonAttribute,
+  PatientRelationship,
+} from '../../src/api/types/patient.types';
 import { IDENTIFIER, PERSON_ATTRIBUTE_TYPE } from './constants';
 
 export interface PatientInput {
@@ -79,5 +84,52 @@ export function buildCreatePatientPayload(input: PatientInput = {}): CreatePatie
       ],
     },
     relationships: [],
+  };
+}
+
+export function buildCreatePatientPayloadWithManualIdentifier(
+  manualIdentifier: string,
+  input: PatientInput = {}
+): CreatePatientRequest {
+  const base = buildCreatePatientPayload(input);
+  return {
+    ...base,
+    patient: {
+      ...base.patient,
+      identifiers: [
+        {
+          identifier: manualIdentifier,
+          identifierType: IDENTIFIER.typeUuid,
+          preferred: true,
+          voided: false,
+        },
+      ],
+    },
+  };
+}
+
+export function buildCreatePatientPayloadWithRelationship(
+  relationships: PatientRelationship[],
+  input: PatientInput = {}
+): CreatePatientRequest {
+  const base = buildCreatePatientPayload(input);
+  return { ...base, relationships };
+}
+
+export function buildCreatePatientPayloadWithBirthdateEstimated(
+  birthdate: string,
+  birthdateEstimated: boolean,
+  input: PatientInput = {}
+): CreatePatientRequest {
+  const base = buildCreatePatientPayload({ ...input, birthdate });
+  return {
+    ...base,
+    patient: {
+      ...base.patient,
+      person: {
+        ...base.patient.person,
+        birthdateEstimated,
+      },
+    },
   };
 }

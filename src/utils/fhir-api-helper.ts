@@ -4,6 +4,7 @@ import {
   AnemiaReportData,
   AtypicalLymphReportData,
   EchocardiogramReportData,
+  XRayArmReportData,
 } from '../../test-data/common/labOrderData';
 
 export class FhirApiHelper {
@@ -705,6 +706,181 @@ export class FhirApiHelper {
                 },
               },
             ],
+          },
+        },
+      ],
+    };
+  }
+
+  async postXRayArmReport(
+    patientUuid: string,
+    encounterUuid: string,
+    serviceRequestUuid: string,
+    reportData: XRayArmReportData
+  ): Promise<void> {
+    const bundle = this.buildXRayArmBundle(patientUuid, encounterUuid, serviceRequestUuid, reportData);
+    const response = await this.request.post(`${this.fhirBaseUrl}/DiagnosticReport/$submit-bundle`, {
+      data: bundle,
+      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/fhir+json' },
+    });
+    if (!response.ok()) {
+      throw new Error(`Failed to post X-ray arm report: ${response.status()} ${await response.text()}`);
+    }
+  }
+
+  private buildXRayArmBundle(
+    patientUuid: string,
+    encounterUuid: string,
+    serviceRequestUuid: string,
+    reportData: XRayArmReportData
+  ) {
+    const effectiveDateTime = `${reportData.effectiveDate}T10:00:00Z`;
+    const patientRef = `Patient/${patientUuid}`;
+    const encounterRef = `Encounter/${encounterUuid}`;
+
+    const YES_CODE = '1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+    const NO_CODE = '1066AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+    const UNKNOWN_CODE = '1067AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+
+    const codedValue = (display: 'Yes' | 'No' | 'Unknown') =>
+      display === 'Yes' ? YES_CODE : display === 'No' ? NO_CODE : UNKNOWN_CODE;
+
+    return {
+      resourceType: 'Bundle',
+      type: 'collection',
+      entry: [
+        {
+          fullUrl: 'urn:uuid:dr-xray-arm',
+          resource: {
+            resourceType: 'DiagnosticReport',
+            basedOn: [{ reference: `ServiceRequest/${serviceRequestUuid}` }],
+            status: 'final',
+            category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v2-0074', code: 'LAB' }] }],
+            code: { coding: [{ code: '377AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'X-ray, arm' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime: reportData.effectiveDate,
+            result: [
+              { reference: 'urn:uuid:obs-xray-summary' },
+              { reference: 'urn:uuid:obs-xray-impression' },
+              { reference: 'urn:uuid:obs-xray-notes' },
+              { reference: 'urn:uuid:obs-xray-results' },
+              { reference: 'urn:uuid:obs-xray-swelling' },
+              { reference: 'urn:uuid:obs-xray-tenderness' },
+              { reference: 'urn:uuid:obs-xray-injury' },
+              { reference: 'urn:uuid:obs-xray-length' },
+            ],
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-xray-summary',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb', display: 'Summary' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.summary,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-xray-impression',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: 'd51e7bc5-5e07-11ef-8f7c-0242ac120002', display: 'Impression' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.impression,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-xray-notes',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: 'ae6e5490-ade9-486e-8268-9e4efd45b07e', display: 'Radiology Notes' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.radiologyNotes,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-xray-results',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: '1392AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Radiology results' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueString: reportData.radiologyResults,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-xray-swelling',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: '163894AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Swelling' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueCodeableConcept: {
+              coding: [{ code: codedValue(reportData.swellingPresent), display: reportData.swellingPresent }],
+            },
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-xray-tenderness',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: '160687AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Bone tenderness' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueCodeableConcept: {
+              coding: [{ code: codedValue(reportData.boneTenderness), display: reportData.boneTenderness }],
+            },
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-xray-injury',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: { coding: [{ code: '112234AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Injury' }] },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueCodeableConcept: {
+              coding: [{ code: codedValue(reportData.injuryPresent), display: reportData.injuryPresent }],
+            },
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:obs-xray-length',
+          resource: {
+            resourceType: 'Observation',
+            status: 'final',
+            code: {
+              coding: [
+                { code: '1ff70b07-1ef6-49fa-9f4b-37cc10900a5a', display: 'Length discrepancy between arms (cm)' },
+              ],
+            },
+            subject: { reference: patientRef },
+            encounter: { reference: encounterRef },
+            effectiveDateTime,
+            valueQuantity: {
+              value: reportData.armLengthDiscrepancyCm,
+              unit: 'cm',
+              system: 'http://unitsofmeasure.org',
+              code: 'cm',
+            },
           },
         },
       ],

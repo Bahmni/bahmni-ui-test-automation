@@ -8,7 +8,7 @@ export function buildStartVisitPayload(
   return {
     patient: patientUuid,
     visitType: visitTypeUuid,
-    startDatetime: new Date().toISOString(),
+    startDatetime: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
     location: locationUuid,
   };
 }

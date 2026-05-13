@@ -7,6 +7,7 @@ import { BundleContext } from '../types/fhir-resources.types';
 
 export interface ConsultationContext extends BundleContext {
   visitUuid: string;
+  userUuid: string;
 }
 
 export async function setupConsultationContext(api: ApiFactory): Promise<ConsultationContext> {
@@ -36,8 +37,9 @@ export async function setupConsultationContext(api: ApiFactory): Promise<Consult
     );
   }
   const practitionerUuid = providerBody.results[0].uuid;
+  const userUuid = sessionBody.user.uuid;
 
-  return { patientUuid, visitUuid, visitEncounterUuid, practitionerUuid, locationUuid };
+  return { patientUuid, visitUuid, visitEncounterUuid, practitionerUuid, userUuid, locationUuid };
 }
 
 export async function teardownConsultationContext(api: ApiFactory, ctx: ConsultationContext): Promise<void> {

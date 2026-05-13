@@ -1,156 +1,164 @@
+function env(key: string): string {
+  const value = process.env[key];
+  if (!value) throw new Error(`${key} is not set — run globalSetup before tests`);
+  return value;
+}
+
 export const IDENTIFIER = {
-  sourceUuid: process.env.IDENTIFIER_SOURCE_UUID || 'c5cf4b68-6529-43fc-a644-c775ae73745e',
-  typeUuid: process.env.IDENTIFIER_TYPE_UUID || 'd3153eb0-5e07-11ef-8f7c-0242ac120002',
+  sourceUuid: env('IDENTIFIER_SOURCE_UUID'),
+  typeUuid: env('IDENTIFIER_TYPE_UUID'),
   prefix: process.env.IDENTIFIER_PREFIX || 'ABC',
-} as const;
+};
 
 export const PERSON_ATTRIBUTE_TYPE = {
-  phoneNumber: 'a384873b-847a-4a86-b869-28fb601162dd',
-  alternatePhoneNumber: '27fa84ff-fdd6-4895-9c77-254b60555f39',
-  email: 'e3123cba-5e07-11ef-8f7c-0242ac120002',
-} as const;
+  phoneNumber: env('PERSON_ATTR_PHONE_NUMBER'),
+  alternatePhoneNumber: env('PERSON_ATTR_ALT_PHONE_NUMBER'),
+  email: env('PERSON_ATTR_EMAIL'),
+};
 
 export const VISIT_TYPES = {
   opd: 'OPD',
 } as const;
 
 export const LOCATIONS = {
-  opd1: 'OPD-1',
-  loginLocationUuid: '5e232c47-8ff5-4c5c-8057-7e39a64fefa5',
-} as const;
+  opd1: env('LOCATION_OPD'),
+  loginLocationUuid: env('LOCATION_LOGIN_UUID'),
+};
 
 export const ENCOUNTER_TYPES = {
-  consultation: 'd34fe3ab-5e07-11ef-8f7c-0242ac120002',
-} as const;
+  consultation: env('ENCOUNTER_TYPE_CONSULTATION'),
+};
 
 export const DRUG_ORDER = {
-  routeOral: 'd4634f75-5e07-11ef-8f7c-0242ac120002',
-  routeIntravenous: 'd4631c91-5e07-11ef-8f7c-0242ac120002',
-  routeIntramuscular: 'd4627331-5e07-11ef-8f7c-0242ac120002',
-  routeSubcutaneous: '160245AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  routePerVaginal: 'd46382f3-5e07-11ef-8f7c-0242ac120002',
-  routePerRectum: 'd463e5fc-5e07-11ef-8f7c-0242ac120002',
-  routeSublingual: '165519AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  routeNasogastric: 'd464733f-5e07-11ef-8f7c-0242ac120002',
-  routeIntradermal: 'd55f8c66-5e07-11ef-8f7c-0242ac120002',
-  routeIntraperitoneal: 'd55fdd24-5e07-11ef-8f7c-0242ac120002',
-  routeIntrathecal: 'd5602ce2-5e07-11ef-8f7c-0242ac120002',
-  routeIntraosseous: 'd5607904-5e07-11ef-8f7c-0242ac120002',
-  routeTopical: 'd5d3db65-5e07-11ef-8f7c-0242ac120002',
-  routeNasal: 'd5d40e6d-5e07-11ef-8f7c-0242ac120002',
-  routeInhalation: 'd5d43f88-5e07-11ef-8f7c-0242ac120002',
-  doseUnitTablet: '1513AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  doseUnitCapsule: '1608AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  doseUnitMl: '162263AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  doseUnitMg: '161553AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  doseUnitIU: '162264AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  doseUnitDrop: '162356AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  doseUnitTablespoon: '162378AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  doseUnitTeaspoon: '162379AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  doseUnitUnit: '162381AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  doseUnitPuff: '162372AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  frequencyImmediate: '0',
-  frequencyOnceDaily: 'd46af615-5e07-11ef-8f7c-0242ac120002',
-  frequencyTwiceDaily: 'd46b555c-5e07-11ef-8f7c-0242ac120002',
-  frequencyThriceDaily: 'd46b8d00-5e07-11ef-8f7c-0242ac120002',
-  frequencyFourTimesDaily: 'd46bc54c-5e07-11ef-8f7c-0242ac120002',
-  frequencyEvery2Hours: 'd5575f24-5e07-11ef-8f7c-0242ac120002',
-  frequencyEvery4Hours: 'd55822a0-5e07-11ef-8f7c-0242ac120002',
-  frequencyEvery6Hours: 'd5588018-5e07-11ef-8f7c-0242ac120002',
-  frequencyEvery8Hours: 'd558e36b-5e07-11ef-8f7c-0242ac120002',
-  frequencyEvery12Hours: 'd5593db8-5e07-11ef-8f7c-0242ac120002',
-  frequencyAlternateDays: 'd55a1c1c-5e07-11ef-8f7c-0242ac120002',
-  frequencyOnceWeekly: 'd55a6bba-5e07-11ef-8f7c-0242ac120002',
-  frequencyTwiceWeekly: 'd55ac0e0-5e07-11ef-8f7c-0242ac120002',
-  frequencyEvery3Weeks: 'd55b9313-5e07-11ef-8f7c-0242ac120002',
-} as const;
+  routeOral: env('DRUG_ROUTE_ORAL'),
+  routeIntravenous: env('DRUG_ROUTE_INTRAVENOUS'),
+  routeIntramuscular: env('DRUG_ROUTE_INTRAMUSCULAR'),
+  routeSubcutaneous: env('DRUG_ROUTE_SUBCUTANEOUS'),
+  routePerVaginal: env('DRUG_ROUTE_PER_VAGINAL'),
+  routePerRectum: env('DRUG_ROUTE_PER_RECTUM'),
+  routeSublingual: env('DRUG_ROUTE_SUBLINGUAL'),
+  routeNasogastric: env('DRUG_ROUTE_NASOGASTRIC'),
+  routeIntradermal: env('DRUG_ROUTE_INTRADERMAL'),
+  routeIntraperitoneal: env('DRUG_ROUTE_INTRAPERITONEAL'),
+  routeIntrathecal: env('DRUG_ROUTE_INTRATHECAL'),
+  routeIntraosseous: env('DRUG_ROUTE_INTRAOSSEOUS'),
+  routeTopical: env('DRUG_ROUTE_TOPICAL'),
+  routeNasal: env('DRUG_ROUTE_NASAL'),
+  routeInhalation: env('DRUG_ROUTE_INHALATION'),
+  doseUnitTablet: env('DRUG_DOSE_UNIT_TABLET'),
+  doseUnitCapsule: env('DRUG_DOSE_UNIT_CAPSULE'),
+  doseUnitMl: env('DRUG_DOSE_UNIT_ML'),
+  doseUnitMg: env('DRUG_DOSE_UNIT_MG'),
+  doseUnitIU: env('DRUG_DOSE_UNIT_IU'),
+  doseUnitDrop: env('DRUG_DOSE_UNIT_DROP'),
+  doseUnitTablespoon: env('DRUG_DOSE_UNIT_TABLESPOON'),
+  doseUnitTeaspoon: env('DRUG_DOSE_UNIT_TEASPOON'),
+  doseUnitUnit: env('DRUG_DOSE_UNIT_UNIT'),
+  doseUnitPuff: env('DRUG_DOSE_UNIT_PUFF'),
+  frequencyImmediate: process.env.DRUG_FREQ_IMMEDIATE || '0',
+  frequencyOnceDaily: env('DRUG_FREQ_ONCE_DAILY'),
+  frequencyTwiceDaily: env('DRUG_FREQ_TWICE_DAILY'),
+  frequencyThriceDaily: env('DRUG_FREQ_THRICE_DAILY'),
+  frequencyFourTimesDaily: env('DRUG_FREQ_FOUR_TIMES_DAILY'),
+  frequencyEvery2Hours: env('DRUG_FREQ_EVERY_2_HOURS'),
+  frequencyEvery4Hours: env('DRUG_FREQ_EVERY_4_HOURS'),
+  frequencyEvery6Hours: env('DRUG_FREQ_EVERY_6_HOURS'),
+  frequencyEvery8Hours: env('DRUG_FREQ_EVERY_8_HOURS'),
+  frequencyEvery12Hours: env('DRUG_FREQ_EVERY_12_HOURS'),
+  frequencyAlternateDays: env('DRUG_FREQ_ALTERNATE_DAYS'),
+  frequencyOnceWeekly: env('DRUG_FREQ_ONCE_WEEKLY'),
+  frequencyTwiceWeekly: env('DRUG_FREQ_TWICE_WEEKLY'),
+  frequencyEvery3Weeks: env('DRUG_FREQ_EVERY_3_WEEKS'),
+};
 
 export const DURATION_UNITS = {
-  minutes: '1733AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  hours: '1822AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  days: '1072AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  weeks: '1073AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  months: '1074AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-} as const;
+  minutes: env('DURATION_UNIT_MINUTES'),
+  hours: env('DURATION_UNIT_HOURS'),
+  days: env('DURATION_UNIT_DAYS'),
+  weeks: env('DURATION_UNIT_WEEKS'),
+  months: env('DURATION_UNIT_MONTHS'),
+};
 
 export const SERVICE_REQUEST_CATEGORIES = {
-  lab: 'd3560b17-5e07-11ef-8f7c-0242ac120002',
-  radiology: 'd3561dc0-5e07-11ef-8f7c-0242ac120002',
-  procedure: '3f224d3e-afd7-4e90-8f14-34cf481b6d0f',
-} as const;
+  lab: env('SERVICE_REQUEST_CATEGORY_LAB'),
+  radiology: env('SERVICE_REQUEST_CATEGORY_RADIOLOGY'),
+  // Procedure order type is not configured in bahmni-lite — only used by @onlyStandard tests
+  procedure: process.env.SERVICE_REQUEST_CATEGORY_PROCEDURE ?? '',
+};
 
 export const LAB_CONCEPTS = {
-  haemoglobin: '161432AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  plateletCount: '159896AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  anemiaPanel: '161437AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  absoluteImmatureCellCount: '1335AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  completeBloodCount: '1019AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  sickleCell: '160225AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  peripheralSmear: '161423AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  hemoglobinElectrophoresis: '161421AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  hivTest: '1356AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-} as const;
+  haemoglobin: env('LAB_CONCEPT_HAEMOGLOBIN'),
+  plateletCount: env('LAB_CONCEPT_PLATELET_COUNT'),
+  anemiaPanel: env('LAB_CONCEPT_ANEMIA_PANEL'),
+  absoluteImmatureCellCount: env('LAB_CONCEPT_ABSOLUTE_IMMATURE_CELL_COUNT'),
+  completeBloodCount: env('LAB_CONCEPT_COMPLETE_BLOOD_COUNT'),
+  sickleCell: env('LAB_CONCEPT_SICKLE_CELL'),
+  peripheralSmear: env('LAB_CONCEPT_PERIPHERAL_SMEAR'),
+  hemoglobinElectrophoresis: env('LAB_CONCEPT_HEMOGLOBIN_ELECTROPHORESIS'),
+  hivTest: env('LAB_CONCEPT_HIV_TEST'),
+};
 
 export const RADIOLOGY_CONCEPTS = {
-  echocardiogram: '159567AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  xRaySkullFourViews: '161339AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  xRayArm: '377AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-} as const;
+  echocardiogram: env('RADIOLOGY_CONCEPT_ECHOCARDIOGRAM'),
+  xRaySkullFourViews: env('RADIOLOGY_CONCEPT_XRAY_SKULL'),
+  xRayArm: env('RADIOLOGY_CONCEPT_XRAY_ARM'),
+};
 
+// Procedure concepts are only used by @onlyStandard tests (not available in bahmni-lite)
 export const PROCEDURE_CONCEPTS = {
-  reconstructionProcedure: '166790AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-} as const;
+  reconstructionProcedure: process.env.PROCEDURE_CONCEPT_RECONSTRUCTION ?? '',
+};
 
 export const VITALS_CONCEPTS = {
-  pulse: '5087AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  spO2: '5092AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  respiratoryRate: '5242AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  temperature: '9bb0795c-4ff0-0305-1990-000000000020',
-  bpSystolic: '5085AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  bpDiastolic: '5086AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  bpBodyPosition: '159633AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  bloodPressureGroup: '631f9e92-b15f-41da-a6ba-4f4cd67f36b7',
-} as const;
+  pulse: env('VITALS_CONCEPT_PULSE'),
+  spO2: env('VITALS_CONCEPT_SPO2'),
+  respiratoryRate: env('VITALS_CONCEPT_RESPIRATORY_RATE'),
+  temperature: env('VITALS_CONCEPT_TEMPERATURE'),
+  bpSystolic: env('VITALS_CONCEPT_BP_SYSTOLIC'),
+  bpDiastolic: env('VITALS_CONCEPT_BP_DIASTOLIC'),
+  bpBodyPosition: env('VITALS_CONCEPT_BP_BODY_POSITION'),
+  bloodPressureGroup: env('VITALS_CONCEPT_BP_GROUP'),
+};
 
 export const HE_CONCEPTS = {
-  chiefComplaintGroup: 'da47a35d-5806-48b7-b467-e29902759491',
-  chiefComplaint: '9bb0795c-4ff0-0305-1990-000000000002',
-  duration: '1731AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  durationUnit: '9bb0795c-4ff0-0305-1990-000000000003',
-  historyOfIllness: '1390AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-} as const;
+  chiefComplaintGroup: env('HE_CONCEPT_CHIEF_COMPLAINT_GROUP'),
+  chiefComplaint: env('HE_CONCEPT_CHIEF_COMPLAINT'),
+  duration: env('HE_CONCEPT_DURATION'),
+  durationUnit: env('HE_CONCEPT_DURATION_UNIT'),
+  historyOfIllness: env('HE_CONCEPT_HISTORY_OF_ILLNESS'),
+};
 
 export const ALLERGY_CODES = {
-  penicillin: '162543AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  aspirin: '71617AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-} as const;
+  penicillin: env('ALLERGY_CODE_PENICILLIN'),
+  aspirin: env('ALLERGY_CODE_ASPIRIN'),
+};
 
 export const ALLERGY_REACTION_CODES = {
-  rash: '121629AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-} as const;
+  rash: env('ALLERGY_REACTION_CODE_RASH'),
+};
 
 // FHIR ValueSet UUIDs for allergen concept lists (food/medication/environment/biologic)
 export const ALLERGY_VALUE_SETS = {
-  food: '162552AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  medication: '162553AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  environment: '162554AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  biologic: '162555AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-} as const;
+  food: env('ALLERGY_VALUE_SET_FOOD'),
+  medication: env('ALLERGY_VALUE_SET_MEDICATION'),
+  environment: env('ALLERGY_VALUE_SET_ENVIRONMENT'),
+  biologic: env('ALLERGY_VALUE_SET_BIOLOGIC'),
+};
 
 // FHIR default page size when client does not specify _count
 export const FHIR_DEFAULT_PAGE_SIZE = 10 as const;
 
 export const CONDITION_CODES = {
-  malaria: '940AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-  anaemia: '145119AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-} as const;
+  malaria: env('CONDITION_CODE_MALARIA'),
+  anaemia: env('CONDITION_CODE_ANAEMIA'),
+};
 
 // Concept codes used as observation values (valueCodeableConcept)
 export const FHIR_CODED_VALUES = {
-  fever: { code: '140238AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Fever' },
-  hours: { code: '1822AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'Hours' },
-  sitting: { code: '159630AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', display: 'sitting' },
-} as const;
+  fever: { code: env('CODED_VALUE_FEVER'), display: 'Fever' },
+  hours: { code: env('CODED_VALUE_HOURS'), display: 'Hours' },
+  sitting: { code: env('CODED_VALUE_SITTING'), display: 'sitting' },
+};
 
 // Default values used by the vitals bundle builder; tests assert against these
 export const VITALS_VALUES = {
@@ -169,3 +177,21 @@ export const HE_VALUES = {
 } as const;
 
 export const SERVER_PAGE_MAX = 100 as const;
+
+export const DRUGS = {
+  acetaminophenTablet: env('DRUG_ACETAMINOPHEN_TABLET'),
+  acetaminophenInjection: env('DRUG_ACETAMINOPHEN_INJECTION'),
+  acetaminophenSuppository: env('DRUG_ACETAMINOPHEN_SUPPOSITORY'),
+  antiRabiesVaccine: env('DRUG_ANTI_RABIES_VACCINE'),
+  insulin: env('DRUG_INSULIN'),
+  isoflurane: env('DRUG_ISOFLURANE'),
+  nitroglycerin: env('DRUG_NITROGLYCERIN'),
+  oralRehydrationSalts: env('DRUG_ORAL_REHYDRATION_SALTS'),
+  xylometazoline: env('DRUG_XYLOMETAZOLINE'),
+  lidocaineGel: env('DRUG_LIDOCAINE_GEL'),
+  clotrimazolePessary: env('DRUG_CLOTRIMAZOLE_PESSARY'),
+  thiopental: env('DRUG_THIOPENTAL'),
+  amoxicillinCapsule: env('DRUG_AMOXICILLIN_CAPSULE'),
+  diltiazem: env('DRUG_DILTIAZEM'),
+  epinephrine: env('DRUG_EPINEPHRINE'),
+};

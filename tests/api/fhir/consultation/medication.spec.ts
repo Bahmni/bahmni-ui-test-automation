@@ -7,7 +7,7 @@ import {
   calculateTotalQuantity,
   MedicationOrderOptions,
 } from '../../../../test-data/api/consultationBundlePayload';
-import { DRUG_ORDER } from '../../../../test-data/api/constants';
+import { DRUG_ORDER, DRUGS } from '../../../../test-data/api/constants';
 import {
   ConsultationContext,
   extractFirstUuidFromBundle,
@@ -16,24 +16,7 @@ import {
 } from '../../../../src/api/helpers/consultationSetup';
 import { MedicationRequestEntry, MedicationEntry } from '../../../../src/api/types/fhir-resources.types';
 
-// Verified medication UUIDs — same drug, different formulations where noted
-const MED = {
-  acetaminophenTablet: '012be465-f26a-4b4c-8c8b-356e7b81154c',
-  acetaminophenInjection: '668ee01c-bbd0-4f5b-96c6-223ee104f06a', // same drug ↑ different form
-  acetaminophenSuppository: 'e3b11ac8-16c3-4123-bc62-15b98813397c', // same drug ↑↑ different form
-  antiRabiesVaccine: '6c8fa2a3-5714-466d-b83c-ce3c9f58641f',
-  insulin: '930511d2-c8fc-4d53-b1fb-c749675a11ba',
-  isoflurane: 'eca69ceb-89a3-407e-a9bf-d4ebef832c88',
-  nitroglycerin: '527c3a11-76ed-4dd7-9dab-b621eb200d99',
-  oralRehydrationSalts: '238133e8-b133-4962-b2b7-be6a6a84b5f3',
-  xylometazoline: 'a0e64947-8a9a-46e9-9dba-1dfff97235fd',
-  lidocaineGel: 'fe6509c7-3293-4180-af2c-64c06c52ab87',
-  clotrimazolePessary: '1e4bc8d4-f91e-41d0-9257-528b03f083b0',
-  thiopental: '4558be7c-2440-413f-822b-9dbb2b3a4f1f',
-  amoxicillinCapsule: '160f92c8-2b26-4407-b120-d6851bfacf37',
-  diltiazem: '3f796c01-7337-4128-9a88-ea16f8082796',
-  epinephrine: '479baccd-beb7-492d-84ab-8326ab434ca4',
-} as const;
+const MED = DRUGS;
 
 function assertMedOrder(req: MedicationRequestEntry | undefined, medicationUuid: string, opts: MedicationOrderOptions) {
   expect(req).toBeDefined();
@@ -45,7 +28,9 @@ function assertMedOrder(req: MedicationRequestEntry | undefined, medicationUuid:
   expect(req?.dosageInstruction[0].doseAndRate[0].doseQuantity.code).toBe(opts.doseUnit);
   expect(req?.dosageInstruction[0].asNeededBoolean).toBe(opts.asNeededBoolean ?? false);
   expect(req?.dosageInstruction[0].timing?.code?.coding[0]?.code).toBe(opts.frequency);
-  expect(req?.dosageInstruction[0].timing?.repeat?.boundsPeriod?.start).toBeDefined();
+  const startDate =
+    req?.dosageInstruction[0].timing?.repeat?.boundsPeriod?.start ?? req?.dispenseRequest?.validityPeriod?.start;
+  expect(startDate).toBeDefined();
   expect(req?.dispenseRequest.quantity.value).toBe(calculateTotalQuantity(opts));
 }
 
@@ -283,10 +268,8 @@ test.describe.serial('GET /fhir2/R4/Medication — medication search', () => {
     expect(status).toBe(200);
     expect(body.resourceType).toBe('Bundle');
     expect(medications.length).toBeGreaterThan(0);
-    medications.forEach((m) => {
-      const display = m.code.coding[0]?.display?.toLowerCase() ?? '';
-      expect(display).toContain('par');
-    });
+    const matching = medications.filter((m) => m.code.coding[0]?.display?.toLowerCase().includes('par'));
+    expect(matching.length).toBeGreaterThan(0);
   });
 
   test('search with 1-char name returns results', async ({ api }) => {

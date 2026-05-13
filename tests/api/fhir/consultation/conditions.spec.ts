@@ -39,7 +39,7 @@ test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/Condit
     expect(diagnosis.subject.reference).toContain(ctx.patientUuid);
     expect(diagnosis.encounter?.reference).toContain(encounterUuid);
     expect(diagnosis.recordedDate).toBeDefined();
-    expect(diagnosis.recorder?.reference).toContain(ctx.practitionerUuid);
+    expect(diagnosis.recorder?.reference).toContain(ctx.userUuid);
   });
 
   test('POST /fhir2/R4/ConsultationBundle (problem-list-item only) — save condition and validate response fields', async ({

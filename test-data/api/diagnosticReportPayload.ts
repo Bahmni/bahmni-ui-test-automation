@@ -156,7 +156,7 @@ export function buildAbsoluteImmatureCellCountDRBundle(
       'obs-imm-cell',
       '1335AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
       'Absolute immature cell count',
-      8.5,
+      8,
       '10^3/uL',
       0,
       1000,

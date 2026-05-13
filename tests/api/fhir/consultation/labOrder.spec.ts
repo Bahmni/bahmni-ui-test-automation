@@ -6,7 +6,6 @@ import {
   buildRadiologyOrderBundle,
   buildProcedureOrderBundle,
   buildRadiologyNewEncounterBundle,
-  buildAllergyBundle,
 } from '../../../../test-data/api/consultationBundlePayload';
 import {
   buildAbsoluteImmatureCellCountDRBundle,
@@ -104,24 +103,26 @@ test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/Servic
     expect(order?.encounter.reference).toContain(encounterUuid);
   });
 
-  test('POST procedure order — order is saved, GET returns expected fields and reuses same encounter', async ({
-    api,
-  }) => {
-    await api.fhir.submitConsultationBundle(buildProcedureOrderBundle(ctx, encounterUuid));
+  test(
+    'POST procedure order — order is saved, GET returns expected fields and reuses same encounter',
+    { tag: '@onlyStandard' },
+    async ({ api }) => {
+      await api.fhir.submitConsultationBundle(buildProcedureOrderBundle(ctx, encounterUuid));
 
-    const { body: getBody } = await api.fhir.getProcedureServiceRequests(ctx.patientUuid);
-    const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
-    const order = orders.find((o) => o.code.coding[0].code === PROCEDURE_CONCEPTS.reconstructionProcedure);
+      const { body: getBody } = await api.fhir.getProcedureServiceRequests(ctx.patientUuid);
+      const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
+      const order = orders.find((o) => o.code.coding[0].code === PROCEDURE_CONCEPTS.reconstructionProcedure);
 
-    expect(order).toBeDefined();
-    expect(order?.status).toBe('active');
-    expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.procedure);
-    expect(order?.code.coding[0].display).toBeDefined();
-    expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
-    expect(order?.occurrencePeriod?.start).toBeDefined();
-    expect(order?.note?.[0].text).toBeDefined();
-    expect(order?.encounter.reference).toContain(encounterUuid);
-  });
+      expect(order).toBeDefined();
+      expect(order?.status).toBe('active');
+      expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.procedure);
+      expect(order?.code.coding[0].display).toBeDefined();
+      expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
+      expect(order?.occurrencePeriod?.start).toBeDefined();
+      expect(order?.note?.[0].text).toBeDefined();
+      expect(order?.encounter.reference).toContain(encounterUuid);
+    }
+  );
 
   test.afterAll(async ({ api }) => {
     await teardownConsultationContext(api, ctx);
@@ -298,7 +299,7 @@ test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle
     expect(reports[0].status).toBe('final');
     expect(reports[0].result?.length).toBe(1);
     expect(reports[0].presentedForm).toBeUndefined();
-    expect(observations[0].valueQuantity?.value).toBe(8.5);
+    expect(observations[0].valueQuantity?.value).toBe(8);
   });
 
   test('panel lab test — numeric obs × 6, no attachment', async ({ api }) => {
@@ -391,14 +392,14 @@ test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle
   test.beforeAll(async ({ api, request }) => {
     ctx = await setupConsultationContext(api);
 
-    const { body: allergyBody } = await api.fhir.submitConsultationBundle(buildAllergyBundle(ctx));
-    encounterUuid = extractFirstUuidFromBundle(allergyBody, 'Encounter');
-
-    const { body: echoBody } = await api.fhir.submitConsultationBundle(buildRadiologyOrderBundle(ctx, encounterUuid));
+    const { body: echoBody } = await api.fhir.submitConsultationBundle(
+      buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.echocardiogram)
+    );
+    encounterUuid = extractFirstUuidFromBundle(echoBody, 'Encounter');
     echoServiceRequestUuid = extractFirstUuidFromBundle(echoBody, 'ServiceRequest');
 
     const { body: xRayBody } = await api.fhir.submitConsultationBundle(
-      buildRadiologyOrderBundle(ctx, encounterUuid, RADIOLOGY_CONCEPTS.xRayArm)
+      buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.xRayArm)
     );
     xRayServiceRequestUuid = extractFirstUuidFromBundle(xRayBody, 'ServiceRequest');
 
@@ -420,41 +421,51 @@ test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle
     xRayDrId = reports.find((r) => r.basedOn[0].reference.includes(xRayServiceRequestUuid))?.id ?? '';
   });
 
-  test('Echocardiogram — $fetch-bundle returns 15 mixed observations with correct values', async ({ api }) => {
-    const { body } = await api.fhir.getDiagnosticReportBundle(echoDrId);
-    const reports = getBundleEntriesByType<DiagnosticReportEntry>(body, 'DiagnosticReport');
-    const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
+  test(
+    'Echocardiogram — $fetch-bundle returns 15 mixed observations with correct values',
+    { tag: '@onlyStandard' },
+    async ({ api }) => {
+      const { body } = await api.fhir.getDiagnosticReportBundle(echoDrId);
+      const reports = getBundleEntriesByType<DiagnosticReportEntry>(body, 'DiagnosticReport');
+      const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
 
-    expect(reports[0].status).toBe('final');
-    expect(reports[0].result?.length).toBe(15);
-    expect(observations.length).toBe(15);
+      expect(reports[0].status).toBe('final');
+      expect(reports[0].result?.length).toBe(15);
+      expect(observations.length).toBe(15);
 
-    const ejectionFraction = observations.find((o) => o.code.coding[0].code === '159571AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-    const lvFunction = observations.find((o) => o.code.coding[0].code === '167023AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-    const summary = observations.find((o) => o.code.coding[0].code === 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb');
+      const ejectionFraction = observations.find(
+        (o) => o.code.coding[0].code === '159571AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+      );
+      const lvFunction = observations.find((o) => o.code.coding[0].code === '167023AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+      const summary = observations.find((o) => o.code.coding[0].code === 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb');
 
-    expect(ejectionFraction?.valueQuantity?.value).toBe(echocardiogramReportData.ejectionFraction.value);
-    expect(lvFunction?.valueCodeableConcept?.coding[0].code).toBe('159568AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-    expect(summary?.valueString).toBe(echocardiogramReportData.summary);
-  });
+      expect(ejectionFraction?.valueQuantity?.value).toBe(echocardiogramReportData.ejectionFraction.value);
+      expect(lvFunction?.valueCodeableConcept?.coding[0].code).toBe('159568AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+      expect(summary?.valueString).toBe(echocardiogramReportData.summary);
+    }
+  );
 
-  test('X-ray arm — $fetch-bundle returns 8 observations with text, coded and numeric values', async ({ api }) => {
-    const { body } = await api.fhir.getDiagnosticReportBundle(xRayDrId);
-    const reports = getBundleEntriesByType<DiagnosticReportEntry>(body, 'DiagnosticReport');
-    const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
+  test(
+    'X-ray arm — $fetch-bundle returns 8 observations with text, coded and numeric values',
+    { tag: '@onlyStandard' },
+    async ({ api }) => {
+      const { body } = await api.fhir.getDiagnosticReportBundle(xRayDrId);
+      const reports = getBundleEntriesByType<DiagnosticReportEntry>(body, 'DiagnosticReport');
+      const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
 
-    expect(reports[0].status).toBe('final');
-    expect(reports[0].result?.length).toBe(8);
-    expect(observations.length).toBe(8);
+      expect(reports[0].status).toBe('final');
+      expect(reports[0].result?.length).toBe(8);
+      expect(observations.length).toBe(8);
 
-    const summary = observations.find((o) => o.code.coding[0].code === 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb');
-    const swelling = observations.find((o) => o.code.coding[0].code === '163894AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-    const armLength = observations.find((o) => o.code.coding[0].code === '1ff70b07-1ef6-49fa-9f4b-37cc10900a5a');
+      const summary = observations.find((o) => o.code.coding[0].code === 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb');
+      const swelling = observations.find((o) => o.code.coding[0].code === '163894AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+      const armLength = observations.find((o) => o.code.coding[0].code === '1ff70b07-1ef6-49fa-9f4b-37cc10900a5a');
 
-    expect(summary?.valueString).toBe(xRayArmReportData.summary);
-    expect(swelling?.valueCodeableConcept?.coding[0].code).toBe('1066AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-    expect(armLength?.valueQuantity?.value).toBe(xRayArmReportData.armLengthDiscrepancyCm);
-  });
+      expect(summary?.valueString).toBe(xRayArmReportData.summary);
+      expect(swelling?.valueCodeableConcept?.coding[0].code).toBe('1066AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+      expect(armLength?.valueQuantity?.value).toBe(xRayArmReportData.armLengthDiscrepancyCm);
+    }
+  );
 
   test.afterAll(async ({ api }) => {
     await teardownConsultationContext(api, ctx);

@@ -63,7 +63,11 @@ export interface MedicationRequestEntry {
     };
     asNeededBoolean?: boolean;
   }>;
-  dispenseRequest: { numberOfRepeatsAllowed: number; quantity: { value: number } };
+  dispenseRequest: {
+    numberOfRepeatsAllowed: number;
+    quantity: { value: number };
+    validityPeriod?: { start?: string; end?: string };
+  };
 }
 
 export interface ObservationEntry {

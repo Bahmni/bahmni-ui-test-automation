@@ -13,6 +13,11 @@ export const REST = {
   relationshipType: '/openmrs/ws/rest/v1/relationshiptype',
   relationship: '/openmrs/ws/rest/v1/relationship',
   patientProfileGet: '/openmrs/ws/rest/v1/patientprofile',
+  bahmnicorePatient: '/openmrs/ws/rest/v1/bahmnicore/patient',
+  appointment: '/openmrs/ws/rest/v1/appointment',
+  recurringAppointments: '/openmrs/ws/rest/v1/recurring-appointments',
+  appointmentService: '/openmrs/ws/rest/v1/appointmentService',
+  bahmniProgramEnrollment: '/openmrs/ws/rest/v1/bahmniprogramenrollment',
 } as const;
 
 export const FHIR = {
@@ -27,4 +32,6 @@ export const FHIR = {
   observation: '/openmrs/ws/fhir2/R4/Observation',
   consultationBundle: '/openmrs/ws/fhir2/R4/ConsultationBundle',
   valueSet: '/openmrs/ws/fhir2/R4/ValueSet',
+  documentReference: '/openmrs/ws/fhir2/R4/DocumentReference',
+  appointment: '/openmrs/ws/fhir2/R4/Appointment',
 } as const;

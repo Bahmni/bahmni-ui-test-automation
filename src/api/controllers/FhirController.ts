@@ -68,17 +68,6 @@ export class FhirController extends BaseApiController {
     );
   }
 
-  async getServiceRequests(
-    patientUuid: string,
-    count = 100,
-    role: UserRole = 'admin'
-  ): Promise<ApiResponse<FhirBundleResponse>> {
-    return this.getFhir<FhirBundleResponse>(
-      `${FHIR.serviceRequest}?patient=${patientUuid}&_sort=-date&_count=${count}`,
-      role
-    );
-  }
-
   async getLabServiceRequests(
     patientUuid: string,
     count = 200,
@@ -104,6 +93,36 @@ export class FhirController extends BaseApiController {
     return this.post<{ url: string }>(
       REST.visitDocumentUpload,
       { content, encounterTypeName: 'Patient Document', fileName, fileType, format, patientUuid },
+      role
+    );
+  }
+
+  async createDocumentReference(
+    payload: Record<string, unknown>,
+    role: UserRole = 'admin'
+  ): Promise<ApiResponse<FhirBundleResponse>> {
+    return this.post<FhirBundleResponse>(FHIR.documentReference, payload, role, 'application/fhir+json');
+  }
+
+  async getDocumentReferences(
+    patientUuid: string,
+    count = 5,
+    role: UserRole = 'admin'
+  ): Promise<ApiResponse<FhirBundleResponse>> {
+    return this.getFhir<FhirBundleResponse>(
+      `${FHIR.documentReference}?patient=${patientUuid}&_sort=-_lastUpdated&_count=${count}&_getpagesoffset=0`,
+      role
+    );
+  }
+
+  async getUpcomingAppointmentsForPatient(
+    patientUuid: string,
+    sinceIsoDateTime: string,
+    count = 5,
+    role: UserRole = 'admin'
+  ): Promise<ApiResponse<FhirBundleResponse>> {
+    return this.getFhir<FhirBundleResponse>(
+      `${FHIR.appointment}?patient=${patientUuid}&date=ge${sinceIsoDateTime}&_sort=date&_count=${count}`,
       role
     );
   }
@@ -155,6 +174,13 @@ export class FhirController extends BaseApiController {
       `${FHIR.observation}?patient=${patientUuid}&code=${codes.join(',')}&_include=Observation:has-member&_include=Observation:encounter&_sort=-_lastUpdated&_count=${count}`,
       role
     );
+  }
+
+  async fetchAllObservationsByEncounter(
+    encounterUuid: string,
+    role: UserRole = 'admin'
+  ): Promise<ApiResponse<FhirBundleResponse>> {
+    return this.getFhir<FhirBundleResponse>(`${FHIR.observation}/$fetch-all?encounter=${encounterUuid}`, role);
   }
 
   async getDiagnosticReports(

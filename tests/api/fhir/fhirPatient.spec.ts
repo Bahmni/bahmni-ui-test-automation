@@ -1,7 +1,7 @@
 import { test, expect } from '../../../src/api/fixtures/apiFixture';
 import { buildCreatePatientPayload } from '../../../test-data/api/patientPayload';
 
-test.describe.serial('FHIR Patient - resource validation', () => {
+test.describe.serial('FHIR Patient — resource mapping', () => {
   const payload = buildCreatePatientPayload();
   let patientUuid: string;
   let patientIdentifier: string;
@@ -12,57 +12,25 @@ test.describe.serial('FHIR Patient - resource validation', () => {
     patientIdentifier = body.patient.identifiers[0].identifier;
   });
 
-  test('GET /fhir2/R4/Patient/{uuid} returns resourceType Patient', async ({ api }) => {
+  test('GET /fhir2/R4/Patient/{uuid} — OpenMRS person fields map to FHIR Patient resource (resourceType, identifier, name, gender, birthDate)', async ({
+    api,
+  }) => {
     const { status, body } = await api.fhir.getPatient(patientUuid);
-
-    expect(status).toBe(200);
-    expect((body as unknown as Record<string, unknown>).resourceType).toBe('Patient');
-  });
-
-  test('Patient resource contains mandatory identifier element', async ({ api }) => {
-    const { body } = await api.fhir.getPatient(patientUuid);
     const patient = body as unknown as {
+      resourceType: string;
       identifier: Array<{ value: string }>;
-    };
-
-    expect(patient.identifier).toBeDefined();
-    expect(patient.identifier.length).toBeGreaterThan(0);
-    expect(patient.identifier[0].value).toBe(patientIdentifier);
-  });
-
-  test('Patient resource contains mandatory name element', async ({ api }) => {
-    const { body } = await api.fhir.getPatient(patientUuid);
-    const patient = body as unknown as {
       name: Array<{ family: string; given: string[] }>;
+      gender: string;
+      birthDate: string;
     };
-
-    expect(patient.name).toBeDefined();
-    expect(patient.name.length).toBeGreaterThan(0);
-    expect(patient.name[0].family).toBe(payload.patient.person.names[0].familyName);
-    expect(patient.name[0].given[0]).toBe(payload.patient.person.names[0].givenName);
-  });
-
-  test('Patient resource contains mandatory gender element', async ({ api }) => {
-    const { body } = await api.fhir.getPatient(patientUuid);
-    const patient = body as unknown as { gender: string };
-
-    expect(patient.gender).toBeDefined();
-    expect(['male', 'female', 'other', 'unknown']).toContain(patient.gender);
-  });
-
-  test('Patient resource contains mandatory birthDate element', async ({ api }) => {
-    const { body } = await api.fhir.getPatient(patientUuid);
-    const patient = body as unknown as { birthDate: string };
-
-    expect(patient.birthDate).toBeDefined();
-    expect(patient.birthDate).toContain(payload.patient.person.birthdate);
-  });
-
-  test('GET /fhir2/R4/Encounter?patient={uuid} returns Bundle for newly registered patient', async ({ api }) => {
-    const { status, body } = await api.fhir.getEncounters(patientUuid);
 
     expect(status).toBe(200);
-    expect(body.resourceType).toBe('Bundle');
+    expect(patient.resourceType).toBe('Patient');
+    expect(patient.identifier?.[0]?.value).toBe(patientIdentifier);
+    expect(patient.name?.[0]?.family).toBe(payload.patient.person.names[0].familyName);
+    expect(patient.name?.[0]?.given?.[0]).toBe(payload.patient.person.names[0].givenName);
+    expect(['male', 'female', 'other', 'unknown']).toContain(patient.gender);
+    expect(patient.birthDate).toContain(payload.patient.person.birthdate);
   });
 
   test.afterAll(async ({ api }) => {

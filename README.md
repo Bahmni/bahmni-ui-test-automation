@@ -107,7 +107,7 @@ npm run test:dev
 npm run test:headed:local
 
 # Run specific test file
-npm run test:local -- tests/module/clinical/consultation.spec.ts --project=chromium
+npm run test:local -- tests/ui/module/clinical/consultation.spec.ts --project=chromium
 
 # Run specific browser
 npm run test:chromium

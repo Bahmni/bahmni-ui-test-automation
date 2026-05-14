@@ -6,10 +6,15 @@ import {
   DRUG_ORDER,
   ENCOUNTER_TYPES,
   FHIR_CODED_VALUES,
+  FORM_NAMESPACE_EXT_URL,
+  FORM_NAMESPACES,
   HE_CONCEPTS,
   HE_VALUES,
   LAB_CONCEPTS,
   LOCATIONS,
+  OBS_NOTES,
+  OG_CONCEPTS,
+  OG_VALUES,
   PROCEDURE_CONCEPTS,
   RADIOLOGY_CONCEPTS,
   VITALS_CONCEPTS,
@@ -810,6 +815,270 @@ export function buildHistoryExaminationBundle(ctx: BundleContext, encounterUuid:
     ],
     ts
   );
+}
+
+// ---------------------------------------------------------------------------
+// Combined Vitals + Obstetrics & Gynaecology bundle
+// ---------------------------------------------------------------------------
+
+function pastIsoDateAtMidnight(daysAgo: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - daysAgo);
+  d.setUTCHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
+interface RichObsOptions {
+  uuid: string;
+  encounterRef: string;
+  patientUuid: string;
+  practitionerUuid: string;
+  code: string;
+  formNamespacePath: string;
+  timestamp: string;
+  valueQuantity?: { value: number };
+  valueCodeableConcept?: { code: string; display: string };
+  valueDateTime?: string;
+  hasMember?: string[];
+  note?: string;
+  interpretationAbnormal?: boolean;
+}
+
+export const INTERPRETATION_ABNORMAL = {
+  system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation',
+  code: 'A',
+  display: 'Abnormal',
+} as const;
+
+function richObservationEntry(opts: RichObsOptions): Record<string, unknown> {
+  const resource: Record<string, unknown> = {
+    resourceType: 'Observation',
+    status: 'final',
+    code: { coding: [{ code: opts.code }] },
+    subject: { reference: `Patient/${opts.patientUuid}` },
+    encounter: { reference: opts.encounterRef },
+    performer: [{ reference: `Practitioner/${opts.practitionerUuid}`, type: 'Practitioner' }],
+    effectiveDateTime: opts.timestamp,
+    extension: [{ url: FORM_NAMESPACE_EXT_URL, valueString: opts.formNamespacePath }],
+  };
+  if (opts.valueQuantity) resource.valueQuantity = opts.valueQuantity;
+  if (opts.valueCodeableConcept)
+    resource.valueCodeableConcept = {
+      coding: [{ code: opts.valueCodeableConcept.code, display: opts.valueCodeableConcept.display }],
+    };
+  if (opts.valueDateTime) resource.valueDateTime = opts.valueDateTime;
+  if (opts.hasMember) resource.hasMember = opts.hasMember.map((ref) => ({ reference: ref, type: 'Observation' }));
+  if (opts.note) resource.note = [{ text: opts.note }];
+  if (opts.interpretationAbnormal)
+    resource.interpretation = [
+      {
+        coding: [
+          {
+            system: INTERPRETATION_ABNORMAL.system,
+            code: INTERPRETATION_ABNORMAL.code,
+            display: INTERPRETATION_ABNORMAL.display,
+          },
+        ],
+      },
+    ];
+  return {
+    fullUrl: `urn:uuid:${opts.uuid}`,
+    resource,
+    request: { method: 'POST', url: 'Observation' },
+  };
+}
+
+export interface VitalsAndGynaecologySubmittedObs {
+  code: string;
+  formNamespacePath: string;
+  valueQuantity?: number;
+  valueCodeableConceptCode?: string;
+  valueCodeableConceptDisplay?: string;
+  valueDateTime?: string;
+  hasMemberCount?: number;
+  hasMemberCodes?: string[];
+  note?: string;
+  interpretationAbnormal?: boolean;
+}
+
+export interface VitalsAndGynaecologyBundleSpec {
+  bundle: Record<string, unknown>;
+  submittedObs: VitalsAndGynaecologySubmittedObs[];
+}
+
+export function buildVitalsAndGynaecologyBundle(ctx: BundleContext): VitalsAndGynaecologyBundleSpec {
+  const ts = pastTimestamp();
+  const lmpIsoDate = pastIsoDateAtMidnight(60);
+  const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
+  const encounterRef = `urn:uuid:${tempUuid}`;
+  const og = FORM_NAMESPACES.obstetricsAndGynaecology;
+  const vit = FORM_NAMESPACES.vitals;
+
+  const fundalHeight = { uuid: faker.string.uuid(), code: OG_CONCEPTS.fundalHeight };
+  const paPresentingPart = { uuid: faker.string.uuid(), code: OG_CONCEPTS.paPresentingPart };
+  const fetalHeartRate = { uuid: faker.string.uuid(), code: OG_CONCEPTS.fetalHeartRate };
+  const lmp = { uuid: faker.string.uuid(), code: OG_CONCEPTS.lmp };
+
+  const pulse = { uuid: faker.string.uuid(), code: VITALS_CONCEPTS.pulse };
+  const spO2 = { uuid: faker.string.uuid(), code: VITALS_CONCEPTS.spO2 };
+  const respiratoryRate = { uuid: faker.string.uuid(), code: VITALS_CONCEPTS.respiratoryRate };
+  const temperature = { uuid: faker.string.uuid(), code: VITALS_CONCEPTS.temperature };
+  const bpSystolic = { uuid: faker.string.uuid(), code: VITALS_CONCEPTS.bpSystolic };
+  const bpDiastolic = { uuid: faker.string.uuid(), code: VITALS_CONCEPTS.bpDiastolic };
+  const bpBodyPosition = { uuid: faker.string.uuid(), code: VITALS_CONCEPTS.bpBodyPosition };
+  const bpGroup = { uuid: faker.string.uuid(), code: VITALS_CONCEPTS.bloodPressureGroup };
+
+  const common = { encounterRef, patientUuid: ctx.patientUuid, practitionerUuid: ctx.practitionerUuid, timestamp: ts };
+
+  const entries = [
+    encounterEntry,
+    richObservationEntry({
+      ...common,
+      ...fundalHeight,
+      formNamespacePath: `${og}/1-0`,
+      valueQuantity: { value: OG_VALUES.fundalHeight },
+    }),
+    richObservationEntry({
+      ...common,
+      ...paPresentingPart,
+      formNamespacePath: `${og}/2-0`,
+      valueCodeableConcept: { code: FHIR_CODED_VALUES.cephalic.code, display: FHIR_CODED_VALUES.cephalic.display },
+      note: OBS_NOTES.paPresentingPartGood,
+    }),
+    richObservationEntry({
+      ...common,
+      ...fetalHeartRate,
+      formNamespacePath: `${og}/6-0`,
+      valueQuantity: { value: OG_VALUES.fetalHeartRate },
+      note: OBS_NOTES.fetalHeartRateNormal,
+    }),
+    richObservationEntry({
+      ...common,
+      ...lmp,
+      formNamespacePath: `${og}/5-0`,
+      valueDateTime: lmpIsoDate,
+    }),
+    richObservationEntry({
+      ...common,
+      ...pulse,
+      formNamespacePath: `${vit}/14-0`,
+      valueQuantity: { value: VITALS_VALUES.pulse },
+      note: OBS_NOTES.pulseAbnormal,
+      interpretationAbnormal: true,
+    }),
+    richObservationEntry({
+      ...common,
+      ...spO2,
+      formNamespacePath: `${vit}/15-0`,
+      valueQuantity: { value: VITALS_VALUES.spO2 },
+      note: OBS_NOTES.spO2Normal,
+    }),
+    richObservationEntry({
+      ...common,
+      ...respiratoryRate,
+      formNamespacePath: `${vit}/16-0`,
+      valueQuantity: { value: VITALS_VALUES.respiratoryRate },
+    }),
+    richObservationEntry({
+      ...common,
+      ...temperature,
+      formNamespacePath: `${vit}/17-0`,
+      valueQuantity: { value: VITALS_VALUES.temperature },
+      note: OBS_NOTES.temperatureAbnormal,
+      interpretationAbnormal: true,
+    }),
+    richObservationEntry({
+      ...common,
+      ...bpSystolic,
+      formNamespacePath: `${vit}/19-0`,
+      valueQuantity: { value: VITALS_VALUES.bpSystolic },
+      note: OBS_NOTES.bpSystolicChild,
+    }),
+    richObservationEntry({
+      ...common,
+      ...bpDiastolic,
+      formNamespacePath: `${vit}/20-0`,
+      valueQuantity: { value: VITALS_VALUES.bpDiastolic },
+      interpretationAbnormal: true,
+    }),
+    richObservationEntry({
+      ...common,
+      ...bpBodyPosition,
+      formNamespacePath: `${vit}/21-0`,
+      valueCodeableConcept: { code: FHIR_CODED_VALUES.sitting.code, display: FHIR_CODED_VALUES.sitting.display },
+    }),
+    richObservationEntry({
+      ...common,
+      ...bpGroup,
+      formNamespacePath: `${vit}/18-0`,
+      hasMember: [`urn:uuid:${bpSystolic.uuid}`, `urn:uuid:${bpDiastolic.uuid}`, `urn:uuid:${bpBodyPosition.uuid}`],
+    }),
+  ];
+
+  const submittedObs: VitalsAndGynaecologySubmittedObs[] = [
+    { code: fundalHeight.code, formNamespacePath: `${og}/1-0`, valueQuantity: OG_VALUES.fundalHeight },
+    {
+      code: paPresentingPart.code,
+      formNamespacePath: `${og}/2-0`,
+      valueCodeableConceptCode: FHIR_CODED_VALUES.cephalic.code,
+      valueCodeableConceptDisplay: FHIR_CODED_VALUES.cephalic.display,
+      note: OBS_NOTES.paPresentingPartGood,
+    },
+    {
+      code: fetalHeartRate.code,
+      formNamespacePath: `${og}/6-0`,
+      valueQuantity: OG_VALUES.fetalHeartRate,
+      note: OBS_NOTES.fetalHeartRateNormal,
+    },
+    { code: lmp.code, formNamespacePath: `${og}/5-0`, valueDateTime: lmpIsoDate },
+    {
+      code: pulse.code,
+      formNamespacePath: `${vit}/14-0`,
+      valueQuantity: VITALS_VALUES.pulse,
+      note: OBS_NOTES.pulseAbnormal,
+      interpretationAbnormal: true,
+    },
+    {
+      code: spO2.code,
+      formNamespacePath: `${vit}/15-0`,
+      valueQuantity: VITALS_VALUES.spO2,
+      note: OBS_NOTES.spO2Normal,
+    },
+    { code: respiratoryRate.code, formNamespacePath: `${vit}/16-0`, valueQuantity: VITALS_VALUES.respiratoryRate },
+    {
+      code: temperature.code,
+      formNamespacePath: `${vit}/17-0`,
+      valueQuantity: VITALS_VALUES.temperature,
+      note: OBS_NOTES.temperatureAbnormal,
+      interpretationAbnormal: true,
+    },
+    {
+      code: bpSystolic.code,
+      formNamespacePath: `${vit}/19-0`,
+      valueQuantity: VITALS_VALUES.bpSystolic,
+      note: OBS_NOTES.bpSystolicChild,
+    },
+    {
+      code: bpDiastolic.code,
+      formNamespacePath: `${vit}/20-0`,
+      valueQuantity: VITALS_VALUES.bpDiastolic,
+      interpretationAbnormal: true,
+    },
+    {
+      code: bpBodyPosition.code,
+      formNamespacePath: `${vit}/21-0`,
+      valueCodeableConceptCode: FHIR_CODED_VALUES.sitting.code,
+      valueCodeableConceptDisplay: FHIR_CODED_VALUES.sitting.display,
+    },
+    {
+      code: bpGroup.code,
+      formNamespacePath: `${vit}/18-0`,
+      hasMemberCount: 3,
+      hasMemberCodes: [bpSystolic.code, bpDiastolic.code, bpBodyPosition.code],
+    },
+  ];
+
+  return { bundle: consultationBundle(entries, ts), submittedObs };
 }
 
 // DiagnosticReport submission for tests is handled via the proven `FhirApiHelper.postAnemiaReport`

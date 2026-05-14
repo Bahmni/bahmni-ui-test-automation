@@ -128,6 +128,33 @@ export const HE_CONCEPTS = {
   historyOfIllness: env('HE_CONCEPT_HISTORY_OF_ILLNESS'),
 };
 
+export const OG_CONCEPTS = {
+  fundalHeight: env('OG_CONCEPT_FUNDAL_HEIGHT'),
+  paPresentingPart: env('OG_CONCEPT_PA_PRESENTING_PART'),
+  fetalHeartRate: env('OG_CONCEPT_FETAL_HEART_RATE'),
+  lmp: env('OG_CONCEPT_LMP'),
+};
+
+export const DOCUMENT_TYPES = {
+  patientFile: env('DOCUMENT_TYPE_PATIENT_FILE'),
+};
+
+export const APPOINTMENT_SERVICES = {
+  primary: env('APPOINTMENT_SERVICE_UUID'),
+};
+
+export const FORM_NAMES = {
+  vitals: 'Vitals',
+  obstetricsAndGynaecology: 'Obstetrics and Gynaecology',
+} as const;
+
+export const FORM_NAMESPACES = {
+  vitals: 'Bahmni^Vitals.1',
+  obstetricsAndGynaecology: 'Bahmni^Obstetrics and Gynaecology.1',
+} as const;
+
+export const FORM_NAMESPACE_EXT_URL = 'http://fhir.bahmni.org/ext/observation/form-namespace-path' as const;
+
 export const ALLERGY_CODES = {
   penicillin: env('ALLERGY_CODE_PENICILLIN'),
   aspirin: env('ALLERGY_CODE_ASPIRIN'),
@@ -158,6 +185,7 @@ export const FHIR_CODED_VALUES = {
   fever: { code: env('CODED_VALUE_FEVER'), display: 'Fever' },
   hours: { code: env('CODED_VALUE_HOURS'), display: 'Hours' },
   sitting: { code: env('CODED_VALUE_SITTING'), display: 'sitting' },
+  cephalic: { code: env('CODED_VALUE_CEPHALIC'), display: 'Cephalic' },
 };
 
 // Default values used by the vitals bundle builder; tests assert against these
@@ -174,6 +202,20 @@ export const VITALS_VALUES = {
 export const HE_VALUES = {
   durationDays: 3,
   historyText: 'Patient has had fever for 3 days',
+} as const;
+
+export const OG_VALUES = {
+  fundalHeight: 100,
+  fetalHeartRate: 95,
+} as const;
+
+export const OBS_NOTES = {
+  pulseAbnormal: 'abnormal pulse',
+  spO2Normal: 'normal saturation',
+  temperatureAbnormal: 'manually marking abnormal',
+  bpSystolicChild: 'child obs',
+  fetalHeartRateNormal: 'normal heart beat',
+  paPresentingPartGood: 'Good',
 } as const;
 
 export const SERVER_PAGE_MAX = 100 as const;

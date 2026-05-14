@@ -74,15 +74,19 @@ export interface ObservationEntry {
   resourceType: string;
   id: string;
   status: string;
-  code: { coding: Array<{ code: string }> };
+  code: { coding: Array<{ code: string; display?: string }> };
   subject: { reference: string };
   encounter: { reference: string };
   valueQuantity?: { value: number };
   valueCodeableConcept?: { coding: Array<{ code: string; display: string }> };
   valueString?: string;
+  valueDateTime?: string;
   valueBoolean?: boolean;
   hasMember?: Array<{ reference: string }>;
   effectiveDateTime?: string;
+  note?: Array<{ text: string }>;
+  interpretation?: Array<{ coding: Array<{ code: string; display?: string }> }>;
+  extension?: Array<{ url: string; valueString?: string }>;
   meta?: { lastUpdated?: string };
 }
 

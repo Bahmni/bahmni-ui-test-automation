@@ -88,7 +88,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      testMatch: ['**/tests/e2e/**', '**/tests/module/**'],
+      testMatch: ['**/tests/ui/e2e/**', '**/tests/ui/module/**'],
       use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     },
 

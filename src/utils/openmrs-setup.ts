@@ -878,6 +878,30 @@ async function setupConcepts(baseUrl: string): Promise<void> {
       searchName: 'History of present illness',
       matchName: 'history of present illness',
     },
+    // Obstetrics & Gynaecology
+    {
+      envKey: 'OG_CONCEPT_FUNDAL_HEIGHT',
+      cielUuid: '1439AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      searchName: 'Fundal height',
+      matchName: 'fundal height',
+    },
+    {
+      envKey: 'OG_CONCEPT_PA_PRESENTING_PART',
+      searchName: 'P/A Presenting Part',
+      matchName: 'presenting part',
+    },
+    {
+      envKey: 'OG_CONCEPT_FETAL_HEART_RATE',
+      cielUuid: '1440AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      searchName: 'Fetal heart rate',
+      matchName: 'fetal heart rate',
+    },
+    {
+      envKey: 'OG_CONCEPT_LMP',
+      cielUuid: '1427AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      searchName: 'Date of last menstrual period',
+      matchName: 'last menstrual period',
+    },
     // Allergy codes
     {
       envKey: 'ALLERGY_CODE_PENICILLIN',
@@ -953,6 +977,18 @@ async function setupConcepts(baseUrl: string): Promise<void> {
       cielUuid: '159630AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
       searchName: 'Sitting',
       matchName: 'sitting',
+    },
+    {
+      envKey: 'CODED_VALUE_CEPHALIC',
+      searchName: 'Cephalic',
+      matchName: 'cephalic',
+    },
+    // Document type concept (FHIR DocumentReference.type.coding[0].code)
+    {
+      envKey: 'DOCUMENT_TYPE_PATIENT_FILE',
+      cielUuid: '94ea9aba-a82c-4e54-9c11-722d97ae54b8',
+      searchName: 'Patient File',
+      matchName: 'patient file',
     },
   ];
 
@@ -1330,6 +1366,40 @@ async function setupLocations(baseUrl: string): Promise<void> {
 }
 
 /**
+ * Resolve an appointment service UUID and inject it as APPOINTMENT_SERVICE_UUID.
+ * Picks the first non-voided service from /appointmentService/all/full.
+ */
+async function setupAppointmentService(baseUrl: string): Promise<void> {
+  const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
+  const envPath = resolve(process.cwd(), '.env.local');
+
+  try {
+    const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/appointmentService/all/full`, {
+      headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      console.warn(`  ⚠ Could not fetch appointment services: ${response.status}`);
+      return;
+    }
+
+    const services = (await response.json()) as Array<{ uuid: string; name?: string; voided?: boolean }>;
+    const chosen = services.find((s) => !s.voided) ?? services[0];
+
+    if (!chosen) {
+      console.warn(`  ⚠ No appointment services found on server`);
+      return;
+    }
+
+    process.env.APPOINTMENT_SERVICE_UUID = chosen.uuid;
+    writeEnvVar(envPath, 'APPOINTMENT_SERVICE_UUID', chosen.uuid);
+    console.log(`  ✓ Appointment service resolved — "${chosen.name ?? 'unknown'}" (${chosen.uuid})`);
+  } catch (error) {
+    console.warn(`  ⚠ Error fetching appointment services: ${error}`);
+  }
+}
+
+/**
  * Setup relationship types required for tests
  */
 async function setupRelationshipTypes(baseUrl: string) {
@@ -1413,6 +1483,7 @@ async function globalSetup(playwrightConfig: FullConfig) {
   await setupDrugs(baseUrl);
   await setupConcepts(baseUrl);
   await setupLocations(baseUrl);
+  await setupAppointmentService(baseUrl);
   console.log('✓ Identifier source setup complete\n');
 
   // Setup relationship types

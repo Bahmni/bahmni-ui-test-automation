@@ -82,7 +82,7 @@ export const config = {
   // Default Settings
   defaults: {
     locale: getOptionalEnv('DEFAULT_LOCALE', 'string:en'),
-    location: getOptionalEnv('DEFAULT_LOCATION', 'OPD-1'),
+    location: getRequiredEnv('LOCATION_OPD'),
   },
 
   // Playwright Configuration

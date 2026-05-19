@@ -5,7 +5,7 @@ import { buildCreatePatientPayload } from '../../../test-data/api/patientPayload
 import { LOCATIONS, VISIT_TYPES } from '../../../test-data/api/constants';
 import { buildStartVisitPayload } from '../../../test-data/api/visitPayload';
 
-test.describe.serial('Patient Registration - E2E', () => {
+test.describe.serial('Patient Registration - E2E', { tag: ['@regression'] }, () => {
   const payload = buildCreatePatientPayload({
     givenName: 'Kane',
     middleName: 'Man',

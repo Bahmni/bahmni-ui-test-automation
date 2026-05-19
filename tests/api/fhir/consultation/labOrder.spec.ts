@@ -38,7 +38,7 @@ import {
 import { FhirApiHelper } from '../../../../src/utils/fhir-api-helper';
 import { echocardiogramReportData, xRayArmReportData } from '../../../../test-data/common/labOrderData';
 
-test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/ServiceRequest', () => {
+test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/ServiceRequest', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let encounterUuid: string;
 
@@ -129,7 +129,7 @@ test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/Servic
   });
 });
 
-test.describe.serial('GET /fhir2/R4/ServiceRequest — numberOfVisits limits orders to N most recent visits', () => {
+test.describe.serial('GET /fhir2/R4/ServiceRequest — numberOfVisits limits orders to N most recent visits', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
 
   test.beforeAll(async ({ api }) => {
@@ -189,7 +189,7 @@ test.describe.serial('GET /fhir2/R4/ServiceRequest — numberOfVisits limits ord
   });
 });
 
-test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle', () => {
+test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let srIds = {} as Record<string, string>;
   let encIds = {} as Record<string, string>;
@@ -381,7 +381,7 @@ test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle
   });
 });
 
-test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle (Radiology)', () => {
+test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle (Radiology)', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let encounterUuid: string;
   let echoServiceRequestUuid: string;

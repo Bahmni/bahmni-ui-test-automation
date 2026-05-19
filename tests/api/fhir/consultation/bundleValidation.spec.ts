@@ -17,7 +17,7 @@ import {
  * (visit lifecycle, server clock, transaction semantics) and cannot be tested at the
  * module unit-test level.
  */
-test.describe.serial('POST /fhir2/R4/ConsultationBundle — server-enforced validation', () => {
+test.describe.serial('POST /fhir2/R4/ConsultationBundle — server-enforced validation', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
 
   test.beforeAll(async ({ api }) => {

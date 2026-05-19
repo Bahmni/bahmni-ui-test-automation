@@ -34,7 +34,7 @@ function participantRef(
   return entry.participant.find((p) => p.actor.type === type)?.actor.reference;
 }
 
-test.describe.serial('POST /appointment + /recurring-appointments + GET /fhir2/R4/Appointment', () => {
+test.describe.serial('POST /appointment + /recurring-appointments + GET /fhir2/R4/Appointment', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   const regularWindow = futureAppointmentWindow(1, 30);
   const recurringWindow = futureAppointmentWindow(2, 30);

@@ -21,7 +21,7 @@ const TEST_VALUES = {
   patientStageUuid: TB_PROGRAM.patientStageValueUuid,
 };
 
-test.describe.serial('POST + GET /bahmniprogramenrollment — TB Program enrollment', () => {
+test.describe.serial('POST + GET /bahmniprogramenrollment — TB Program enrollment', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let enrollmentUuid: string;
   let skipReason: string | undefined;

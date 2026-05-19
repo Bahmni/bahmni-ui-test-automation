@@ -8,7 +8,7 @@ import {
 } from '../../../test-data/api/patientPayload';
 import { faker } from '@faker-js/faker';
 
-test.describe('Identifier - auto-generation', () => {
+test.describe('Identifier - auto-generation', { tag: ['@regression'] }, () => {
   let patientUuid: string;
 
   test('identifier is auto-generated from configured IdentifierSource', async ({ api }) => {
@@ -28,7 +28,7 @@ test.describe('Identifier - auto-generation', () => {
   });
 });
 
-test.describe('Identifier - jump detection', () => {
+test.describe('Identifier - jump detection', { tag: ['@regression'] }, () => {
   let leakedPatientUuid: string | undefined;
 
   test('manually-entered identifier that jumps ahead of sequence returns 412', async ({ api }) => {
@@ -56,7 +56,7 @@ test.describe('Identifier - jump detection', () => {
   });
 });
 
-test.describe('Birthdate vs birthdateEstimated', () => {
+test.describe('Birthdate vs birthdateEstimated', { tag: ['@regression'] }, () => {
   const createdPatients: string[] = [];
 
   test('exact birthdate is stored when birthdateEstimated is false', async ({ api }) => {
@@ -88,7 +88,7 @@ test.describe('Birthdate vs birthdateEstimated', () => {
   });
 });
 
-test.describe('Patient name length validation', () => {
+test.describe('Patient name length validation', { tag: ['@regression'] }, () => {
   test('givenName exceeding 50 characters is rejected by the server', async ({ api }) => {
     const longName = faker.string.alpha(51);
     const payload = buildCreatePatientPayload({ givenName: longName });
@@ -108,7 +108,7 @@ test.describe('Patient name length validation', () => {
   });
 });
 
-test.describe.serial('Relationships', () => {
+test.describe.serial('Relationships', { tag: ['@regression'] }, () => {
   let patientAUuid: string;
   let patientBUuid: string;
   let relationshipTypeUuid: string;

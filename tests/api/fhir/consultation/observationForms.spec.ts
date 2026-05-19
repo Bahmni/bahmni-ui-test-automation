@@ -68,7 +68,7 @@ function assertObsMatchesSpec(
   }
 }
 
-test.describe.serial('POST /fhir2/R4/ConsultationBundle (Vitals + Obstetrics & Gynaecology)', () => {
+test.describe.serial('POST /fhir2/R4/ConsultationBundle (Vitals + Obstetrics & Gynaecology)', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let bundleSpec: VitalsAndGynaecologyBundleSpec;
   let encounterUuid: string;

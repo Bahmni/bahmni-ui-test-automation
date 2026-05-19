@@ -38,7 +38,7 @@ async function submitAsRoleWithCleanup(
   }
 }
 
-test.describe.serial('Clinical Dashboard — privilege checks', () => {
+test.describe.serial('Clinical Dashboard — privilege checks', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
 
   test.beforeAll(async ({ api }) => {

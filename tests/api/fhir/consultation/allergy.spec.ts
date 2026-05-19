@@ -14,7 +14,7 @@ import {
 } from '../../../../src/api/helpers/consultationSetup';
 import { AllergyIntoleranceEntry } from '../../../../src/api/types/fhir-resources.types';
 
-test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/AllergyIntolerance', () => {
+test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/AllergyIntolerance', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let encounterUuid: string;
 

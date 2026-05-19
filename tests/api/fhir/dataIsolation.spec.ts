@@ -14,7 +14,7 @@ import { AllergyIntoleranceEntry } from '../../../src/api/types/fhir-resources.t
  * This is a security-critical integration test: data leakage across patients would be a serious bug.
  * The module's DAO unit tests use mocks and cannot catch this.
  */
-test.describe.serial("Patient data isolation — FHIR queries return only the queried patient's data", () => {
+test.describe.serial("Patient data isolation — FHIR queries return only the queried patient's data", { tag: ['@regression'] }, () => {
   let ctxA: ConsultationContext;
   let ctxB: ConsultationContext;
 

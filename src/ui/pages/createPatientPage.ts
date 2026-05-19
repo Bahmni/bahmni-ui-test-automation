@@ -81,8 +81,9 @@ export class CreatePatientPage {
 
     // Action buttons
     saveButton: 'button:has-text("Save")',
-    startOPDVisitButton: '#visit-button',
+    startOPDVisitButton: 'role=button[name="Start OPD visit"]',
     visitTypeDropdown: 'button[role="combobox"]:has(img[alt="Open menu"])',
+    patientDashboardButton: 'button:has-text("Patient Dashboard")',
     backToSearchButton: 'button:has-text("Back to search patient")',
   } as const;
 
@@ -426,6 +427,13 @@ export class CreatePatientPage {
    */
   async saveAndStartOPDVisit() {
     await this.page.locator(this.selectors.startOPDVisitButton).click();
+  }
+
+  /**
+   * Navigate to patient clinical dashboard
+   */
+  async navigateToDashboard() {
+    await this.page.locator(this.selectors.patientDashboardButton).click();
   }
 
   /**

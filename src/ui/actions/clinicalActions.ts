@@ -54,15 +54,13 @@ export class ClinicalActions {
   }
 
   async navigateToPatientClinical(patientId: string) {
-    await this.bahmni.createPatientPage.navigateToHomePage();
+    await this.bahmni.homePage.goto();
     await this.bahmni.homePage.navigateToModule(this.bahmni.homePage.MODULES.CLINICAL);
-    await this.bahmni.activePatientsPage.selectTab('new-active');
     await this.bahmni.activePatientsPage.selectPatientById(patientId);
   }
 
   async navigateToClinicalFromHome(patientId: string) {
     await this.bahmni.homePage.navigateToModule(this.bahmni.homePage.MODULES.CLINICAL);
-    await this.bahmni.activePatientsPage.selectTab('new-active');
     await this.bahmni.activePatientsPage.selectPatientById(patientId);
   }
 

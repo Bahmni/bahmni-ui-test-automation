@@ -17,7 +17,7 @@ test.describe.serial('Clinical Consultation Tests', { tag: ['@regression'] }, ()
     await actions.clinical.verifyAllergyDisplayed(allergyData);
   });
 
-  test('Order investigation and procedure in consultation', async ({ clinicalSetup }) => {
+  test('Order investigation and procedure in consultation', { tag: '@onlyStandard' }, async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
     const investigation = medicalFaker.investigation_single();
     const investigation_panel = medicalFaker.investigation_panel();

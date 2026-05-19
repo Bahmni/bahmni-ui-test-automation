@@ -1,11 +1,11 @@
 import { test, request } from '@playwright/test';
-import { PageFactory } from '../../src/ui/pages/PageFactory';
-import { ActionFactory } from '../../src/ui/actions/ActionFactory';
-import { generatePatientData } from '../../test-data/common/patientData';
-import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../test-data/common/allergyData';
-import { medicationFaker } from '../../test-data/common/medicationData';
-import { diagnosisFaker } from '../../test-data/common/diagnosisData';
-import { ApiFactory } from '../../src/api/ApiFactory';
+import { PageFactory } from '../../../src/ui/pages/PageFactory';
+import { ActionFactory } from '../../../src/ui/actions/ActionFactory';
+import { generatePatientData } from '../../../test-data/common/patientData';
+import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../../test-data/common/allergyData';
+import { medicationFaker } from '../../../test-data/common/medicationData';
+import { diagnosisFaker } from '../../../test-data/common/diagnosisData';
+import { ApiFactory } from '../../../src/api/ApiFactory';
 
 test.describe('E2E patient flow', () => {
   let createdPatientId: string | null = null;

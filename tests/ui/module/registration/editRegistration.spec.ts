@@ -1,8 +1,8 @@
 import { test, request } from '@playwright/test';
-import { PageFactory } from '../../../src/ui/pages/PageFactory';
-import { ActionFactory } from '../../../src/ui/actions/ActionFactory';
-import { generatePatientData } from '../../../test-data/common/patientData';
-import { ApiFactory } from '../../../src/api/ApiFactory';
+import { PageFactory } from '../../../../src/ui/pages/PageFactory';
+import { ActionFactory } from '../../../../src/ui/actions/ActionFactory';
+import { generatePatientData } from '../../../../test-data/common/patientData';
+import { ApiFactory } from '../../../../src/api/ApiFactory';
 
 test.describe('Edit patient registration tests', () => {
   const createdPatientIds: string[] = [];

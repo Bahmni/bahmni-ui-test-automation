@@ -1,4 +1,4 @@
-import { test, expect } from '../../../src/ui/fixtures/clinicalFixture';
+import { test, expect } from '../../../../src/ui/fixtures/clinicalFixture';
 import {
   ANEMIA_PANEL_NAME,
   anemiaReportData,
@@ -6,8 +6,8 @@ import {
   atypicalLymphReportData,
   ECHOCARDIOGRAM_NAME,
   echocardiogramReportData,
-} from '../../../test-data/common/labOrderData';
-import { FhirApiHelper } from '../../../src/utils/fhir-api-helper';
+} from '../../../../test-data/common/labOrderData';
+import { FhirApiHelper } from '../../../../src/utils/fhir-api-helper';
 
 test.describe('Lab Orders', () => {
   test('validate lab orders - order anemia panel and absolute atypical lymphocyte count and verify results', async ({

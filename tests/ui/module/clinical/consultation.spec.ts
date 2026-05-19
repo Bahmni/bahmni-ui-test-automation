@@ -1,10 +1,10 @@
-import { test, expect } from '../../../src/ui/fixtures/clinicalFixture';
-import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../../test-data/common/allergyData';
-import { medicalFaker } from '../../../test-data/common/investigationData';
-import { diagnosisFaker } from '../../../test-data/common/diagnosisData';
-import { medicationFaker } from '../../../test-data/common/medicationData';
-import { vaccinationFaker } from '../../../test-data/common/vaccinationData';
-import { vitalsFaker } from '../../../test-data/common/vitalsData';
+import { test, expect } from '../../../../src/ui/fixtures/clinicalFixture';
+import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../../../test-data/common/allergyData';
+import { medicalFaker } from '../../../../test-data/common/investigationData';
+import { diagnosisFaker } from '../../../../test-data/common/diagnosisData';
+import { medicationFaker } from '../../../../test-data/common/medicationData';
+import { vaccinationFaker } from '../../../../test-data/common/vaccinationData';
+import { vitalsFaker } from '../../../../test-data/common/vitalsData';
 
 test.describe.serial('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
   test('Add allergy with severity and reaction in consultation', async ({ clinicalSetup }) => {

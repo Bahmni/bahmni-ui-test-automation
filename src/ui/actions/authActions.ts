@@ -8,6 +8,8 @@ export class AuthActions {
     await this.bahmni.loginPage.goto();
     await this.bahmni.loginPage.login(username, password);
     await this.bahmni.locationPage.selectLocation(config.defaults.location);
+    // Temp redirect: legacy home auto-redirect to bahmni-new/ isn't in place yet.
+    await this.bahmni.homePage.goto();
   }
 
   async loginAsAdmin() {

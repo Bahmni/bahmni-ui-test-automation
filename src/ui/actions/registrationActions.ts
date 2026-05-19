@@ -6,7 +6,7 @@ export class RegistrationActions {
   constructor(private readonly bahmni: PageFactory) {}
 
   async registerPatient(patientData: PatientData): Promise<string> {
-    await this.bahmni.homePage.navigateToModule(this.bahmni.homePage.MODULES.REGISTRATION_NEW);
+    await this.bahmni.homePage.navigateToModule(this.bahmni.homePage.MODULES.REGISTRATION);
     await this.bahmni.registrationSearchPage.clickCreateNewPatientBtn();
     await this.bahmni.createPatientPage.fillPatientDetails(patientData);
     await this.bahmni.createPatientPage.savePatient();
@@ -14,7 +14,7 @@ export class RegistrationActions {
   }
 
   async registerPatientWithMandatoryDetails(patientData: PatientData): Promise<string> {
-    await this.bahmni.homePage.navigateToModule(this.bahmni.homePage.MODULES.REGISTRATION_NEW);
+    await this.bahmni.homePage.navigateToModule(this.bahmni.homePage.MODULES.REGISTRATION);
     await this.bahmni.registrationSearchPage.clickCreateNewPatientBtn();
     await this.bahmni.createPatientPage.fillPatientDetails({
       firstName: patientData.firstName,

@@ -33,7 +33,7 @@ export const config = {
   urls: {
     login: process.env.LOGIN_URL || `${getRequiredEnv('BASE_URL')}/bahmni/home/index.html#/login`,
     location: process.env.LOCATION_URL || `${getRequiredEnv('BASE_URL')}/bahmni/home/index.html#/loginLocation`,
-    dashboard: process.env.DASHBOARD_URL || `${getRequiredEnv('BASE_URL')}/bahmni/home/index.html#/dashboard`,
+    dashboard: process.env.DASHBOARD_URL || `${getRequiredEnv('BASE_URL')}/bahmni-new/`,
     registrationSearch:
       process.env.REGISTRATION_SEARCH_URL || `${getRequiredEnv('BASE_URL')}/bahmni-new/registration/search`,
     registrationNewPatient:
@@ -82,7 +82,9 @@ export const config = {
   // Default Settings
   defaults: {
     locale: getOptionalEnv('DEFAULT_LOCALE', 'string:en'),
-    location: getOptionalEnv('DEFAULT_LOCATION', 'OPD-1'),
+    get location(): string {
+      return getRequiredEnv('LOCATION_OPD');
+    },
   },
 
   // Playwright Configuration

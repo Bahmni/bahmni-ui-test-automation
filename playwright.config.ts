@@ -89,7 +89,7 @@ export default defineConfig({
     {
       name: 'chromium',
       testMatch: ['**/tests/ui/e2e/**', '**/tests/ui/module/**'],
-      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+      use: { ...devices['Desktop Chrome'], ...(process.env.CI ? {} : { channel: 'chrome' }) },
     },
 
     {

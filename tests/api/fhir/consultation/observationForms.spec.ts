@@ -68,60 +68,64 @@ function assertObsMatchesSpec(
   }
 }
 
-test.describe.serial('POST /fhir2/R4/ConsultationBundle (Vitals + Obstetrics & Gynaecology)', () => {
-  let ctx: ConsultationContext;
-  let bundleSpec: VitalsAndGynaecologyBundleSpec;
-  let encounterUuid: string;
+test.describe.serial(
+  'POST /fhir2/R4/ConsultationBundle (Vitals + Obstetrics & Gynaecology)',
+  { tag: ['@regression'] },
+  () => {
+    let ctx: ConsultationContext;
+    let bundleSpec: VitalsAndGynaecologyBundleSpec;
+    let encounterUuid: string;
 
-  test.beforeAll(async ({ api }) => {
-    ctx = await setupConsultationContext(api);
-    bundleSpec = buildVitalsAndGynaecologyBundle(ctx);
-  });
+    test.beforeAll(async ({ api }) => {
+      ctx = await setupConsultationContext(api);
+      bundleSpec = buildVitalsAndGynaecologyBundle(ctx);
+    });
 
-  test('POST /fhir2/R4/ConsultationBundle — response echoes every submitted observation with matching value, note, interpretation, and form-namespace extension', async ({
-    api,
-  }) => {
-    const { status, body } = await api.fhir.submitConsultationBundle(bundleSpec.bundle);
+    test('POST /fhir2/R4/ConsultationBundle — response echoes every submitted observation with matching value, note, interpretation, and form-namespace extension', async ({
+      api,
+    }) => {
+      const { status, body } = await api.fhir.submitConsultationBundle(bundleSpec.bundle);
 
-    expect(status).toBe(201);
-    encounterUuid = extractFirstUuidFromBundle(body, 'Encounter');
+      expect(status).toBe(201);
+      encounterUuid = extractFirstUuidFromBundle(body, 'Encounter');
 
-    const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
-    expect(observations.length).toBe(bundleSpec.submittedObs.length);
+      const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
+      expect(observations.length).toBe(bundleSpec.submittedObs.length);
 
-    bundleSpec.submittedObs.forEach((spec) =>
-      assertObsMatchesSpec(findObsByCode(observations, spec.code), spec, observations)
-    );
-  });
+      bundleSpec.submittedObs.forEach((spec) =>
+        assertObsMatchesSpec(findObsByCode(observations, spec.code), spec, observations)
+      );
+    });
 
-  test('GET /bahmnicore/patient/{uuid}/forms?numberOfVisits=10 — both Vitals and Obstetrics & Gynaecology forms appear for the encounter', async ({
-    api,
-  }) => {
-    const { status, body } = await api.forms.getForms(ctx.patientUuid, 10);
+    test('GET /bahmnicore/patient/{uuid}/forms?numberOfVisits=10 — both Vitals and Obstetrics & Gynaecology forms appear for the encounter', async ({
+      api,
+    }) => {
+      const { status, body } = await api.forms.getForms(ctx.patientUuid, 10);
 
-    expect(status).toBe(200);
-    const formsForEncounter = body.filter((f) => f.encounterUuid === encounterUuid);
-    const formNames = formsForEncounter.map((f) => f.formName);
+      expect(status).toBe(200);
+      const formsForEncounter = body.filter((f) => f.encounterUuid === encounterUuid);
+      const formNames = formsForEncounter.map((f) => f.formName);
 
-    expect(formNames).toContain(FORM_NAMES.vitals);
-    expect(formNames).toContain(FORM_NAMES.obstetricsAndGynaecology);
-  });
+      expect(formNames).toContain(FORM_NAMES.vitals);
+      expect(formNames).toContain(FORM_NAMES.obstetricsAndGynaecology);
+    });
 
-  test('GET /fhir2/R4/Observation/$fetch-all?encounter={uuid} — returns every submitted observation with values preserved', async ({
-    api,
-  }) => {
-    const { status, body } = await api.fhir.fetchAllObservationsByEncounter(encounterUuid);
+    test('GET /fhir2/R4/Observation/$fetch-all?encounter={uuid} — returns every submitted observation with values preserved', async ({
+      api,
+    }) => {
+      const { status, body } = await api.fhir.fetchAllObservationsByEncounter(encounterUuid);
 
-    expect(status).toBe(200);
-    const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
-    expect(observations.length).toBe(bundleSpec.submittedObs.length);
+      expect(status).toBe(200);
+      const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
+      expect(observations.length).toBe(bundleSpec.submittedObs.length);
 
-    bundleSpec.submittedObs.forEach((spec) =>
-      assertObsMatchesSpec(findObsByCode(observations, spec.code), spec, observations)
-    );
-  });
+      bundleSpec.submittedObs.forEach((spec) =>
+        assertObsMatchesSpec(findObsByCode(observations, spec.code), spec, observations)
+      );
+    });
 
-  test.afterAll(async ({ api }) => {
-    await teardownConsultationContext(api, ctx);
-  });
-});
+    test.afterAll(async ({ api }) => {
+      await teardownConsultationContext(api, ctx);
+    });
+  }
+);

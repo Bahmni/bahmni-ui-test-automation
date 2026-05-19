@@ -17,24 +17,30 @@ test.describe.serial('Clinical Consultation Tests', { tag: ['@regression'] }, ()
     await actions.clinical.verifyAllergyDisplayed(allergyData);
   });
 
-  test('Order investigation and procedure in consultation', async ({ clinicalSetup }) => {
+  test('Order investigation in consultation', async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
     const investigation = medicalFaker.investigation_single();
     const investigation_panel = medicalFaker.investigation_panel();
     const investigation_radiology = medicalFaker.investigation_radiology();
-    const procedure = medicalFaker.procedure();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
     await actions.clinical.addInvestigationsInConsultation([
       investigation,
       investigation_panel,
-      procedure,
       investigation_radiology,
     ]);
-    await actions.clinical.verifyInvestigationOrProcedureDisplayed(procedure, 'Procedures');
     await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation, 'Lab Investigations');
     await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation_panel, 'Lab Investigations');
     await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation_radiology, 'Radiology Investigations');
+  });
+
+  test('Order procedure in consultation', { tag: '@onlyStandard' }, async ({ clinicalSetup }) => {
+    const { actions, page } = clinicalSetup;
+    const procedure = medicalFaker.procedure();
+
+    await expect(page).toHaveURL(/.*clinical\/.*/);
+    await actions.clinical.addInvestigationsInConsultation([procedure]);
+    await actions.clinical.verifyInvestigationOrProcedureDisplayed(procedure, 'Procedures');
   });
 
   test('Add condition and diagnosis in consultation', async ({ clinicalSetup }) => {

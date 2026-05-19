@@ -2,18 +2,16 @@ import { Page } from '@playwright/test';
 import { config } from '../../config/env.config';
 
 /**
- * HomePage class for Bahmni dashboard/home page
- * URL: https://docker.standard.mybahmni.in/bahmni/home/index.html#/dashboard
+ * HomePage class for the redesigned Bahmni home page.
+ * URL: ${BASE_URL}/bahmni-new/
  */
 export class HomePage {
   private readonly page: Page;
 
-  // Constants for module names (public as they may be used in tests)
   readonly MODULES = {
     REGISTRATION: 'Registration',
     PROGRAMS: 'Programs',
     CLINICAL: 'Clinical',
-    REGISTRATION_NEW: 'Registration New',
     RADIOLOGY_UPLOAD: 'Radiology Upload',
     PATIENT_DOCUMENTS: 'Patient Documents',
     BED_MANAGEMENT: 'Bed Management',
@@ -27,66 +25,36 @@ export class HomePage {
     LAB_ENTRY: 'Lab entry',
   } as const;
 
-  // Locator selectors
-  private readonly selectors = {
-    // Header elements - no IDs available, using role/text based selectors
-    locationDropdown: 'select', // Only one select element on the page
-    userInfoButton: 'button.btn-user-info',
-    logoutLink: 'a:has-text("Logout")',
-    changePasswordLink: 'a:has-text("Change Password")',
-
-    // Module links - using class and text combination
-    moduleLink: (moduleName: string) => `a.button.app:has-text("${moduleName}")`,
-  } as const;
-
   constructor(page: Page) {
     this.page = page;
   }
 
-  /**
-   * Navigate to the Bahmni home dashboard
-   */
   async goto() {
     await this.page.goto(config.urls.dashboard);
     await this.page.waitForLoadState('networkidle');
   }
 
-  /**
-   * Change location from the dropdown
-   * @param location - Location to select
-   */
   async changeLocation(location: string) {
-    await this.page.locator(this.selectors.locationDropdown).selectOption(location);
+    await this.page.getByRole('combobox').selectOption(location);
   }
 
-  /**
-   * Click on a module to navigate to it
-   * @param moduleName - Name of the module to navigate to
-   */
   async navigateToModule(moduleName: string) {
-    await this.page.locator(this.selectors.moduleLink(moduleName)).click();
+    const link = this.page.getByRole('link', { name: moduleName, exact: true });
+    const button = this.page.getByRole('button', { name: moduleName, exact: true });
+    await link.or(button).click();
   }
 
-  /**
-   * Open user menu
-   */
   async openUserMenu() {
-    await this.page.locator(this.selectors.userInfoButton).click();
+    await this.page.getByRole('button', { name: 'User Menu' }).click();
   }
 
-  /**
-   * Logout from the application
-   */
   async logout() {
     await this.openUserMenu();
-    await this.page.locator(this.selectors.logoutLink).click();
+    await this.page.getByRole('link', { name: 'Logout' }).click();
   }
 
-  /**
-   * Navigate to change password
-   */
   async goToChangePassword() {
     await this.openUserMenu();
-    await this.page.locator(this.selectors.changePasswordLink).click();
+    await this.page.getByRole('link', { name: 'Change Password' }).click();
   }
 }

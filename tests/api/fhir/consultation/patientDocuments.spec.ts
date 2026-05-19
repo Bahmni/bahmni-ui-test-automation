@@ -21,7 +21,7 @@ interface DocumentReferenceEntry {
   meta?: { lastUpdated?: string };
 }
 
-test.describe.serial('POST + GET /fhir2/R4/DocumentReference — patient documents', () => {
+test.describe.serial('POST + GET /fhir2/R4/DocumentReference — patient documents', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let singleMasterId: string;
   let doubleMasterId: string;

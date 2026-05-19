@@ -58,7 +58,7 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
 
       // Start OPD visit
       await bahmni.createPatientPage.saveAndStartOPDVisit();
-      await page.waitForLoadState('networkidle');
+      await bahmni.createPatientPage.navigateToDashboard();
 
       // Resolve patient UUID via API — required for teardown and available to tests
       const { body: searchBody } = await api.patient.search(patientId);
@@ -66,9 +66,6 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
       if (!patientUuid) {
         throw new Error(`Patient not found by ID "${patientId}" — cannot proceed with clinical setup`);
       }
-
-      // Navigate to Clinical module (only once per worker)
-      await actions.clinical.navigateToPatientClinical(patientId);
 
       // Wait for clinical page to load fully
       await page.waitForLoadState('networkidle', { timeout: 10000 });
@@ -101,9 +98,9 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
   clinicalSetup: async ({ sharedClinicalContext }, use) => {
     const { page, bahmni, actions, patientData, patientId } = sharedClinicalContext;
 
-    // Ensure we're on the clinical dashboard (not in a consultation)
     const currentUrl = page.url();
-    if (currentUrl.includes('/consultation')) {
+    const onClinicalDashboard = currentUrl.includes('/clinical/') && !currentUrl.includes('/consultation');
+    if (!onClinicalDashboard) {
       await actions.clinical.navigateToPatientClinical(patientId);
       await page.waitForLoadState('networkidle', { timeout: 10000 });
     }

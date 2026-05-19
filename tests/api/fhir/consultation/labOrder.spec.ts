@@ -38,158 +38,174 @@ import {
 import { FhirApiHelper } from '../../../../src/utils/fhir-api-helper';
 import { echocardiogramReportData, xRayArmReportData } from '../../../../test-data/common/labOrderData';
 
-test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/ServiceRequest', () => {
-  let ctx: ConsultationContext;
-  let encounterUuid: string;
+test.describe.serial(
+  'POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/ServiceRequest',
+  { tag: ['@regression'] },
+  () => {
+    let ctx: ConsultationContext;
+    let encounterUuid: string;
 
-  test.beforeAll(async ({ api }) => {
-    ctx = await setupConsultationContext(api);
-  });
+    test.beforeAll(async ({ api }) => {
+      ctx = await setupConsultationContext(api);
+    });
 
-  test('POST single lab test — order is saved and GET returns expected fields', async ({ api }) => {
-    const { body } = await api.fhir.submitConsultationBundle(buildSingleLabOrderBundle(ctx));
-    encounterUuid = extractFirstUuidFromBundle(body, 'Encounter');
+    test('POST single lab test — order is saved and GET returns expected fields', async ({ api }) => {
+      const { body } = await api.fhir.submitConsultationBundle(buildSingleLabOrderBundle(ctx));
+      encounterUuid = extractFirstUuidFromBundle(body, 'Encounter');
 
-    const { body: getBody } = await api.fhir.getLabServiceRequests(ctx.patientUuid);
-    const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
-    const order = orders.find((o) => o.code.coding[0].code === LAB_CONCEPTS.absoluteImmatureCellCount);
-
-    expect(order).toBeDefined();
-    expect(order?.status).toBe('active');
-    expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.lab);
-    expect(order?.code.coding[0].display).toBeDefined();
-    expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
-    expect(order?.occurrencePeriod?.start).toBeDefined();
-    expect(order?.note?.[0].text).toBeDefined();
-    expect(order?.extension?.[0].valueString).toBe('Test');
-  });
-
-  test('POST panel lab test — order is saved, GET returns expected fields and reuses same encounter', async ({
-    api,
-  }) => {
-    await api.fhir.submitConsultationBundle(buildPanelLabOrderBundle(ctx, encounterUuid));
-
-    const { body: getBody } = await api.fhir.getLabServiceRequests(ctx.patientUuid);
-    const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
-    const order = orders.find((o) => o.code.coding[0].code === LAB_CONCEPTS.completeBloodCount);
-
-    expect(order).toBeDefined();
-    expect(order?.status).toBe('active');
-    expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.lab);
-    expect(order?.code.coding[0].display).toBeDefined();
-    expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
-    expect(order?.occurrencePeriod?.start).toBeDefined();
-    expect(order?.note?.[0].text).toBeDefined();
-    expect(order?.extension?.[0].valueString).toBe('Panel');
-    expect(order?.encounter.reference).toContain(encounterUuid);
-  });
-
-  test('POST radiology order — order is saved, GET returns expected fields and reuses same encounter', async ({
-    api,
-  }) => {
-    await api.fhir.submitConsultationBundle(buildRadiologyOrderBundle(ctx, encounterUuid));
-
-    const { body: getBody } = await api.fhir.getRadiologyServiceRequests(ctx.patientUuid);
-    const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
-    const order = orders.find((o) => o.code.coding[0].code === RADIOLOGY_CONCEPTS.echocardiogram);
-
-    expect(order).toBeDefined();
-    expect(order?.status).toBe('active');
-    expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.radiology);
-    expect(order?.code.coding[0].display).toBeDefined();
-    expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
-    expect(order?.occurrencePeriod?.start).toBeDefined();
-    expect(order?.note?.[0].text).toBeDefined();
-    expect(order?.encounter.reference).toContain(encounterUuid);
-  });
-
-  test(
-    'POST procedure order — order is saved, GET returns expected fields and reuses same encounter',
-    { tag: '@onlyStandard' },
-    async ({ api }) => {
-      await api.fhir.submitConsultationBundle(buildProcedureOrderBundle(ctx, encounterUuid));
-
-      const { body: getBody } = await api.fhir.getProcedureServiceRequests(ctx.patientUuid);
+      const { body: getBody } = await api.fhir.getLabServiceRequests(ctx.patientUuid);
       const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
-      const order = orders.find((o) => o.code.coding[0].code === PROCEDURE_CONCEPTS.reconstructionProcedure);
+      const order = orders.find((o) => o.code.coding[0].code === LAB_CONCEPTS.absoluteImmatureCellCount);
 
       expect(order).toBeDefined();
       expect(order?.status).toBe('active');
-      expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.procedure);
+      expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.lab);
+      expect(order?.code.coding[0].display).toBeDefined();
+      expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
+      expect(order?.occurrencePeriod?.start).toBeDefined();
+      expect(order?.note?.[0].text).toBeDefined();
+      expect(order?.extension?.[0].valueString).toBe('Test');
+    });
+
+    test('POST panel lab test — order is saved, GET returns expected fields and reuses same encounter', async ({
+      api,
+    }) => {
+      await api.fhir.submitConsultationBundle(buildPanelLabOrderBundle(ctx, encounterUuid));
+
+      const { body: getBody } = await api.fhir.getLabServiceRequests(ctx.patientUuid);
+      const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
+      const order = orders.find((o) => o.code.coding[0].code === LAB_CONCEPTS.completeBloodCount);
+
+      expect(order).toBeDefined();
+      expect(order?.status).toBe('active');
+      expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.lab);
+      expect(order?.code.coding[0].display).toBeDefined();
+      expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
+      expect(order?.occurrencePeriod?.start).toBeDefined();
+      expect(order?.note?.[0].text).toBeDefined();
+      expect(order?.extension?.[0].valueString).toBe('Panel');
+      expect(order?.encounter.reference).toContain(encounterUuid);
+    });
+
+    test('POST radiology order — order is saved, GET returns expected fields and reuses same encounter', async ({
+      api,
+    }) => {
+      await api.fhir.submitConsultationBundle(buildRadiologyOrderBundle(ctx, encounterUuid));
+
+      const { body: getBody } = await api.fhir.getRadiologyServiceRequests(ctx.patientUuid);
+      const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
+      const order = orders.find((o) => o.code.coding[0].code === RADIOLOGY_CONCEPTS.echocardiogram);
+
+      expect(order).toBeDefined();
+      expect(order?.status).toBe('active');
+      expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.radiology);
       expect(order?.code.coding[0].display).toBeDefined();
       expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
       expect(order?.occurrencePeriod?.start).toBeDefined();
       expect(order?.note?.[0].text).toBeDefined();
       expect(order?.encounter.reference).toContain(encounterUuid);
-    }
-  );
+    });
 
-  test.afterAll(async ({ api }) => {
-    await teardownConsultationContext(api, ctx);
-  });
-});
+    test(
+      'POST procedure order — order is saved, GET returns expected fields and reuses same encounter',
+      { tag: '@onlyStandard' },
+      async ({ api }) => {
+        await api.fhir.submitConsultationBundle(buildProcedureOrderBundle(ctx, encounterUuid));
 
-test.describe.serial('GET /fhir2/R4/ServiceRequest — numberOfVisits limits orders to N most recent visits', () => {
-  let ctx: ConsultationContext;
+        const { body: getBody } = await api.fhir.getProcedureServiceRequests(ctx.patientUuid);
+        const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
+        const order = orders.find((o) => o.code.coding[0].code === PROCEDURE_CONCEPTS.reconstructionProcedure);
 
-  test.beforeAll(async ({ api }) => {
-    ctx = await setupConsultationContext(api);
-
-    await api.fhir.submitConsultationBundle(buildSingleLabOrderBundle(ctx, LAB_CONCEPTS.absoluteImmatureCellCount));
-    await api.fhir.submitConsultationBundle(buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.echocardiogram));
-
-    await api.visit.endVisit(ctx.visitUuid);
-
-    const { visitUuid, visitEncounterUuid } = await startNewVisit(api, ctx);
-    ctx.visitUuid = visitUuid;
-    ctx.visitEncounterUuid = visitEncounterUuid;
-
-    await api.fhir.submitConsultationBundle(buildSingleLabOrderBundle(ctx, LAB_CONCEPTS.completeBloodCount));
-    await api.fhir.submitConsultationBundle(
-      buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.xRaySkullFourViews)
+        expect(order).toBeDefined();
+        expect(order?.status).toBe('active');
+        expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.procedure);
+        expect(order?.code.coding[0].display).toBeDefined();
+        expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
+        expect(order?.occurrencePeriod?.start).toBeDefined();
+        expect(order?.note?.[0].text).toBeDefined();
+        expect(order?.encounter.reference).toContain(encounterUuid);
+      }
     );
-  });
 
-  test('GET lab orders with numberOfVisits=1 — returns only orders from the most recent visit', async ({ api }) => {
-    const { body } = await api.fhir.getLabServiceRequests(ctx.patientUuid, 200, undefined, 1);
-    const codes = getBundleEntriesByType<ServiceRequestEntry>(body, 'ServiceRequest').map((o) => o.code.coding[0].code);
+    test.afterAll(async ({ api }) => {
+      await teardownConsultationContext(api, ctx);
+    });
+  }
+);
 
-    expect(codes).toContain(LAB_CONCEPTS.completeBloodCount);
-    expect(codes).not.toContain(LAB_CONCEPTS.absoluteImmatureCellCount);
-  });
+test.describe.serial(
+  'GET /fhir2/R4/ServiceRequest — numberOfVisits limits orders to N most recent visits',
+  { tag: ['@regression'] },
+  () => {
+    let ctx: ConsultationContext;
 
-  test('GET lab orders with numberOfVisits=2 — returns orders from both visits', async ({ api }) => {
-    const { body } = await api.fhir.getLabServiceRequests(ctx.patientUuid, 200, undefined, 2);
-    const codes = getBundleEntriesByType<ServiceRequestEntry>(body, 'ServiceRequest').map((o) => o.code.coding[0].code);
+    test.beforeAll(async ({ api }) => {
+      ctx = await setupConsultationContext(api);
 
-    expect(codes).toContain(LAB_CONCEPTS.completeBloodCount);
-    expect(codes).toContain(LAB_CONCEPTS.absoluteImmatureCellCount);
-  });
+      await api.fhir.submitConsultationBundle(buildSingleLabOrderBundle(ctx, LAB_CONCEPTS.absoluteImmatureCellCount));
+      await api.fhir.submitConsultationBundle(buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.echocardiogram));
 
-  test('GET radiology orders with numberOfVisits=1 — returns only orders from the most recent visit', async ({
-    api,
-  }) => {
-    const { body } = await api.fhir.getRadiologyServiceRequests(ctx.patientUuid, 200, undefined, 1);
-    const codes = getBundleEntriesByType<ServiceRequestEntry>(body, 'ServiceRequest').map((o) => o.code.coding[0].code);
+      await api.visit.endVisit(ctx.visitUuid);
 
-    expect(codes).toContain(RADIOLOGY_CONCEPTS.xRaySkullFourViews);
-    expect(codes).not.toContain(RADIOLOGY_CONCEPTS.echocardiogram);
-  });
+      const { visitUuid, visitEncounterUuid } = await startNewVisit(api, ctx);
+      ctx.visitUuid = visitUuid;
+      ctx.visitEncounterUuid = visitEncounterUuid;
 
-  test('GET radiology orders with numberOfVisits=2 — returns orders from both visits', async ({ api }) => {
-    const { body } = await api.fhir.getRadiologyServiceRequests(ctx.patientUuid, 200, undefined, 2);
-    const codes = getBundleEntriesByType<ServiceRequestEntry>(body, 'ServiceRequest').map((o) => o.code.coding[0].code);
+      await api.fhir.submitConsultationBundle(buildSingleLabOrderBundle(ctx, LAB_CONCEPTS.completeBloodCount));
+      await api.fhir.submitConsultationBundle(
+        buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.xRaySkullFourViews)
+      );
+    });
 
-    expect(codes).toContain(RADIOLOGY_CONCEPTS.xRaySkullFourViews);
-    expect(codes).toContain(RADIOLOGY_CONCEPTS.echocardiogram);
-  });
+    test('GET lab orders with numberOfVisits=1 — returns only orders from the most recent visit', async ({ api }) => {
+      const { body } = await api.fhir.getLabServiceRequests(ctx.patientUuid, 200, undefined, 1);
+      const codes = getBundleEntriesByType<ServiceRequestEntry>(body, 'ServiceRequest').map(
+        (o) => o.code.coding[0].code
+      );
 
-  test.afterAll(async ({ api }) => {
-    await teardownConsultationContext(api, ctx);
-  });
-});
+      expect(codes).toContain(LAB_CONCEPTS.completeBloodCount);
+      expect(codes).not.toContain(LAB_CONCEPTS.absoluteImmatureCellCount);
+    });
 
-test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle', () => {
+    test('GET lab orders with numberOfVisits=2 — returns orders from both visits', async ({ api }) => {
+      const { body } = await api.fhir.getLabServiceRequests(ctx.patientUuid, 200, undefined, 2);
+      const codes = getBundleEntriesByType<ServiceRequestEntry>(body, 'ServiceRequest').map(
+        (o) => o.code.coding[0].code
+      );
+
+      expect(codes).toContain(LAB_CONCEPTS.completeBloodCount);
+      expect(codes).toContain(LAB_CONCEPTS.absoluteImmatureCellCount);
+    });
+
+    test('GET radiology orders with numberOfVisits=1 — returns only orders from the most recent visit', async ({
+      api,
+    }) => {
+      const { body } = await api.fhir.getRadiologyServiceRequests(ctx.patientUuid, 200, undefined, 1);
+      const codes = getBundleEntriesByType<ServiceRequestEntry>(body, 'ServiceRequest').map(
+        (o) => o.code.coding[0].code
+      );
+
+      expect(codes).toContain(RADIOLOGY_CONCEPTS.xRaySkullFourViews);
+      expect(codes).not.toContain(RADIOLOGY_CONCEPTS.echocardiogram);
+    });
+
+    test('GET radiology orders with numberOfVisits=2 — returns orders from both visits', async ({ api }) => {
+      const { body } = await api.fhir.getRadiologyServiceRequests(ctx.patientUuid, 200, undefined, 2);
+      const codes = getBundleEntriesByType<ServiceRequestEntry>(body, 'ServiceRequest').map(
+        (o) => o.code.coding[0].code
+      );
+
+      expect(codes).toContain(RADIOLOGY_CONCEPTS.xRaySkullFourViews);
+      expect(codes).toContain(RADIOLOGY_CONCEPTS.echocardiogram);
+    });
+
+    test.afterAll(async ({ api }) => {
+      await teardownConsultationContext(api, ctx);
+    });
+  }
+);
+
+test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let srIds = {} as Record<string, string>;
   let encIds = {} as Record<string, string>;
@@ -381,93 +397,97 @@ test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle
   });
 });
 
-test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle (Radiology)', () => {
-  let ctx: ConsultationContext;
-  let encounterUuid: string;
-  let echoServiceRequestUuid: string;
-  let xRayServiceRequestUuid: string;
-  let echoDrId: string;
-  let xRayDrId: string;
+test.describe.serial(
+  'POST DiagnosticReport/$submit-bundle → GET $fetch-bundle (Radiology)',
+  { tag: ['@regression'] },
+  () => {
+    let ctx: ConsultationContext;
+    let encounterUuid: string;
+    let echoServiceRequestUuid: string;
+    let xRayServiceRequestUuid: string;
+    let echoDrId: string;
+    let xRayDrId: string;
 
-  test.beforeAll(async ({ api, request }) => {
-    ctx = await setupConsultationContext(api);
+    test.beforeAll(async ({ api, request }) => {
+      ctx = await setupConsultationContext(api);
 
-    const { body: echoBody } = await api.fhir.submitConsultationBundle(
-      buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.echocardiogram)
-    );
-    encounterUuid = extractFirstUuidFromBundle(echoBody, 'Encounter');
-    echoServiceRequestUuid = extractFirstUuidFromBundle(echoBody, 'ServiceRequest');
-
-    const { body: xRayBody } = await api.fhir.submitConsultationBundle(
-      buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.xRayArm)
-    );
-    xRayServiceRequestUuid = extractFirstUuidFromBundle(xRayBody, 'ServiceRequest');
-
-    const fhirApi = new FhirApiHelper(request);
-    await fhirApi.postEchocardiogramReport(
-      ctx.patientUuid,
-      encounterUuid,
-      echoServiceRequestUuid,
-      echocardiogramReportData
-    );
-    await fhirApi.postXRayArmReport(ctx.patientUuid, encounterUuid, xRayServiceRequestUuid, xRayArmReportData);
-
-    const { body: drBundle } = await api.fhir.getDiagnosticReportsByBasedOn(ctx.patientUuid, [
-      echoServiceRequestUuid,
-      xRayServiceRequestUuid,
-    ]);
-    const reports = getBundleEntriesByType<DiagnosticReportEntry>(drBundle, 'DiagnosticReport');
-    echoDrId = reports.find((r) => r.basedOn[0].reference.includes(echoServiceRequestUuid))?.id ?? '';
-    xRayDrId = reports.find((r) => r.basedOn[0].reference.includes(xRayServiceRequestUuid))?.id ?? '';
-  });
-
-  test(
-    'Echocardiogram — $fetch-bundle returns 15 mixed observations with correct values',
-    { tag: '@onlyStandard' },
-    async ({ api }) => {
-      const { body } = await api.fhir.getDiagnosticReportBundle(echoDrId);
-      const reports = getBundleEntriesByType<DiagnosticReportEntry>(body, 'DiagnosticReport');
-      const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
-
-      expect(reports[0].status).toBe('final');
-      expect(reports[0].result?.length).toBe(15);
-      expect(observations.length).toBe(15);
-
-      const ejectionFraction = observations.find(
-        (o) => o.code.coding[0].code === '159571AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+      const { body: echoBody } = await api.fhir.submitConsultationBundle(
+        buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.echocardiogram)
       );
-      const lvFunction = observations.find((o) => o.code.coding[0].code === '167023AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-      const summary = observations.find((o) => o.code.coding[0].code === 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb');
+      encounterUuid = extractFirstUuidFromBundle(echoBody, 'Encounter');
+      echoServiceRequestUuid = extractFirstUuidFromBundle(echoBody, 'ServiceRequest');
 
-      expect(ejectionFraction?.valueQuantity?.value).toBe(echocardiogramReportData.ejectionFraction.value);
-      expect(lvFunction?.valueCodeableConcept?.coding[0].code).toBe('159568AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-      expect(summary?.valueString).toBe(echocardiogramReportData.summary);
-    }
-  );
+      const { body: xRayBody } = await api.fhir.submitConsultationBundle(
+        buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.xRayArm)
+      );
+      xRayServiceRequestUuid = extractFirstUuidFromBundle(xRayBody, 'ServiceRequest');
 
-  test(
-    'X-ray arm — $fetch-bundle returns 8 observations with text, coded and numeric values',
-    { tag: '@onlyStandard' },
-    async ({ api }) => {
-      const { body } = await api.fhir.getDiagnosticReportBundle(xRayDrId);
-      const reports = getBundleEntriesByType<DiagnosticReportEntry>(body, 'DiagnosticReport');
-      const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
+      const fhirApi = new FhirApiHelper(request);
+      await fhirApi.postEchocardiogramReport(
+        ctx.patientUuid,
+        encounterUuid,
+        echoServiceRequestUuid,
+        echocardiogramReportData
+      );
+      await fhirApi.postXRayArmReport(ctx.patientUuid, encounterUuid, xRayServiceRequestUuid, xRayArmReportData);
 
-      expect(reports[0].status).toBe('final');
-      expect(reports[0].result?.length).toBe(8);
-      expect(observations.length).toBe(8);
+      const { body: drBundle } = await api.fhir.getDiagnosticReportsByBasedOn(ctx.patientUuid, [
+        echoServiceRequestUuid,
+        xRayServiceRequestUuid,
+      ]);
+      const reports = getBundleEntriesByType<DiagnosticReportEntry>(drBundle, 'DiagnosticReport');
+      echoDrId = reports.find((r) => r.basedOn[0].reference.includes(echoServiceRequestUuid))?.id ?? '';
+      xRayDrId = reports.find((r) => r.basedOn[0].reference.includes(xRayServiceRequestUuid))?.id ?? '';
+    });
 
-      const summary = observations.find((o) => o.code.coding[0].code === 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb');
-      const swelling = observations.find((o) => o.code.coding[0].code === '163894AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-      const armLength = observations.find((o) => o.code.coding[0].code === '1ff70b07-1ef6-49fa-9f4b-37cc10900a5a');
+    test(
+      'Echocardiogram — $fetch-bundle returns 15 mixed observations with correct values',
+      { tag: '@onlyStandard' },
+      async ({ api }) => {
+        const { body } = await api.fhir.getDiagnosticReportBundle(echoDrId);
+        const reports = getBundleEntriesByType<DiagnosticReportEntry>(body, 'DiagnosticReport');
+        const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
 
-      expect(summary?.valueString).toBe(xRayArmReportData.summary);
-      expect(swelling?.valueCodeableConcept?.coding[0].code).toBe('1066AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-      expect(armLength?.valueQuantity?.value).toBe(xRayArmReportData.armLengthDiscrepancyCm);
-    }
-  );
+        expect(reports[0].status).toBe('final');
+        expect(reports[0].result?.length).toBe(15);
+        expect(observations.length).toBe(15);
 
-  test.afterAll(async ({ api }) => {
-    await teardownConsultationContext(api, ctx);
-  });
-});
+        const ejectionFraction = observations.find(
+          (o) => o.code.coding[0].code === '159571AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+        );
+        const lvFunction = observations.find((o) => o.code.coding[0].code === '167023AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        const summary = observations.find((o) => o.code.coding[0].code === 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb');
+
+        expect(ejectionFraction?.valueQuantity?.value).toBe(echocardiogramReportData.ejectionFraction.value);
+        expect(lvFunction?.valueCodeableConcept?.coding[0].code).toBe('159568AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        expect(summary?.valueString).toBe(echocardiogramReportData.summary);
+      }
+    );
+
+    test(
+      'X-ray arm — $fetch-bundle returns 8 observations with text, coded and numeric values',
+      { tag: '@onlyStandard' },
+      async ({ api }) => {
+        const { body } = await api.fhir.getDiagnosticReportBundle(xRayDrId);
+        const reports = getBundleEntriesByType<DiagnosticReportEntry>(body, 'DiagnosticReport');
+        const observations = getBundleEntriesByType<ObservationEntry>(body, 'Observation');
+
+        expect(reports[0].status).toBe('final');
+        expect(reports[0].result?.length).toBe(8);
+        expect(observations.length).toBe(8);
+
+        const summary = observations.find((o) => o.code.coding[0].code === 'cf1844e6-d734-4e24-8a26-1f48f8e54ebb');
+        const swelling = observations.find((o) => o.code.coding[0].code === '163894AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        const armLength = observations.find((o) => o.code.coding[0].code === '1ff70b07-1ef6-49fa-9f4b-37cc10900a5a');
+
+        expect(summary?.valueString).toBe(xRayArmReportData.summary);
+        expect(swelling?.valueCodeableConcept?.coding[0].code).toBe('1066AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        expect(armLength?.valueQuantity?.value).toBe(xRayArmReportData.armLengthDiscrepancyCm);
+      }
+    );
+
+    test.afterAll(async ({ api }) => {
+      await teardownConsultationContext(api, ctx);
+    });
+  }
+);

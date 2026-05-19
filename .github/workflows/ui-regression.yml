@@ -1,16 +1,14 @@
-name: Scheduled Regression Tests
+name: UI Regression Tests
 
 on:
   schedule:
-    # 9:00 AM IST (Mon-Fri) — IST = UTC+5:30, so 03:30 UTC
-    - cron: '30 3 * * 1-5'
-    # 5:00 PM IST (Mon-Fri) — 11:30 UTC
-    - cron: '30 11 * * 1-5'
+    # 10:00 AM IST (Mon-Fri) — IST = UTC+5:30, so 04:30 UTC
+    - cron: '30 4 * * 1-5'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Run @regression suite
+    name: Run UI regression suite
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
@@ -21,13 +19,11 @@ jobs:
           node-version: lts/*
           cache: 'npm'
 
-      - name: Install Google Chrome
-        uses: browser-actions/setup-chrome@v1
-        with:
-          chrome-version: stable
-
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
 
       - name: Create .env.local from secrets
         env:
@@ -45,7 +41,6 @@ jobs:
           USER_CLINICAL_READONLY_USERNAME: ${{ secrets.USER_CLINICAL_READONLY_USERNAME }}
           USER_CLINICAL_READONLY_PASSWORD: ${{ secrets.USER_CLINICAL_READONLY_PASSWORD }}
         run: |
-          # Pipe via env to avoid leaking secrets into the rendered workflow YAML
           {
             printf 'BASE_URL=%s\n' "$BASE_URL"
             printf 'USER_ADMIN_USERNAME=%s\n' "$USER_ADMIN_USERNAME"
@@ -64,8 +59,8 @@ jobs:
             printf 'IGNORE_HTTPS_ERRORS=false\n'
           } > .env.local
 
-      - name: Run @regression tests
-        run: NODE_ENV=local npx playwright test --grep @regression
+      - name: Run UI regression tests
+        run: NODE_ENV=local npx playwright test --project=chromium --grep @regression --grep-invert @onlyStandard
 
       - name: Generate Allure report
         if: always()
@@ -75,7 +70,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: regression-reports
+          name: ui-regression-reports
           path: |
             reports/allure-report
             reports/html-report

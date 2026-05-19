@@ -19,7 +19,7 @@ export class ActivePatientsPage {
   private readonly selectors = {
     // Tab buttons
     activeTab: 'a:has-text("Active")',
-    newActiveTab: 'a:has-text("New - Active")',
+    newActiveTab: 'a:has-text("Active New")',
     toAdmitTab: 'a:has-text("To Admit")',
     toDischargeTab: 'a:has-text("To Discharge")',
 

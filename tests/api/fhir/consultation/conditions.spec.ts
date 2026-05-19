@@ -14,7 +14,7 @@ import {
 } from '../../../../src/api/helpers/consultationSetup';
 import { ConditionEntry } from '../../../../src/api/types/fhir-resources.types';
 
-test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/Condition', () => {
+test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/Condition', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let encounterUuid: string;
 

@@ -37,5 +37,7 @@ export class LocationPage {
   async selectLocation(location: string) {
     await this.page.locator(this.selectors.locationDropdown).selectOption(location);
     await this.page.locator(this.selectors.continueButton).click();
+    await this.page.waitForURL(/\/bahmni\/home\/index\.html#\/dashboard/);
+    await this.page.waitForLoadState('networkidle');
   }
 }

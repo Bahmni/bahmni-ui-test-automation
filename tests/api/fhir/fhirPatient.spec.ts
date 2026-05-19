@@ -1,7 +1,7 @@
 import { test, expect } from '../../../src/api/fixtures/apiFixture';
 import { buildCreatePatientPayload } from '../../../test-data/api/patientPayload';
 
-test.describe.serial('FHIR Patient — resource mapping', () => {
+test.describe.serial('FHIR Patient — resource mapping', { tag: ['@regression'] }, () => {
   const payload = buildCreatePatientPayload();
   let patientUuid: string;
   let patientIdentifier: string;

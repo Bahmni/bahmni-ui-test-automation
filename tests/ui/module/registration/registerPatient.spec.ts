@@ -29,7 +29,7 @@ test.describe('Patient registration tests', () => {
     const patientData = generatePatientData();
 
     await actions.auth.loginAsAdmin();
-    await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
+    await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
 
     await bahmni.createPatientPage.fillPatientDetails({
@@ -70,7 +70,7 @@ test.describe('Patient registration tests', () => {
     const patientData2 = generatePatientData();
 
     await actions.auth.loginAsAdmin();
-    await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
+    await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
 
     await bahmni.createPatientPage.fillPatientDetails({
@@ -86,7 +86,7 @@ test.describe('Patient registration tests', () => {
     createdPatientIds.push(patientId1);
 
     await bahmni.createPatientPage.navigateToHomePage();
-    await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
+    await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
 
     await bahmni.createPatientPage.fillPatientDetails({

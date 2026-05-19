@@ -4,7 +4,7 @@ import {
   DOCUMENT_IDENTIFIER,
   DOCUMENT_TYPE,
   TOTAL_DOCUMENTS,
-} from '../../../src/ui/fixtures/documentFixture';
+} from '../../../../src/ui/fixtures/documentFixture';
 
 test.describe('Patient Document Tests', () => {
   test('View uploaded patient documents in clinical dashboard', async ({ documentSetup }) => {

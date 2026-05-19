@@ -1,9 +1,28 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, request } from '@playwright/test';
 import { PageFactory } from '../../../src/ui/pages/PageFactory';
 import { ActionFactory } from '../../../src/ui/actions/ActionFactory';
 import { generatePatientData } from '../../../test-data/common/patientData';
+import { ApiFactory } from '../../../src/api/ApiFactory';
 
 test.describe('Patient registration tests', () => {
+  const createdPatientIds: string[] = [];
+
+  test.afterEach(async () => {
+    if (createdPatientIds.length === 0) return;
+    const apiContext = await request.newContext({ ignoreHTTPSErrors: true });
+    const api = new ApiFactory(apiContext);
+    try {
+      for (const id of createdPatientIds) {
+        const { body } = await api.patient.search(id);
+        const uuid = body.results[0]?.uuid;
+        if (uuid) await api.patient.delete(uuid);
+      }
+    } finally {
+      createdPatientIds.length = 0;
+      await apiContext.dispose();
+    }
+  });
+
   test('Register and verify patient details', async ({ page }) => {
     const bahmni = new PageFactory(page);
     const actions = new ActionFactory(bahmni);
@@ -29,6 +48,7 @@ test.describe('Patient registration tests', () => {
 
     await expect(page).toHaveURL(/.*registration\/patient\/[a-f0-9-]+/);
     const patientId = await bahmni.createPatientPage.getPatientId();
+    createdPatientIds.push(patientId);
     await expect(patientId).toBeTruthy();
 
     await actions.registration.searchAndOpenPatient(patientId);
@@ -62,6 +82,9 @@ test.describe('Patient registration tests', () => {
 
     await bahmni.createPatientPage.savePatient();
     await bahmni.createPatientPage.verifySuccessNotification();
+    const patientId1 = await bahmni.createPatientPage.getPatientId();
+    createdPatientIds.push(patientId1);
+
     await bahmni.createPatientPage.navigateToHomePage();
     await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION_NEW);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
@@ -79,6 +102,8 @@ test.describe('Patient registration tests', () => {
     );
     await bahmni.createPatientPage.savePatient();
     await bahmni.createPatientPage.verifySuccessNotification();
+    const patientId2 = await bahmni.createPatientPage.getPatientId();
+    createdPatientIds.push(patientId2);
 
     await actions.registration.verifyPatientRelationship(
       'Father',

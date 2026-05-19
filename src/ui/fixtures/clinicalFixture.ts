@@ -1,7 +1,8 @@
-import { test as base, expect as baseExpect, BrowserContext } from '@playwright/test';
+import { test as base, expect as baseExpect, BrowserContext, request } from '@playwright/test';
 import { PageFactory } from '../pages/PageFactory';
 import { ActionFactory } from '../actions/ActionFactory';
 import { generatePatientData, PatientData } from '../../../test-data/common/patientData';
+import { ApiFactory } from '../../api/ApiFactory';
 import { Page } from '@playwright/test';
 
 type SharedClinicalContext = {
@@ -11,6 +12,7 @@ type SharedClinicalContext = {
   actions: ActionFactory;
   patientData: PatientData;
   patientId: string;
+  patientUuid: string;
 };
 
 type ClinicalFixtures = {
@@ -46,6 +48,10 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
       const actions = new ActionFactory(bahmni);
       const patientData = generatePatientData();
 
+      // API context shared by setup (UUID lookup) and teardown (patient delete)
+      const apiContext = await request.newContext({ ignoreHTTPSErrors: true });
+      const api = new ApiFactory(apiContext);
+
       // Login and create patient (only once per worker)
       await actions.auth.loginAsAdmin();
       const patientId = await actions.registration.registerPatientWithMandatoryDetails(patientData);
@@ -53,6 +59,13 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
       // Start OPD visit
       await bahmni.createPatientPage.saveAndStartOPDVisit();
       await page.waitForLoadState('networkidle');
+
+      // Resolve patient UUID via API — required for teardown and available to tests
+      const { body: searchBody } = await api.patient.search(patientId);
+      const patientUuid = searchBody.results[0]?.uuid;
+      if (!patientUuid) {
+        throw new Error(`Patient not found by ID "${patientId}" — cannot proceed with clinical setup`);
+      }
 
       // Navigate to Clinical module (only once per worker)
       await actions.clinical.navigateToPatientClinical(patientId);
@@ -68,10 +81,18 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
         actions,
         patientData,
         patientId,
+        patientUuid,
       });
 
-      // Cleanup: close the context after all tests
-      await context.close();
+      // Teardown: delete patient in OpenMRS. Use try/finally so apiContext and
+      // browser context are always released, while letting a delete failure
+      // propagate and fail the run loudly.
+      try {
+        await api.patient.delete(patientUuid);
+      } finally {
+        await apiContext.dispose();
+        await context.close();
+      }
     },
     { scope: 'worker' },
   ],

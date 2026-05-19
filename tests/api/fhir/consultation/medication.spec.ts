@@ -34,7 +34,7 @@ function assertMedOrder(req: MedicationRequestEntry | undefined, medicationUuid:
   expect(req?.dispenseRequest.quantity.value).toBe(calculateTotalQuantity(opts));
 }
 
-test.describe.serial('POST medication orders — routes, dose units, formulations', () => {
+test.describe.serial('POST medication orders — routes, dose units, formulations', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let encounterUuid: string;
 
@@ -260,7 +260,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
   });
 });
 
-test.describe.serial('GET /fhir2/R4/Medication — medication search', () => {
+test.describe.serial('GET /fhir2/R4/Medication — medication search', { tag: ['@regression'] }, () => {
   test('search with 3-char name returns matching medications', async ({ api }) => {
     const { status, body } = await api.fhir.searchMedication('par', 20);
     const medications = getBundleEntriesByType<MedicationEntry>(body, 'Medication');

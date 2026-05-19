@@ -3,6 +3,7 @@ import { PageFactory } from '../pages/PageFactory';
 import { ActionFactory } from '../actions/ActionFactory';
 import { generatePatientData, PatientData } from '../../../test-data/common/patientData';
 import { AppointmentApiHelper } from '../../utils/appointment-api-helper';
+import { ApiFactory } from '../../api/ApiFactory';
 import {
   generateUpcomingAppointmentDates,
   generatePastAppointmentDates,
@@ -75,8 +76,14 @@ export const test = base.extend<AppointmentFixtures>({
 
     await use({ bahmni, actions, patientData, patientId, page });
 
-    await apiContext.dispose();
-    await context.close();
+    // Teardown: void patient (cascades to visits/appointments). Use try/finally
+    // so apiContext + browser context are released even if delete fails.
+    try {
+      await new ApiFactory(apiContext).patient.delete(patientUuid);
+    } finally {
+      await apiContext.dispose();
+      await context.close();
+    }
   },
 });
 

@@ -3,6 +3,7 @@ import { PageFactory } from '../pages/PageFactory';
 import { ActionFactory } from '../actions/ActionFactory';
 import { generatePatientData, PatientData } from '../../../test-data/common/patientData';
 import { DocumentApiHelper } from '../../utils/document-api-helper';
+import { ApiFactory } from '../../api/ApiFactory';
 
 type DocumentFixtures = {
   documentSetup: {
@@ -59,8 +60,14 @@ export const test = base.extend<DocumentFixtures>({
 
     await use({ bahmni, actions, patientData, patientId, page });
 
-    await apiContext.dispose();
-    await context.close();
+    // Teardown: void patient (cascades to uploaded documents). Use try/finally
+    // so apiContext + browser context are released even if delete fails.
+    try {
+      await new ApiFactory(apiContext).patient.delete(patientUuid);
+    } finally {
+      await apiContext.dispose();
+      await context.close();
+    }
   },
 });
 

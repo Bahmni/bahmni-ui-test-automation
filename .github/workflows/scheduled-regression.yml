@@ -1,0 +1,85 @@
+name: Scheduled Regression Tests
+
+on:
+  schedule:
+    # 9:00 AM IST (Mon-Fri) — IST = UTC+5:30, so 03:30 UTC
+    - cron: '30 3 * * 1-5'
+    # 5:00 PM IST (Mon-Fri) — 11:30 UTC
+    - cron: '30 11 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run @regression suite
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'npm'
+
+      - name: Install Google Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create .env.local from secrets
+        env:
+          BASE_URL: ${{ secrets.BASE_URL }}
+          USER_ADMIN_USERNAME: ${{ secrets.USER_ADMIN_USERNAME }}
+          USER_ADMIN_PASSWORD: ${{ secrets.USER_ADMIN_PASSWORD }}
+          USER_DOCTOR_USERNAME: ${{ secrets.USER_DOCTOR_USERNAME }}
+          USER_DOCTOR_PASSWORD: ${{ secrets.USER_DOCTOR_PASSWORD }}
+          USER_NURSE_USERNAME: ${{ secrets.USER_NURSE_USERNAME }}
+          USER_NURSE_PASSWORD: ${{ secrets.USER_NURSE_PASSWORD }}
+          USER_RECEPTIONIST_USERNAME: ${{ secrets.USER_RECEPTIONIST_USERNAME }}
+          USER_RECEPTIONIST_PASSWORD: ${{ secrets.USER_RECEPTIONIST_PASSWORD }}
+          USER_FRONTDESK_USERNAME: ${{ secrets.USER_FRONTDESK_USERNAME }}
+          USER_FRONTDESK_PASSWORD: ${{ secrets.USER_FRONTDESK_PASSWORD }}
+          USER_CLINICAL_READONLY_USERNAME: ${{ secrets.USER_CLINICAL_READONLY_USERNAME }}
+          USER_CLINICAL_READONLY_PASSWORD: ${{ secrets.USER_CLINICAL_READONLY_PASSWORD }}
+        run: |
+          # Pipe via env to avoid leaking secrets into the rendered workflow YAML
+          {
+            printf 'BASE_URL=%s\n' "$BASE_URL"
+            printf 'USER_ADMIN_USERNAME=%s\n' "$USER_ADMIN_USERNAME"
+            printf 'USER_ADMIN_PASSWORD=%s\n' "$USER_ADMIN_PASSWORD"
+            printf 'USER_DOCTOR_USERNAME=%s\n' "$USER_DOCTOR_USERNAME"
+            printf 'USER_DOCTOR_PASSWORD=%s\n' "$USER_DOCTOR_PASSWORD"
+            printf 'USER_NURSE_USERNAME=%s\n' "$USER_NURSE_USERNAME"
+            printf 'USER_NURSE_PASSWORD=%s\n' "$USER_NURSE_PASSWORD"
+            printf 'USER_RECEPTIONIST_USERNAME=%s\n' "$USER_RECEPTIONIST_USERNAME"
+            printf 'USER_RECEPTIONIST_PASSWORD=%s\n' "$USER_RECEPTIONIST_PASSWORD"
+            printf 'USER_FRONTDESK_USERNAME=%s\n' "$USER_FRONTDESK_USERNAME"
+            printf 'USER_FRONTDESK_PASSWORD=%s\n' "$USER_FRONTDESK_PASSWORD"
+            printf 'USER_CLINICAL_READONLY_USERNAME=%s\n' "$USER_CLINICAL_READONLY_USERNAME"
+            printf 'USER_CLINICAL_READONLY_PASSWORD=%s\n' "$USER_CLINICAL_READONLY_PASSWORD"
+            printf 'HEADLESS=true\n'
+            printf 'IGNORE_HTTPS_ERRORS=false\n'
+          } > .env.local
+
+      - name: Run @regression tests
+        run: NODE_ENV=local npx playwright test --grep @regression
+
+      - name: Generate Allure report
+        if: always()
+        run: npm run allure:generate
+
+      - name: Upload test reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-reports
+          path: |
+            reports/allure-report
+            reports/html-report
+            reports/test-results.json
+            reports/allure-results
+            test-results
+          retention-days: 30

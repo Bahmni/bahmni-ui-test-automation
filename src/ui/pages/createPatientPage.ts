@@ -61,8 +61,8 @@ export class CreatePatientPage {
     stateDropdown: '#stateProvince',
 
     // Contact information - UUIDs as IDs
-    phoneNumberInput: 'input[placeholder="Phone number"]',
-    alternatePhoneInput: 'input[placeholder="Alternate phone number"]',
+    phoneNumberInput: '[data-testid="person-attribute-text-input-phoneNumber"]',
+    alternatePhoneInput: '[data-testid="person-attribute-text-input-alternatePhoneNumber"]',
 
     // Additional information
     emailInput: 'input[placeholder="Email"]',
@@ -98,6 +98,7 @@ export class CreatePatientPage {
       await button.scrollIntoViewIfNeeded();
       await button.click();
       await signal.waitFor({ state: 'visible' });
+      await this.page.waitForLoadState('networkidle');
     }
   }
 
@@ -199,10 +200,10 @@ export class CreatePatientPage {
    */
   async fillContactInformation(phoneNumber: string, alternatePhone?: string) {
     await this.expandSectionIfCollapsed('Contact information', this.selectors.phoneNumberInput);
-    await this.page.getByRole('textbox', { name: /^Phone number$/i }).fill(phoneNumber);
+    await this.page.locator(this.selectors.phoneNumberInput).fill(phoneNumber);
 
     if (alternatePhone) {
-      await this.page.getByRole('textbox', { name: /Alternate phone/i }).fill(alternatePhone);
+      await this.page.locator(this.selectors.alternatePhoneInput).fill(alternatePhone);
     }
   }
 
@@ -220,7 +221,7 @@ export class CreatePatientPage {
    * @param photoName - Name of photo file in test-data folder
    */
   async uploadPhoto(photoName: string) {
-    const photoPath = path.join(__dirname, '..', '..', 'test-data', photoName);
+    const photoPath = path.join(__dirname, '..', '..', '..', 'test-data', 'common', photoName);
     await this.page.locator(this.selectors.uploadPhotoButton).click();
     const fileInput = this.page.locator('input[type="file"]');
     await fileInput.waitFor({ state: 'attached' });
@@ -315,7 +316,9 @@ export class CreatePatientPage {
   }
 
   async getFirstName(): Promise<string> {
-    return this.page.locator(this.selectors.firstNameInput).inputValue();
+    const input = this.page.locator(this.selectors.firstNameInput);
+    await expect(input).not.toHaveValue('');
+    return input.inputValue();
   }
   async getMiddleName(): Promise<string> {
     return this.page.locator(this.selectors.middleNameInput).inputValue();
@@ -331,7 +334,7 @@ export class CreatePatientPage {
   }
   async getPhoneNumber(): Promise<string> {
     await this.expandSectionIfCollapsed('Contact information', this.selectors.phoneNumberInput);
-    return this.page.getByRole('textbox', { name: /^Phone number$/i }).inputValue();
+    return this.page.locator(this.selectors.phoneNumberInput).inputValue();
   }
   async getEmail(): Promise<string> {
     await this.expandSectionIfCollapsed('Additional information', this.selectors.emailInput);
@@ -399,6 +402,7 @@ export class CreatePatientPage {
    */
   async savePatient() {
     await this.page.locator(this.selectors.saveButton).click();
+    await this.page.waitForLoadState('networkidle');
   }
 
   async verifySuccessNotification() {
@@ -428,6 +432,7 @@ export class CreatePatientPage {
    */
   async saveAndStartOPDVisit() {
     await this.page.locator(this.selectors.startOPDVisitButton).click();
+    await this.page.locator(this.selectors.patientDashboardButton).waitFor({ state: 'visible' });
   }
 
   /**

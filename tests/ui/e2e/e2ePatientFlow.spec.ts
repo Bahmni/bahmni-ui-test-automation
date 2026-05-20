@@ -7,7 +7,7 @@ import { medicationFaker } from '../../../test-data/common/medicationData';
 import { diagnosisFaker } from '../../../test-data/common/diagnosisData';
 import { ApiFactory } from '../../../src/api/ApiFactory';
 
-test.describe('E2E patient flow', () => {
+test.describe('E2E patient flow', { tag: ['@regression'] }, () => {
   let createdPatientId: string | null = null;
 
   test.afterEach(async () => {

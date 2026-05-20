@@ -344,33 +344,32 @@ async function syncRolePrivileges(
   baseUrl: string,
   auth: string
 ): Promise<void> {
-  try {
-    const res = await fetch(`${baseUrl}/openmrs/ws/rest/v1/role/${roleUuid}?v=full`, {
-      headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    const existing = new Set<string>(((data as OpenMRSRole).privileges ?? []).map((p) => p.display ?? p.name));
-    const missing = role.privileges.filter((p) => !existing.has(p));
-    if (missing.length === 0) return;
-
-    const updated = [
-      ...((data as OpenMRSRole).privileges ?? []).map((p) => ({ privilege: p.display ?? p.name })),
-      ...missing.map((p) => ({ privilege: p })),
-    ];
-    const update = await fetch(`${baseUrl}/openmrs/ws/rest/v1/role/${roleUuid}`, {
-      method: 'POST',
-      headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ privileges: updated }),
-    });
-    if (update.ok) {
-      console.log(`  ✓ Role "${role.name}" synced — added: ${missing.join(', ')}`);
-    } else {
-      console.warn(`  ⚠ Could not sync privileges for "${role.name}"`);
-    }
-  } catch {
-    console.warn(`  ⚠ Error syncing privileges for "${role.name}"`);
+  const res = await fetch(`${baseUrl}/openmrs/ws/rest/v1/role/${roleUuid}?v=full`, {
+    headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch role "${role.name}" (${res.status}): ${await res.text()}`);
   }
+  const data = await res.json();
+  const existing = new Set<string>(((data as OpenMRSRole).privileges ?? []).map((p) => p.display ?? p.name));
+  const missing = role.privileges.filter((p) => !existing.has(p));
+  if (missing.length === 0) return;
+
+  const updated = [
+    ...((data as OpenMRSRole).privileges ?? []).map((p) => ({ privilege: p.display ?? p.name })),
+    ...missing.map((p) => ({ privilege: p })),
+  ];
+  const update = await fetch(`${baseUrl}/openmrs/ws/rest/v1/role/${roleUuid}`, {
+    method: 'POST',
+    headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ privileges: updated }),
+  });
+  if (!update.ok) {
+    throw new Error(
+      `Failed to sync privileges for "${role.name}" (${update.status}): ${await update.text()}. Missing: ${missing.join(', ')}`
+    );
+  }
+  console.log(`  ✓ Role "${role.name}" synced — added: ${missing.join(', ')}`);
 }
 
 /**
@@ -414,7 +413,7 @@ async function setupRoles(baseUrl: string): Promise<RoleDefinition[]> {
   }
 
   if (pending.length > 0) {
-    console.warn(`  ⚠ Could not create role(s): ${pending.map((r) => r.name).join(', ')}`);
+    throw new Error(`Could not create role(s): ${pending.map((r) => r.name).join(', ')}`);
   }
 
   console.log('✓ Role setup complete\n');
@@ -826,8 +825,8 @@ async function setupConcepts(baseUrl: string): Promise<void> {
     {
       envKey: 'VITALS_CONCEPT_SPO2',
       cielUuid: '5092AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-      searchName: 'oxygen saturation',
-      matchName: 'oxygen saturation',
+      searchName: 'Arterial blood oxygen saturation',
+      matchName: 'arterial blood oxygen saturation',
     },
     {
       envKey: 'VITALS_CONCEPT_RESPIRATORY_RATE',
@@ -894,7 +893,7 @@ async function setupConcepts(baseUrl: string): Promise<void> {
       envKey: 'OG_CONCEPT_FETAL_HEART_RATE',
       cielUuid: '1440AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
       searchName: 'Fetal heart rate',
-      matchName: 'fetal heart rate',
+      matchName: 'fetal heart rate (in bpm)',
     },
     {
       envKey: 'OG_CONCEPT_LMP',

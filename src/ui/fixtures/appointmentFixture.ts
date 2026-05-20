@@ -4,6 +4,7 @@ import { ActionFactory } from '../actions/ActionFactory';
 import { generatePatientData, PatientData } from '../../../test-data/common/patientData';
 import { AppointmentApiHelper } from '../../utils/appointment-api-helper';
 import { ApiFactory } from '../../api/ApiFactory';
+import { config } from '../../config/env.config';
 import {
   generateUpcomingAppointmentDates,
   generatePastAppointmentDates,
@@ -35,7 +36,7 @@ export const test = base.extend<AppointmentFixtures>({
     const apiContext = await playwright.request.newContext();
     const appointmentApi = new AppointmentApiHelper(apiContext);
     const serviceUuid = await appointmentApi.getFirstAvailableServiceUuid();
-    const locationUuid = await appointmentApi.getLocationUuid('OPD-1');
+    const locationUuid = await appointmentApi.getLocationUuid(config.defaults.location);
 
     const patientUuid = await getPatientUuid(apiContext, patientId);
 

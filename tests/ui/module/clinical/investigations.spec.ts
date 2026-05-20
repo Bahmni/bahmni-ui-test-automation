@@ -9,7 +9,7 @@ import {
 } from '../../../../test-data/common/labOrderData';
 import { FhirApiHelper } from '../../../../src/utils/fhir-api-helper';
 
-test.describe('Lab Orders', () => {
+test.describe('Lab Orders', { tag: ['@regression', '@onlyStandard'] }, () => {
   test('validate lab orders - order anemia panel and absolute atypical lymphocyte count and verify results', async ({
     clinicalSetup,
     request,
@@ -45,7 +45,7 @@ test.describe('Lab Orders', () => {
   });
 });
 
-test.describe('Radiology Investigations', () => {
+test.describe('Radiology Investigations', { tag: ['@regression', '@onlyStandard'] }, () => {
   test('validate radiology report - order echocardiogram and verify report results', async ({
     clinicalSetup,
     request,

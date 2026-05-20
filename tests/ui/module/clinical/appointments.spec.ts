@@ -1,6 +1,6 @@
 import { test, expect } from '../../../../src/ui/fixtures/appointmentFixture';
 
-test.describe('Appointments Display Control', () => {
+test.describe('Appointments Display Control', { tag: ['@regression'] }, () => {
   test('Upcoming appointments sorted ASC and past appointments sorted DESC', async ({ appointmentSetup }) => {
     const { bahmni } = appointmentSetup;
     const widget = bahmni.appointmentsDisplayControl;
@@ -15,7 +15,7 @@ test.describe('Appointments Display Control', () => {
     expect(upcomingAppointments[1].status).toContain('Scheduled');
     const upcomingSlots = upcomingAppointments.map((a) => a.appointmentSlot);
     expect(upcomingSlots[0]).toContain('10:00 AM');
-    expect(upcomingSlots[1]).toContain('02:00 PM');
+    expect(upcomingSlots[1]).toContain('2:00 PM');
 
     await widget.clickPastTab();
     const pastAppointments = await widget.getAppointmentRows();
@@ -24,6 +24,6 @@ test.describe('Appointments Display Control', () => {
     expect(pastAppointments[1].status).toContain('Completed');
     const pastSlots = pastAppointments.map((a) => a.appointmentSlot);
     expect(pastSlots[0]).toContain('10:00 AM');
-    expect(pastSlots[1]).toContain('02:00 PM');
+    expect(pastSlots[1]).toContain('2:00 PM');
   });
 });

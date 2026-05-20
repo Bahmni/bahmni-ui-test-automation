@@ -4,7 +4,7 @@ import { ActionFactory } from '../../../../src/ui/actions/ActionFactory';
 import { generatePatientData } from '../../../../test-data/common/patientData';
 import { ApiFactory } from '../../../../src/api/ApiFactory';
 
-test.describe('Patient registration tests', () => {
+test.describe('Patient registration tests', { tag: ['@regression'] }, () => {
   const createdPatientIds: string[] = [];
 
   test.afterEach(async () => {
@@ -40,6 +40,7 @@ test.describe('Patient registration tests', () => {
       middleName: patientData.middleName,
       phoneNumber: patientData.phoneNumber,
       email: patientData.email,
+      address: patientData.address,
     });
 
     await bahmni.createPatientPage.uploadPhoto('patient-photo.png');
@@ -86,6 +87,7 @@ test.describe('Patient registration tests', () => {
     createdPatientIds.push(patientId1);
 
     await bahmni.createPatientPage.navigateToHomePage();
+    await bahmni.homePage.goto(); // Temp: legacy home doesn't auto-redirect to bahmni-new yet
     await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
 

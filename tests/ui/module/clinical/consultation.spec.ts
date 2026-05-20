@@ -6,7 +6,7 @@ import { medicationFaker } from '../../../../test-data/common/medicationData';
 import { vaccinationFaker } from '../../../../test-data/common/vaccinationData';
 import { vitalsFaker } from '../../../../test-data/common/vitalsData';
 
-test.describe.serial('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
+test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
   test('Add allergy with severity and reaction in consultation', async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
     const allergyData = generateAllergyData(ALLERGENS.PENICILLIN, SEVERITY_LEVELS.MILD, REACTIONS.RASH);

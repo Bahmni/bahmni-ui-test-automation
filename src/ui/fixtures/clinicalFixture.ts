@@ -35,8 +35,6 @@ type WorkerFixtures = {
  * Two fixtures:
  * 1. sharedClinicalContext (worker-scoped): Creates patient once, logs in once, maintains session
  * 2. clinicalSetup (test-scoped): Uses the shared context, ensures we're on clinical page
- *
- * Use with test.describe.serial() for maximum efficiency - login happens once for all tests
  */
 export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
   // Worker-scoped fixture: creates patient once per worker and maintains the session

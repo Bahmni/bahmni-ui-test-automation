@@ -117,5 +117,6 @@ export class RegistrationSearchPage {
     const patientLink = this.page.locator(`a:has-text("${patientId}")`);
     await patientLink.waitFor({ state: 'visible', timeout: 5000 });
     await patientLink.click();
+    await this.page.waitForLoadState('networkidle');
   }
 }

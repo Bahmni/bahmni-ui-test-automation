@@ -50,11 +50,11 @@ export class HomePage {
 
   async logout() {
     await this.openUserMenu();
-    await this.page.getByRole('link', { name: 'Logout' }).click();
+    await this.page.getByTestId('logout-option').click();
   }
 
   async goToChangePassword() {
     await this.openUserMenu();
-    await this.page.getByRole('link', { name: 'Change Password' }).click();
+    await this.page.getByTestId('change-password-option').click();
   }
 }

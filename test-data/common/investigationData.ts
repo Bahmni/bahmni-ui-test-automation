@@ -6,7 +6,7 @@
 import { faker } from '@faker-js/faker';
 
 const INVESTIGATIONS_PANEL = [
-  'Complete blood count (auto) (Panel)',
+  'Complete blood count (Panel)',
   'Liver function tests (Panel)',
   'Lipid panel (Panel)',
   'Bone marrow test (Panel)',

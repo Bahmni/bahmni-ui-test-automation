@@ -6,7 +6,7 @@ import {
   TOTAL_DOCUMENTS,
 } from '../../../../src/ui/fixtures/documentFixture';
 
-test.describe('Patient Document Tests', () => {
+test.describe('Patient Document Tests', { tag: ['@regression'] }, () => {
   test('View uploaded patient documents in clinical dashboard', async ({ documentSetup }) => {
     const { bahmni, page } = documentSetup;
 

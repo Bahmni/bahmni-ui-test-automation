@@ -4,7 +4,7 @@ import { ActionFactory } from '../../../../src/ui/actions/ActionFactory';
 import { generatePatientData } from '../../../../test-data/common/patientData';
 import { ApiFactory } from '../../../../src/api/ApiFactory';
 
-test.describe('Edit patient registration tests', () => {
+test.describe('Edit patient registration tests', { tag: ['@regression'] }, () => {
   const createdPatientIds: string[] = [];
 
   test.afterEach(async () => {

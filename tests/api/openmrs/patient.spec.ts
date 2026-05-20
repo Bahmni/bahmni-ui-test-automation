@@ -33,7 +33,7 @@ test.describe.serial('Patient registration - E2E', { tag: ['@regression'] }, () 
   });
 
   test('GET patient returns correct demographics', async ({ api }) => {
-    const { status, body } = await api.patient.getById(patientUuid);
+    const { status, body } = await api.patient.getProfileById(patientUuid);
 
     expect(status).toBe(200);
     expect(body.patient.person.gender).toBe(payload.patient.person.gender);

@@ -825,8 +825,8 @@ async function setupConcepts(baseUrl: string): Promise<void> {
     {
       envKey: 'VITALS_CONCEPT_SPO2',
       cielUuid: '5092AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-      searchName: 'oxygen saturation',
-      matchName: 'oxygen saturation',
+      searchName: 'Arterial blood oxygen saturation',
+      matchName: 'arterial blood oxygen saturation',
     },
     {
       envKey: 'VITALS_CONCEPT_RESPIRATORY_RATE',
@@ -893,7 +893,7 @@ async function setupConcepts(baseUrl: string): Promise<void> {
       envKey: 'OG_CONCEPT_FETAL_HEART_RATE',
       cielUuid: '1440AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
       searchName: 'Fetal heart rate',
-      matchName: 'fetal heart rate',
+      matchName: 'fetal heart rate (in bpm)',
     },
     {
       envKey: 'OG_CONCEPT_LMP',

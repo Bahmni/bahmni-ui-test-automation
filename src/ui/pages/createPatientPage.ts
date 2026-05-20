@@ -411,6 +411,7 @@ export class CreatePatientPage {
    */
   async getPatientId(): Promise<string> {
     // Wait for the page to settle after save
+    await this.page.waitForLoadState('networkidle');
     await this.page.waitForURL(/.*registration\/patient\/[a-f0-9-]+/);
     // Scroll to top where patient ID is displayed
     await this.page.evaluate(() => window.scrollTo(0, 0));

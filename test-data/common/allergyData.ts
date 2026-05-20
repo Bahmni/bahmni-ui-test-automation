@@ -16,8 +16,7 @@ export const ALLERGENS = {
   PEANUTS: 'Peanuts',
   EGGS: 'Eggs',
   LATEX: 'Latex',
-  SULFA: 'Sulfa',
-  SEAFOOD: 'Seafood',
+  SHELLFISH: 'Shellfish',
 } as const;
 
 // Severity levels

@@ -55,7 +55,6 @@ jobs:
             printf 'USER_FRONTDESK_PASSWORD=%s\n' "$USER_FRONTDESK_PASSWORD"
             printf 'USER_CLINICAL_READONLY_USERNAME=%s\n' "$USER_CLINICAL_READONLY_USERNAME"
             printf 'USER_CLINICAL_READONLY_PASSWORD=%s\n' "$USER_CLINICAL_READONLY_PASSWORD"
-            printf 'HEADLESS=true\n'
             printf 'IGNORE_HTTPS_ERRORS=false\n'
           } > .env.local
 

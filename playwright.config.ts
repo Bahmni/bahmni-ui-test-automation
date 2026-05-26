@@ -67,7 +67,7 @@ export default defineConfig({
     navigationTimeout: parseInt(process.env.TIMEOUT || '30000'),
 
     /* Headless mode */
-    headless: process.env.HEADLESS === 'true',
+    headless: process.env.HEADLESS !== 'false',
 
     /* Slow motion */
     launchOptions: {

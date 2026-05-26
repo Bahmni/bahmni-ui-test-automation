@@ -1006,37 +1006,39 @@ async function setupConcepts(baseUrl: string): Promise<void> {
 }
 
 /**
- * Search OpenMRS drugs by name and return results sorted by display name.
+ * Search OpenMRS drugs by name, returning display and dosageForm for precise matching.
  */
-async function searchDrugs(
-  baseUrl: string,
-  auth: string,
-  query: string,
-  limit = 10
-): Promise<Array<{ uuid: string; display: string }>> {
+interface DrugResult {
+  uuid: string;
+  display: string;
+  dosageForm?: { display: string };
+}
+
+async function searchDrugs(baseUrl: string, auth: string, query: string, limit = 10): Promise<DrugResult[]> {
   try {
+    const rep = 'custom:(uuid,display,dosageForm:(display))';
     const response = await fetch(
-      `${baseUrl}/openmrs/ws/rest/v1/drug?q=${encodeURIComponent(query)}&v=default&limit=${limit}`,
+      `${baseUrl}/openmrs/ws/rest/v1/drug?q=${encodeURIComponent(query)}&v=${rep}&limit=${limit}`,
       { headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' } }
     );
     if (!response.ok) return [];
     const data = await response.json();
-    return (data as { results: { uuid: string; display: string }[] }).results ?? [];
+    return (data as { results: DrugResult[] }).results ?? [];
   } catch {
     return [];
   }
 }
 
-function findDrug(
-  drugs: Array<{ uuid: string; display: string }>,
-  keywords: string[]
-): { uuid: string; display: string } | undefined {
-  return drugs.find((d) => keywords.some((k) => d.display.toLowerCase().includes(k)));
+function findDrug(drugs: DrugResult[], dosageForm: string, keywords: string[]): DrugResult | undefined {
+  const lower = (s: string) => s.toLowerCase();
+  const byForm = drugs.find((d) => d.dosageForm?.display && lower(d.dosageForm.display).includes(lower(dosageForm)));
+  if (byForm) return byForm;
+  return drugs.find((d) => keywords.every((k) => lower(d.display).includes(lower(k))));
 }
 
 /**
  * Resolve drug UUIDs by searching the concept dictionary.
- * Uses keyword matching to find the right formulation; falls back to first result.
+ * Matches by dosageForm first, then falls back to AND keyword matching on display name.
  * Writes resolved UUIDs to .env.local so workers can use them.
  */
 async function setupDrugs(baseUrl: string): Promise<void> {
@@ -1046,89 +1048,120 @@ async function setupDrugs(baseUrl: string): Promise<void> {
   const drugSearches: Array<{
     envKey: string;
     query: string;
+    dosageForm: string;
     keywords: string[];
-    fallbackIndex: number;
   }> = [
     {
       envKey: 'DRUG_ACETAMINOPHEN_TABLET',
       query: 'acetaminophen',
-      keywords: ['tablet', '500', '650', 'mg'],
-      fallbackIndex: 0,
+      dosageForm: 'tablet',
+      keywords: ['acetaminophen', 'tablet'],
     },
     {
       envKey: 'DRUG_ACETAMINOPHEN_INJECTION',
       query: 'acetaminophen',
-      keywords: ['injection', 'ml', 'solution'],
-      fallbackIndex: 1,
+      dosageForm: 'injection',
+      keywords: ['acetaminophen', 'injection'],
     },
     {
       envKey: 'DRUG_ACETAMINOPHEN_SUPPOSITORY',
       query: 'acetaminophen',
-      keywords: ['suppository', '80', '125', '170'],
-      fallbackIndex: 2,
+      dosageForm: 'suppository',
+      keywords: ['acetaminophen', 'suppository'],
     },
     {
       envKey: 'DRUG_ANTI_RABIES_VACCINE',
       query: 'rabies',
-      keywords: ['vaccine', 'anti-rabies', 'antirabies', 'rabies'],
-      fallbackIndex: 0,
+      dosageForm: 'injection',
+      keywords: ['rabies'],
     },
-    { envKey: 'DRUG_INSULIN', query: 'insulin', keywords: ['insulin'], fallbackIndex: 0 },
-    { envKey: 'DRUG_ISOFLURANE', query: 'isoflurane', keywords: ['isoflurane'], fallbackIndex: 0 },
+    {
+      envKey: 'DRUG_INSULIN',
+      query: 'insulin',
+      dosageForm: 'injection',
+      keywords: ['insulin'],
+    },
+    {
+      envKey: 'DRUG_ISOFLURANE',
+      query: 'isoflurane',
+      dosageForm: 'inhalation',
+      keywords: ['isoflurane'],
+    },
     {
       envKey: 'DRUG_NITROGLYCERIN',
       query: 'nitroglycerin',
-      keywords: ['nitroglycerin', 'glyceryl trinitrate'],
-      fallbackIndex: 0,
+      dosageForm: 'tablet',
+      keywords: ['nitroglycerin'],
     },
     {
       envKey: 'DRUG_ORAL_REHYDRATION_SALTS',
       query: 'oral rehydration',
-      keywords: ['oral rehydration', 'ors'],
-      fallbackIndex: 0,
+      dosageForm: 'powder',
+      keywords: ['oral rehydration'],
     },
-    { envKey: 'DRUG_XYLOMETAZOLINE', query: 'xylometazoline', keywords: ['xylometazoline'], fallbackIndex: 0 },
+    {
+      envKey: 'DRUG_XYLOMETAZOLINE',
+      query: 'xylometazoline',
+      dosageForm: 'solution',
+      keywords: ['xylometazoline'],
+    },
     {
       envKey: 'DRUG_LIDOCAINE_GEL',
       query: 'lidocaine',
-      keywords: ['gel', 'jelly', '2%', '4%', 'lidocaine'],
-      fallbackIndex: 0,
+      dosageForm: 'gel',
+      keywords: ['lidocaine', 'gel'],
     },
     {
       envKey: 'DRUG_CLOTRIMAZOLE_PESSARY',
       query: 'clotrimazole',
-      keywords: ['pessary', '100', 'clotrimazole'],
-      fallbackIndex: 0,
+      dosageForm: 'pessary',
+      keywords: ['clotrimazole', 'pessary'],
     },
-    { envKey: 'DRUG_THIOPENTAL', query: 'thiopental', keywords: ['thiopental', 'thiopentone'], fallbackIndex: 0 },
+    {
+      envKey: 'DRUG_THIOPENTAL',
+      query: 'thiopental',
+      dosageForm: 'injection',
+      keywords: ['thiopental'],
+    },
     {
       envKey: 'DRUG_AMOXICILLIN_CAPSULE',
       query: 'amoxicillin',
-      keywords: ['capsule', '500', '250 mg', 'amoxicillin'],
-      fallbackIndex: 0,
+      dosageForm: 'capsule',
+      keywords: ['amoxicillin', 'capsule'],
     },
-    { envKey: 'DRUG_DILTIAZEM', query: 'diltiazem', keywords: ['diltiazem'], fallbackIndex: 0 },
-    { envKey: 'DRUG_EPINEPHRINE', query: 'epinephrine', keywords: ['epinephrine', 'adrenaline'], fallbackIndex: 0 },
+    {
+      envKey: 'DRUG_DILTIAZEM',
+      query: 'diltiazem',
+      dosageForm: 'tablet',
+      keywords: ['diltiazem'],
+    },
+    {
+      envKey: 'DRUG_EPINEPHRINE',
+      query: 'epinephrine',
+      dosageForm: 'injection',
+      keywords: ['epinephrine'],
+    },
   ];
 
   let resolved = 0;
-  // Cache search results per query to avoid duplicate API calls
-  const cache = new Map<string, Array<{ uuid: string; display: string }>>();
+  const cache = new Map<string, DrugResult[]>();
 
-  for (const { envKey, query, keywords, fallbackIndex } of drugSearches) {
+  for (const { envKey, query, dosageForm, keywords } of drugSearches) {
     if (!cache.has(query)) {
       cache.set(query, await searchDrugs(baseUrl, auth, query));
     }
     const drugs = cache.get(query)!;
-    const match = findDrug(drugs, keywords) ?? drugs[fallbackIndex];
+    const match = findDrug(drugs, dosageForm, keywords);
 
-    if (match) {
-      process.env[envKey] = match.uuid;
-      writeEnvVar(envPath, envKey, match.uuid);
-      resolved++;
-    } else {
-      console.warn(`  ⚠ Drug not found for "${query}" (${envKey})`);
+    if (!match) {
+      throw new Error(
+        `Drug not found for "${envKey}": no result matched dosageForm="${dosageForm}" or keywords=[${keywords.join(', ')}] in query "${query}"`
+      );
     }
+
+    process.env[envKey] = match.uuid;
+    writeEnvVar(envPath, envKey, match.uuid);
+    resolved++;
   }
   console.log(`  ✓ Drugs resolved (${resolved}/${drugSearches.length})`);
 }

@@ -18,14 +18,21 @@ import { MedicationRequestEntry, MedicationEntry } from '../../../../src/api/typ
 
 const MED = DRUGS;
 
-function assertMedOrder(req: MedicationRequestEntry | undefined, medicationUuid: string, opts: MedicationOrderOptions) {
+async function assertMedOrder(
+  api: ApiFactory,
+  req: MedicationRequestEntry | undefined,
+  medicationUuid: string,
+  opts: MedicationOrderOptions
+) {
   expect(req).toBeDefined();
   expect(req?.status).toBe('active');
   expect(req?.priority).toBe(opts.priority);
   expect(req?.medicationReference.reference).toContain(medicationUuid);
   expect(req?.dosageInstruction[0].route.coding[0].code).toBe(opts.route);
   expect(req?.dosageInstruction[0].doseAndRate[0].doseQuantity.value).toBe(opts.doseValue);
-  expect(req?.dosageInstruction[0].doseAndRate[0].doseQuantity.code).toBe(opts.doseUnit);
+  expect(req?.dosageInstruction[0].doseAndRate[0].doseQuantity.code).toBe(
+    await api.concept.getCanonicalCode(opts.doseUnit)
+  );
   expect(req?.dosageInstruction[0].asNeededBoolean).toBe(opts.asNeededBoolean ?? false);
   expect(req?.dosageInstruction[0].timing?.code?.coding[0]?.code).toBe(opts.frequency);
   const startDate =
@@ -61,7 +68,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 5,
       durationUcumCode: 'd',
     };
-    assertMedOrder(await submitAndFind(api, MED.acetaminophenTablet, opts), MED.acetaminophenTablet, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.acetaminophenTablet, opts), MED.acetaminophenTablet, opts);
   });
 
   test('Intravenous | Acetaminophen Injection | 500 mg | Immediately | 2 Hours | stat', async ({ api }) => {
@@ -74,7 +81,12 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 2,
       durationUcumCode: 'h',
     };
-    assertMedOrder(await submitAndFind(api, MED.acetaminophenInjection, opts), MED.acetaminophenInjection, opts);
+    await assertMedOrder(
+      api,
+      await submitAndFind(api, MED.acetaminophenInjection, opts),
+      MED.acetaminophenInjection,
+      opts
+    );
   });
 
   test('Intramuscular | Anti-rabies vaccine Injection | 1 Unit | Immediately | 2 Hours | stat', async ({ api }) => {
@@ -87,7 +99,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 2,
       durationUcumCode: 'h',
     };
-    assertMedOrder(await submitAndFind(api, MED.antiRabiesVaccine, opts), MED.antiRabiesVaccine, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.antiRabiesVaccine, opts), MED.antiRabiesVaccine, opts);
   });
 
   test('Sub Cutaneous | Insulin Injection | 10 IU | Twice a day | 30 Days | routine', async ({ api }) => {
@@ -100,7 +112,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 30,
       durationUcumCode: 'd',
     };
-    assertMedOrder(await submitAndFind(api, MED.insulin, opts), MED.insulin, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.insulin, opts), MED.insulin, opts);
   });
 
   test('Inhalation | Isoflurane | 2 ml | Every 4 hours | 45 Minutes | routine | PRN', async ({ api }) => {
@@ -114,7 +126,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationUcumCode: 'min',
       asNeededBoolean: true,
     };
-    assertMedOrder(await submitAndFind(api, MED.isoflurane, opts), MED.isoflurane, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.isoflurane, opts), MED.isoflurane, opts);
   });
 
   test('Sub Lingual | Nitroglycerin Sublingual tablet | 1 Tablet | Immediately | 2 Hours | stat', async ({ api }) => {
@@ -127,7 +139,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 2,
       durationUcumCode: 'h',
     };
-    assertMedOrder(await submitAndFind(api, MED.nitroglycerin, opts), MED.nitroglycerin, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.nitroglycerin, opts), MED.nitroglycerin, opts);
   });
 
   test('Nasogastric | Oral rehydration salts Powder | 1 Tablespoon | Four times a day | 3 Days | routine', async ({
@@ -142,7 +154,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 3,
       durationUcumCode: 'd',
     };
-    assertMedOrder(await submitAndFind(api, MED.oralRehydrationSalts, opts), MED.oralRehydrationSalts, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.oralRehydrationSalts, opts), MED.oralRehydrationSalts, opts);
   });
 
   test('Per Rectum | Acetaminophen Suppository | 500 mg | Every 8 hours | 7 Days | routine', async ({ api }) => {
@@ -155,7 +167,12 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 7,
       durationUcumCode: 'd',
     };
-    assertMedOrder(await submitAndFind(api, MED.acetaminophenSuppository, opts), MED.acetaminophenSuppository, opts);
+    await assertMedOrder(
+      api,
+      await submitAndFind(api, MED.acetaminophenSuppository, opts),
+      MED.acetaminophenSuppository,
+      opts
+    );
   });
 
   test('Nasal | Xylometazoline Nasal solution | 2 Drop | Once a week | 4 Weeks | routine', async ({ api }) => {
@@ -168,7 +185,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 4,
       durationUcumCode: 'wk',
     };
-    assertMedOrder(await submitAndFind(api, MED.xylometazoline, opts), MED.xylometazoline, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.xylometazoline, opts), MED.xylometazoline, opts);
   });
 
   test('Topical | Lidocaine Gel | 10 mg | Twice a week | 2 Weeks | routine', async ({ api }) => {
@@ -181,7 +198,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 2,
       durationUcumCode: 'wk',
     };
-    assertMedOrder(await submitAndFind(api, MED.lidocaineGel, opts), MED.lidocaineGel, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.lidocaineGel, opts), MED.lidocaineGel, opts);
   });
 
   test('Per Vaginal | Clotrimazole Pessary | 1 Teaspoon | Every 12 hours | 2 Months | routine', async ({ api }) => {
@@ -194,7 +211,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 2,
       durationUcumCode: 'mo',
     };
-    assertMedOrder(await submitAndFind(api, MED.clotrimazolePessary, opts), MED.clotrimazolePessary, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.clotrimazolePessary, opts), MED.clotrimazolePessary, opts);
   });
 
   test('Intradermal | Thiopental Powder for injection | 0.1 ml | On alternate days | 30 Minutes | routine', async ({
@@ -209,7 +226,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 30,
       durationUcumCode: 'min',
     };
-    assertMedOrder(await submitAndFind(api, MED.thiopental, opts), MED.thiopental, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.thiopental, opts), MED.thiopental, opts);
   });
 
   test('Intraperitoneal | Amoxicillin Oral capsule | 1 Capsule | Every 2 hours | 6 Hours | routine', async ({
@@ -224,7 +241,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 6,
       durationUcumCode: 'h',
     };
-    assertMedOrder(await submitAndFind(api, MED.amoxicillinCapsule, opts), MED.amoxicillinCapsule, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.amoxicillinCapsule, opts), MED.amoxicillinCapsule, opts);
   });
 
   test('Intrathecal | Diltiazem Sustained-release tablet | 1 Tablet | Every 3 weeks | 3 Months | routine', async ({
@@ -239,7 +256,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 3,
       durationUcumCode: 'mo',
     };
-    assertMedOrder(await submitAndFind(api, MED.diltiazem, opts), MED.diltiazem, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.diltiazem, opts), MED.diltiazem, opts);
   });
 
   test('Intraosseous | Epinephrine Injection | 1 mg | Immediately | 2 Hours | stat', async ({ api }) => {
@@ -252,7 +269,7 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
       durationValue: 2,
       durationUcumCode: 'h',
     };
-    assertMedOrder(await submitAndFind(api, MED.epinephrine, opts), MED.epinephrine, opts);
+    await assertMedOrder(api, await submitAndFind(api, MED.epinephrine, opts), MED.epinephrine, opts);
   });
 
   test.afterAll(async ({ api }) => {

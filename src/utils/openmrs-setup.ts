@@ -1308,53 +1308,96 @@ async function setupDrugRoutes(baseUrl: string): Promise<void> {
 }
 
 /**
- * Resolve drug order concept UUIDs (routes and dose units only) by display name.
- * Frequencies are resolved separately via setupOrderFrequencies using OrderFrequency UUIDs.
+ * Resolve drug dose-unit UUIDs from the server's allowed dosing + dispensing units concept sets
+ * (order.drugDosingUnitsConceptUuid / order.drugDispensingUnitsConceptUuid). Only UUIDs present in
+ * both sets are written, since the FHIR DrugOrder validator checks doseUnits AND quantityUnits.
  */
 async function setupDrugOrderConcepts(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
   const envPath = resolve(process.cwd(), '.env.local');
+  const headers = { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' };
 
-  const conceptMappings: Array<{ envKey: string; searchName: string; matchName: string }> = [
-    // NOTE: Routes are resolved from the server's allowed drug routes concept set — handled separately
-    // Dose units
-    { envKey: 'DRUG_DOSE_UNIT_TABLET', searchName: 'Tablet', matchName: 'tablet' },
-    { envKey: 'DRUG_DOSE_UNIT_CAPSULE', searchName: 'Capsule', matchName: 'capsule' },
-    { envKey: 'DRUG_DOSE_UNIT_ML', searchName: 'ml', matchName: 'ml' },
-    { envKey: 'DRUG_DOSE_UNIT_MG', searchName: 'mg', matchName: 'mg' },
-    { envKey: 'DRUG_DOSE_UNIT_IU', searchName: 'IU', matchName: 'iu' },
-    { envKey: 'DRUG_DOSE_UNIT_DROP', searchName: 'Drop', matchName: 'drop' },
-    { envKey: 'DRUG_DOSE_UNIT_TABLESPOON', searchName: 'Tablespoon', matchName: 'tablespoon' },
-    { envKey: 'DRUG_DOSE_UNIT_TEASPOON', searchName: 'Teaspoon', matchName: 'teaspoon' },
-    { envKey: 'DRUG_DOSE_UNIT_UNIT', searchName: 'Unit(s)', matchName: 'unit' },
-    { envKey: 'DRUG_DOSE_UNIT_PUFF', searchName: 'Puff', matchName: 'puff' },
-    // NOTE: Frequencies are resolved via setupOrderFrequencies (OrderFrequency UUIDs, not concepts)
-  ];
+  type ConceptNode = { uuid: string; display: string; setMembers?: ConceptNode[] };
 
-  let resolved = 0;
-  for (const { envKey, searchName, matchName } of conceptMappings) {
-    try {
-      const response = await fetch(
-        `${baseUrl}/openmrs/ws/rest/v1/concept?q=${encodeURIComponent(searchName)}&v=default&limit=10`,
-        { headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' } }
-      );
-      if (!response.ok) continue;
-
-      const data = await response.json();
-      const results = (data as { results: { uuid: string; display: string }[] }).results ?? [];
-      const match = results.find((c) => c.display.toLowerCase().includes(matchName));
-      if (match) {
-        process.env[envKey] = match.uuid;
-        writeEnvVar(envPath, envKey, match.uuid);
-        resolved++;
-      } else {
-        console.warn(`  ⚠ Concept not found: "${searchName}"`);
-      }
-    } catch {
-      console.warn(`  ⚠ Error resolving concept "${searchName}"`);
+  const fetchConcept = async (uuid: string): Promise<ConceptNode | null> => {
+    const res = await fetch(`${baseUrl}/openmrs/ws/rest/v1/concept/${uuid}?v=full`, { headers });
+    if (!res.ok) {
+      console.warn(`  ⚠ Could not fetch concept ${uuid}`);
+      return null;
     }
+    return (await res.json()) as ConceptNode;
+  };
+
+  const collectMembers = async (uuid: string, visited: Set<string>, out: Map<string, string>): Promise<void> => {
+    if (visited.has(uuid)) return;
+    visited.add(uuid);
+    const concept = await fetchConcept(uuid);
+    if (!concept) return;
+    for (const m of concept.setMembers ?? []) {
+      out.set(m.display.toLowerCase(), m.uuid);
+      await collectMembers(m.uuid, visited, out);
+    }
+  };
+
+  const fetchSetMembers = async (gpName: string): Promise<Map<string, string> | null> => {
+    const propResponse = await fetch(`${baseUrl}/openmrs/ws/rest/v1/systemsetting/${gpName}?v=full`, { headers });
+    if (!propResponse.ok) {
+      console.warn(`  ⚠ Could not fetch ${gpName} setting`);
+      return null;
+    }
+    const setUuid = ((await propResponse.json()) as { value?: string }).value;
+    if (!setUuid) {
+      console.warn(`  ⚠ ${gpName} is not set`);
+      return null;
+    }
+    const members = new Map<string, string>();
+    await collectMembers(setUuid, new Set(), members);
+    return members;
+  };
+
+  try {
+    const dosingByDisplay = await fetchSetMembers('order.drugDosingUnitsConceptUuid');
+    if (!dosingByDisplay) return;
+    const dispensingByDisplay = await fetchSetMembers('order.drugDispensingUnitsConceptUuid');
+
+    const dispensingUuids = dispensingByDisplay ? new Set(dispensingByDisplay.values()) : null;
+
+    const unitMappings: Array<{ envKey: string; keywords: string[] }> = [
+      { envKey: 'DRUG_DOSE_UNIT_TABLET', keywords: ['tablet'] },
+      { envKey: 'DRUG_DOSE_UNIT_CAPSULE', keywords: ['capsule', 'cap'] },
+      { envKey: 'DRUG_DOSE_UNIT_ML', keywords: ['ml', 'milliliter', 'millilitre'] },
+      { envKey: 'DRUG_DOSE_UNIT_MG', keywords: ['mg', 'milligram'] },
+      { envKey: 'DRUG_DOSE_UNIT_IU', keywords: ['iu', 'international unit'] },
+      { envKey: 'DRUG_DOSE_UNIT_DROP', keywords: ['drop'] },
+      { envKey: 'DRUG_DOSE_UNIT_TABLESPOON', keywords: ['tablespoon'] },
+      { envKey: 'DRUG_DOSE_UNIT_TEASPOON', keywords: ['teaspoon'] },
+      { envKey: 'DRUG_DOSE_UNIT_UNIT', keywords: ['unit(s)', 'unit'] },
+      { envKey: 'DRUG_DOSE_UNIT_PUFF', keywords: ['puff'] },
+    ];
+
+    let resolved = 0;
+    for (const { envKey, keywords } of unitMappings) {
+      const uuid = keywords.reduce<string | undefined>(
+        (found, kw) =>
+          found ?? dosingByDisplay.get(kw) ?? [...dosingByDisplay.entries()].find(([k]) => k.includes(kw))?.[1],
+        undefined
+      );
+      if (!uuid) {
+        console.warn(`  ⚠ Dose unit not found in dosing-units set: ${keywords[0]}`);
+        continue;
+      }
+      if (dispensingUuids && !dispensingUuids.has(uuid)) {
+        console.warn(`  ⚠ Dose unit "${keywords[0]}" missing from dispensing-units set (UUID ${uuid})`);
+        continue;
+      }
+      process.env[envKey] = uuid;
+      writeEnvVar(envPath, envKey, uuid);
+      resolved++;
+    }
+    console.log(`  ✓ Drug dose units resolved (${resolved}/${unitMappings.length}) from allowed sets`);
+  } catch (error) {
+    console.warn(`  ⚠ Error fetching drug dose units: ${error}`);
   }
-  console.log(`  ✓ Drug order concepts resolved (${resolved}/${conceptMappings.length})`);
 }
 
 /**

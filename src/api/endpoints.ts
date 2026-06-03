@@ -18,6 +18,7 @@ export const REST = {
   recurringAppointments: '/openmrs/ws/rest/v1/recurring-appointments',
   appointmentService: '/openmrs/ws/rest/v1/appointmentService',
   bahmniProgramEnrollment: '/openmrs/ws/rest/v1/bahmniprogramenrollment',
+  concept: '/openmrs/ws/rest/v1/concept',
 } as const;
 
 export const FHIR = {

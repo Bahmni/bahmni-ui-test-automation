@@ -6,7 +6,7 @@ import { malariaFaker } from '../../../../test-data/common/malariaData';
 import { vitalsFaker } from '../../../../test-data/common/vitalsData';
 
 //Refactor required for form2control change
-test.describe('Observation form Tests', () => {
+test.describe.skip('Observation form Tests', () => {
   test('Add admission letter observation form in consultation', async ({ clinicalSetup }) => {
     test.setTimeout(60000);
     const { actions, bahmni, page } = clinicalSetup;

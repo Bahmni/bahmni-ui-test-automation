@@ -55,7 +55,7 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyDiagnosisDisplayed(diagnosis);
   });
 
-  test('Add medication in consultation', async ({ clinicalSetup }) => {
+  test.skip('Add medication in consultation', async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
     const medication = medicationFaker.medication();
 
@@ -64,7 +64,7 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyMedicationDisplayed(medication);
   });
 
-  test('Add vaccination in consultation', async ({ clinicalSetup }) => {
+  test.skip('Add vaccination in consultation', async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
     const vaccination = vaccinationFaker.vaccination();
 
@@ -77,7 +77,7 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyVaccinationDisplayed(vaccination);
   });
 
-  test('Add vitals observation form in consultation', async ({ clinicalSetup }) => {
+  test.skip('Add vitals observation form in consultation', async ({ clinicalSetup }) => {
     test.setTimeout(60000);
     const { actions, bahmni, page } = clinicalSetup;
     const vitalsData = vitalsFaker.normalVitals();

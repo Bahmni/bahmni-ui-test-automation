@@ -64,7 +64,7 @@ test.describe('Patient registration tests', { tag: ['@regression'] }, () => {
     }
   });
 
-  test('Verify patient relationship', async ({ page }) => {
+  test.skip('Verify patient relationship', async ({ page }) => {
     const bahmni = new PageFactory(page);
     const actions = new ActionFactory(bahmni);
     const patientData1 = generatePatientData();

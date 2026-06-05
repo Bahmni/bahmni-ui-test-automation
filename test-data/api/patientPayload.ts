@@ -1,32 +1,31 @@
 import { faker } from '@faker-js/faker';
 import {
   CreatePatientRequest,
+  FhirPatientResponse,
   PatientAddress,
-  PersonAttribute,
-  PatientRelationship,
+  UpdatePatientRequest,
 } from '../../src/api/types/patient.types';
-import { IDENTIFIER, PERSON_ATTRIBUTE_TYPE } from './constants';
+import { IDENTIFIER, LOCATIONS } from './constants';
 
 export interface PatientInput {
   givenName?: string;
   middleName?: string;
   familyName?: string;
-  gender?: 'M' | 'F';
-  birthdate?: string;
-  birthtime?: string | null;
+  gender?: 'male' | 'female';
+  birthDate?: string;
   address?: PatientAddress;
   phoneNumber?: string;
   alternatePhoneNumber?: string;
   email?: string;
 }
 
-export function buildCreatePatientPayload(input: PatientInput = {}): CreatePatientRequest {
+export function buildCreatePatientPayload(identifier: string, input: PatientInput = {}): CreatePatientRequest {
   const givenName = input.givenName ?? faker.person.firstName();
   const middleName = input.middleName ?? faker.person.middleName();
   const familyName = input.familyName ?? faker.person.lastName();
-  const gender = input.gender ?? (faker.datatype.boolean() ? 'M' : 'F');
-  const birthdate =
-    input.birthdate ?? faker.date.birthdate({ min: 1, max: 80, mode: 'age' }).toISOString().split('T')[0];
+  const gender = input.gender ?? (faker.datatype.boolean() ? 'male' : 'female');
+  const birthDate =
+    input.birthDate ?? faker.date.birthdate({ min: 1, max: 80, mode: 'age' }).toISOString().split('T')[0];
 
   const address: PatientAddress = input.address ?? {
     address1: faker.location.streetAddress(),
@@ -37,99 +36,71 @@ export function buildCreatePatientPayload(input: PatientInput = {}): CreatePatie
     stateProvince: 'TAMIL NADU',
   };
 
-  const attributes: PersonAttribute[] = [];
-  const phone = input.phoneNumber ?? faker.string.numeric(10);
-  attributes.push({ attributeType: { uuid: PERSON_ATTRIBUTE_TYPE.phoneNumber }, value: phone });
-
+  const extension = [
+    {
+      url: 'http://fhir.bahmni.org/ext/patient/phonenumber',
+      valueString: input.phoneNumber ?? faker.string.numeric(10),
+    },
+  ];
   if (input.alternatePhoneNumber) {
-    attributes.push({
-      attributeType: { uuid: PERSON_ATTRIBUTE_TYPE.alternatePhoneNumber },
-      value: input.alternatePhoneNumber,
+    extension.push({
+      url: 'http://fhir.bahmni.org/ext/patient/alternatephonenumber',
+      valueString: input.alternatePhoneNumber,
     });
   }
-
   if (input.email !== undefined) {
-    attributes.push({ attributeType: { uuid: PERSON_ATTRIBUTE_TYPE.email }, value: input.email });
+    extension.push({ url: 'http://fhir.bahmni.org/ext/patient/email', valueString: input.email });
   }
 
   return {
-    patient: {
-      person: {
-        names: [
+    resourceType: 'Patient',
+    identifier: [
+      {
+        use: 'official',
+        value: identifier,
+        type: { coding: [{ code: IDENTIFIER.typeUuid }], text: 'Patient Identifier' },
+        extension: [
           {
-            givenName,
-            middleName,
-            familyName,
-            display: `${givenName} ${middleName} ${familyName}`,
-            preferred: false,
+            url: 'http://fhir.openmrs.org/ext/patient/identifier#location',
+            valueReference: { reference: `Location/${LOCATIONS.loginLocationUuid}` },
           },
         ],
-        gender,
-        birthdate,
-        birthdateEstimated: false,
-        birthtime: input.birthtime ?? null,
-        addresses: [address],
-        attributes,
-        deathDate: null,
-        causeOfDeath: '',
       },
-      identifiers: [
-        {
-          identifierSourceUuid: IDENTIFIER.sourceUuid,
-          identifierPrefix: IDENTIFIER.prefix,
-          identifierType: IDENTIFIER.typeUuid,
-          preferred: true,
-          voided: false,
-        },
-      ],
-    },
-    relationships: [],
+    ],
+    name: [{ given: [givenName, middleName], family: familyName }],
+    gender,
+    birthDate,
+    extension,
+    address: [
+      {
+        use: 'home',
+        extension: [
+          {
+            url: 'http://fhir.openmrs.org/ext/address',
+            extension: [
+              { url: 'http://fhir.openmrs.org/ext/address#address1', valueString: address.address1 ?? '' },
+              { url: 'http://fhir.openmrs.org/ext/address#address2', valueString: address.address2 ?? '' },
+            ],
+          },
+        ],
+        city: address.cityVillage,
+        district: address.countyDistrict,
+        state: address.stateProvince,
+        postalCode: address.postalCode,
+      },
+    ],
   };
 }
 
-export function buildCreatePatientPayloadWithManualIdentifier(
-  manualIdentifier: string,
-  input: PatientInput = {}
-): CreatePatientRequest {
-  const base = buildCreatePatientPayload(input);
+export function buildUpdatePatientPayload(existing: FhirPatientResponse, input: PatientInput): UpdatePatientRequest {
+  const base = buildCreatePatientPayload('unused', input);
   return {
-    ...base,
-    patient: {
-      ...base.patient,
-      identifiers: [
-        {
-          identifier: manualIdentifier,
-          identifierType: IDENTIFIER.typeUuid,
-          preferred: true,
-          voided: false,
-        },
-      ],
-    },
-  };
-}
-
-export function buildCreatePatientPayloadWithRelationship(
-  relationships: PatientRelationship[],
-  input: PatientInput = {}
-): CreatePatientRequest {
-  const base = buildCreatePatientPayload(input);
-  return { ...base, relationships };
-}
-
-export function buildCreatePatientPayloadWithBirthdateEstimated(
-  birthdate: string,
-  birthdateEstimated: boolean,
-  input: PatientInput = {}
-): CreatePatientRequest {
-  const base = buildCreatePatientPayload({ ...input, birthdate });
-  return {
-    ...base,
-    patient: {
-      ...base.patient,
-      person: {
-        ...base.patient.person,
-        birthdateEstimated,
-      },
-    },
+    resourceType: 'Patient',
+    id: existing.id,
+    name: [{ ...base.name[0], id: existing.name[0]?.id }],
+    gender: base.gender,
+    birthDate: base.birthDate,
+    extension: base.extension,
+    address: base.address,
   };
 }

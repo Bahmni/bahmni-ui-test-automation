@@ -2,51 +2,53 @@ import { test, expect } from '../../../src/api/fixtures/apiFixture';
 import { validateSchema } from '../../../src/utils/schema-validator';
 import patientSchema from '../../../test-data/api/schema/patient.schema.json';
 import { buildCreatePatientPayload } from '../../../test-data/api/patientPayload';
-import { LOCATIONS, VISIT_TYPES } from '../../../test-data/api/constants';
+import { IDENTIFIER, LOCATIONS, VISIT_TYPES } from '../../../test-data/api/constants';
 import { buildStartVisitPayload } from '../../../test-data/api/visitPayload';
 
 test.describe.serial('Patient Registration - E2E', { tag: ['@regression'] }, () => {
-  const payload = buildCreatePatientPayload({
-    givenName: 'Kane',
-    middleName: 'Man',
-    familyName: 'Lam',
-    gender: 'M',
-    birthdate: '2000-01-01',
-    phoneNumber: '9890989090',
-    email: 'kane@test.com',
-    address: {
-      address1: 'no 9',
-      address2: 'new loc',
-      cityVillage: 'new city',
-      postalCode: '600092',
-      countyDistrict: 'CHENNAI',
-      stateProvince: 'TAMIL NADU',
-    },
-  });
-
   let patientUuid: string;
   let visitUuid: string;
+  let identifier: string;
 
-  test('POST /patientprofile creates patient with demographics', async ({ api }) => {
+  test('POST /Patient creates patient with demographics', async ({ api }) => {
+    identifier = await api.patient.generateIdentifier(IDENTIFIER.sourceUuid);
+    const payload = buildCreatePatientPayload(identifier, {
+      givenName: 'Kane',
+      middleName: 'Man',
+      familyName: 'Lam',
+      gender: 'male',
+      birthDate: '2000-01-01',
+      phoneNumber: '9890989090',
+      email: 'kane@test.com',
+      address: {
+        address1: 'no 9',
+        address2: 'new loc',
+        cityVillage: 'new city',
+        postalCode: '600092',
+        countyDistrict: 'CHENNAI',
+        stateProvince: 'TAMIL NADU',
+      },
+    });
+
     const { status, body } = await api.patient.create(payload);
 
-    expect(status).toBe(200);
-    expect(body.patient.uuid).toBeTruthy();
+    expect(status).toBe(201);
+    expect(body.id).toBeTruthy();
     validateSchema(body, patientSchema);
 
-    patientUuid = body.patient.uuid;
+    patientUuid = body.id;
   });
 
-  test('GET /patientprofile verifies patient details', async ({ api }) => {
-    const { status, body } = await api.patient.getProfileById(patientUuid);
+  test('GET /Patient verifies patient details', async ({ api }) => {
+    const { status, body } = await api.patient.getById(patientUuid);
 
     expect(status).toBe(200);
-    expect(body.patient.person.gender).toBe('M');
-    expect(body.patient.person.birthdate).toContain('2000-01-01');
-    expect(body.patient.person.names[0].givenName).toBe('Kane');
-    expect(body.patient.person.names[0].familyName).toBe('Lam');
-    expect(body.patient.person.addresses[0].cityVillage).toBe('new city');
-    expect(body.patient.person.addresses[0].stateProvince).toBe('TAMIL NADU');
+    expect(body.gender).toBe('male');
+    expect(body.birthDate).toBe('2000-01-01');
+    expect(body.name[0].given[0]).toBe('Kane');
+    expect(body.name[0].family).toBe('Lam');
+    expect(body.address?.[0].city).toBe('new city');
+    expect(body.address?.[0].state).toBe('TAMIL NADU');
   });
 
   test('GET /visit confirms no active visit yet', async ({ api }) => {

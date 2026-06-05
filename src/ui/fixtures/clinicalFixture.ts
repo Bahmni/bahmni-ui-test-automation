@@ -60,7 +60,7 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
 
       // Resolve patient UUID via API — required for teardown and available to tests
       const { body: searchBody } = await api.patient.search(patientId);
-      const patientUuid = searchBody.results[0]?.uuid;
+      const patientUuid = searchBody.entry?.[0]?.resource.id;
       if (!patientUuid) {
         throw new Error(`Patient not found by ID "${patientId}" — cannot proceed with clinical setup`);
       }

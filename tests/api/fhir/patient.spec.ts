@@ -2,17 +2,21 @@ import { test, expect } from '../../../src/api/fixtures/apiFixture';
 import { validateSchema } from '../../../src/utils/schema-validator';
 import patientSchema from '../../../test-data/api/schema/patient.schema.json';
 import { buildCreatePatientPayload } from '../../../test-data/api/patientPayload';
-import { LOCATIONS, VISIT_TYPES } from '../../../test-data/api/constants';
+import { IDENTIFIER, LOCATIONS, VISIT_TYPES } from '../../../test-data/api/constants';
 import { buildStartVisitPayload } from '../../../test-data/api/visitPayload';
+import { CreatePatientRequest } from '../../../src/api/types/patient.types';
 
 test.describe.serial('Patient registration - E2E', { tag: ['@regression'] }, () => {
-  const payload = buildCreatePatientPayload();
+  let payload: CreatePatientRequest;
   let patientUuid: string;
   let locationUuid: string;
   let visitTypeUuid: string;
   let visitUuid: string;
 
   test.beforeAll(async ({ api }) => {
+    const identifier = await api.patient.generateIdentifier(IDENTIFIER.sourceUuid);
+    payload = buildCreatePatientPayload(identifier);
+
     const { body: locationBody } = await api.location.getByName(LOCATIONS.opd1);
     locationUuid = locationBody.results[0].uuid;
 
@@ -22,22 +26,22 @@ test.describe.serial('Patient registration - E2E', { tag: ['@regression'] }, () 
     visitTypeUuid = opdType.uuid;
   });
 
-  test('POST /patientprofile creates patient and returns uuid', async ({ api }) => {
+  test('POST /Patient creates patient and returns id', async ({ api }) => {
     const { status, body } = await api.patient.create(payload);
 
-    expect(status).toBe(200);
-    expect(body.patient.uuid).toBeTruthy();
+    expect(status).toBe(201);
+    expect(body.id).toBeTruthy();
     validateSchema(body, patientSchema);
 
-    patientUuid = body.patient.uuid;
+    patientUuid = body.id;
   });
 
   test('GET patient returns correct demographics', async ({ api }) => {
-    const { status, body } = await api.patient.getProfileById(patientUuid);
+    const { status, body } = await api.patient.getById(patientUuid);
 
     expect(status).toBe(200);
-    expect(body.patient.person.gender).toBe(payload.patient.person.gender);
-    expect(body.patient.person.birthdate).toContain(payload.patient.person.birthdate);
+    expect(body.gender).toBe(payload.gender);
+    expect(body.birthDate).toBe(payload.birthDate);
   });
 
   test('POST /visit starts OPD visit for patient', async ({ api }) => {

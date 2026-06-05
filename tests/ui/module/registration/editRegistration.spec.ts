@@ -14,7 +14,7 @@ test.describe('Edit patient registration tests', { tag: ['@regression'] }, () =>
     try {
       for (const id of createdPatientIds) {
         const { body } = await api.patient.search(id);
-        const uuid = body.results[0]?.uuid;
+        const uuid = body.entry?.[0]?.resource.id;
         if (uuid) await api.patient.delete(uuid);
       }
     } finally {

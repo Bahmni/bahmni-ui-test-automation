@@ -1,11 +1,3 @@
-export interface PatientName {
-  givenName: string;
-  middleName?: string;
-  familyName: string;
-  display: string;
-  preferred: boolean;
-}
-
 export interface PatientAddress {
   address1?: string;
   address2?: string;
@@ -15,84 +7,77 @@ export interface PatientAddress {
   stateProvince?: string;
 }
 
-export interface PersonAttribute {
-  attributeType: { uuid: string };
+export interface FhirPatientName {
+  id?: string;
+  given: string[];
+  family: string;
+}
+
+export interface FhirIdentifierLocationExtension {
+  url: 'http://fhir.openmrs.org/ext/patient/identifier#location';
+  valueReference: { reference: string };
+}
+
+export interface FhirPatientIdentifier {
+  use?: 'official' | 'usual';
   value: string;
+  type: { coding: Array<{ code: string }>; text: string };
+  extension?: FhirIdentifierLocationExtension[];
 }
 
-export interface PatientIdentifier {
-  identifierSourceUuid: string;
-  identifierPrefix: string;
-  identifierType: string;
-  preferred: boolean;
-  voided: boolean;
+export interface FhirAddressLineExtension {
+  url: 'http://fhir.openmrs.org/ext/address';
+  extension: Array<{ url: string; valueString: string }>;
 }
 
-export interface ManualPatientIdentifier {
-  identifier: string;
-  identifierType: string;
-  preferred: boolean;
-  voided: boolean;
+export interface FhirPatientAddress {
+  use?: 'home';
+  extension?: FhirAddressLineExtension[];
+  city?: string;
+  district?: string;
+  state?: string;
+  postalCode?: string;
 }
 
-export type PatientIdentifierEntry = PatientIdentifier | ManualPatientIdentifier;
-
-export interface PatientRelationship {
-  relationshipType: { uuid: string };
-  personB: { uuid: string };
-}
-
-export interface RelationshipTypeResponse {
-  results: Array<{ uuid: string; aIsToB: string; bIsToA: string }>;
+export interface FhirPatientExtension {
+  url: string;
+  valueString?: string;
 }
 
 export interface CreatePatientRequest {
-  patient: {
-    person: {
-      names: PatientName[];
-      gender: 'M' | 'F';
-      birthdate: string;
-      birthdateEstimated: boolean;
-      birthtime: string | null;
-      addresses: PatientAddress[];
-      attributes: PersonAttribute[];
-      deathDate: null;
-      causeOfDeath: string;
-    };
-    identifiers: PatientIdentifierEntry[];
-  };
-  relationships: PatientRelationship[];
+  resourceType: 'Patient';
+  identifier: FhirPatientIdentifier[];
+  name: FhirPatientName[];
+  gender: 'male' | 'female';
+  birthDate: string;
+  extension?: FhirPatientExtension[];
+  address?: FhirPatientAddress[];
 }
 
-export interface PatientProfileResponse {
-  patient: {
-    uuid: string;
-    display: string;
-    person: {
-      uuid: string;
-      display: string;
-      gender: string;
-      birthdate: string;
-      birthdateEstimated: boolean;
-      names: Array<{ givenName: string; middleName?: string; familyName: string }>;
-      addresses: Array<PatientAddress & { uuid: string }>;
-      attributes: Array<{ uuid: string; display: string; value: string | { uuid: string; display: string } }>;
-      relationships?: Array<{
-        relationshipType: { uuid: string; display: string };
-        personB: { uuid: string; display: string };
-      }>;
-    };
-    identifiers: Array<{ uuid: string; identifier: string; display: string }>;
-  };
+export interface FhirPatientResponse extends CreatePatientRequest {
+  id: string;
+  meta?: { versionId: string; lastUpdated: string };
+  active?: boolean;
+  deceasedBoolean?: boolean;
 }
 
-export interface PatientSearchResponse {
-  results: Array<{
-    uuid: string;
-    display: string;
-    person: {
-      gender: string;
-      birthdate: string;
-    };
-  }>;
+export interface UpdatePatientRequest {
+  resourceType: 'Patient';
+  id: string;
+  identifier?: FhirPatientIdentifier[];
+  name: FhirPatientName[];
+  gender: 'male' | 'female';
+  birthDate: string;
+  extension?: FhirPatientExtension[];
+  address?: FhirPatientAddress[];
+}
+
+export interface FhirPatientSearchResponse {
+  resourceType: 'Bundle';
+  total?: number;
+  entry?: Array<{ resource: FhirPatientResponse }>;
+}
+
+export interface IdgenIdentifierResponse {
+  identifier: string;
 }

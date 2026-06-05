@@ -1,5 +1,4 @@
 export const REST = {
-  patientProfile: '/openmrs/ws/rest/v1/bahmnicore/patientprofile',
   patient: '/openmrs/ws/rest/v1/patient',
   visit: '/openmrs/ws/rest/v1/visit',
   visitType: '/openmrs/ws/rest/v1/visittype',
@@ -10,15 +9,13 @@ export const REST = {
   location: '/openmrs/ws/rest/v1/location',
   session: '/openmrs/ws/rest/v1/session',
   provider: '/openmrs/ws/rest/v1/provider',
-  relationshipType: '/openmrs/ws/rest/v1/relationshiptype',
-  relationship: '/openmrs/ws/rest/v1/relationship',
-  patientProfileGet: '/openmrs/ws/rest/v1/patientprofile',
   bahmnicorePatient: '/openmrs/ws/rest/v1/bahmnicore/patient',
   appointment: '/openmrs/ws/rest/v1/appointment',
   recurringAppointments: '/openmrs/ws/rest/v1/recurring-appointments',
   appointmentService: '/openmrs/ws/rest/v1/appointmentService',
   bahmniProgramEnrollment: '/openmrs/ws/rest/v1/bahmniprogramenrollment',
   concept: '/openmrs/ws/rest/v1/concept',
+  idgenIdentifierSource: '/openmrs/ws/rest/v1/idgen/identifiersource',
 } as const;
 
 export const FHIR = {

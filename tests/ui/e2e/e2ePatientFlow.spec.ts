@@ -16,7 +16,7 @@ test.describe('E2E patient flow', { tag: ['@regression'] }, () => {
     const api = new ApiFactory(apiContext);
     try {
       const { body } = await api.patient.search(createdPatientId);
-      const uuid = body.results[0]?.uuid;
+      const uuid = body.entry?.[0]?.resource.id;
       if (uuid) await api.patient.delete(uuid);
     } finally {
       createdPatientId = null;

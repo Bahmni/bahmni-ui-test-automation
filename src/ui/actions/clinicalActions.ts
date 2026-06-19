@@ -26,6 +26,16 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.saveConsultation();
   }
 
+  async editAllergyInConsultation(allergenName: string, newAllergyData: AllergyData) {
+    await this.bahmni.clinicalPage.clickEditAllergy(allergenName);
+    await this.bahmni.newConsultationPage.editAllergyDetails(
+      newAllergyData.severity,
+      newAllergyData.reaction,
+      newAllergyData.note
+    );
+    await this.bahmni.newConsultationPage.saveConsultation();
+  }
+
   async addMedicationInConsultation(medicationData: MedicationData) {
     await this.startNewConsultation();
     await this.bahmni.newConsultationPage.addMedication(medicationData);
@@ -69,6 +79,12 @@ export class ClinicalActions {
     expect(allergens).toContainItemMatching(allergyData.allergen);
     const reactions = await this.bahmni.clinicalPage.getDisplayedAllergyReactions();
     expect(reactions).toContainItemMatching(allergyData.reaction);
+    const severity = await this.bahmni.clinicalPage.getDisplayedAllergySeverity(allergyData.allergen);
+    expect(severity.toLowerCase()).toBe(allergyData.severity.toLowerCase());
+    if (allergyData.note !== undefined) {
+      await this.bahmni.clinicalPage.openAllergyNote(allergyData.allergen);
+      await expect(this.bahmni.clinicalPage.getAllergyNoteContent(allergyData.allergen)).toHaveText(allergyData.note);
+    }
   }
 
   async verifyInvestigationOrProcedureDisplayed(

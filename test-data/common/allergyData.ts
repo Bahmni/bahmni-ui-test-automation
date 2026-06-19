@@ -7,6 +7,7 @@ export interface AllergyData {
   allergen: string;
   severity: string;
   reaction: string;
+  note?: string;
 }
 
 // Common allergens available in Bahmni
@@ -36,6 +37,7 @@ export const REACTIONS = {
   NAUSEA: 'Nausea',
   VOMITING: 'Vomiting',
   DIARRHEA: 'Diarrhea',
+  FEVER: 'Fever',
 } as const;
 
 /**
@@ -47,11 +49,13 @@ export const REACTIONS = {
 export function generateAllergyData(
   allergen: string = ALLERGENS.PENICILLIN,
   severity: string = SEVERITY_LEVELS.MILD,
-  reaction: string = REACTIONS.RASH
+  reaction: string = REACTIONS.RASH,
+  note?: string
 ): AllergyData {
   return {
     allergen,
     severity,
     reaction,
+    ...(note !== undefined ? { note } : {}),
   };
 }

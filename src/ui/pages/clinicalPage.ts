@@ -338,6 +338,44 @@ export class ClinicalPage {
     return this.page.locator(this.selectors.allergiesTable).locator('tbody tr').count();
   }
 
+  private getAllergyRow(allergenName: string) {
+    return this.page
+      .locator(this.selectors.allergiesTable)
+      .locator('tbody tr')
+      .filter({ hasText: allergenName })
+      .first();
+  }
+
+  async clickEditAllergy(allergenName: string) {
+    await this.navigateToSection('Allergies');
+    const row = this.getAllergyRow(allergenName);
+    await row.waitFor({ state: 'visible', timeout: 10000 });
+    await row.locator('[data-testid^="edit-allergy-"]').click();
+  }
+
+  async getDisplayedAllergySeverity(allergenName: string): Promise<string> {
+    const row = this.getAllergyRow(allergenName);
+    return (await row.locator('[class*="Severity"]').first().textContent())?.trim() ?? '';
+  }
+
+  getAllergyNoteIcon(allergenName: string) {
+    return this.getAllergyRow(allergenName).locator('[id="tooltip-icon-fa-file-lines"]');
+  }
+
+  getAllergyNoteToggleButton(allergenName: string) {
+    return this.getAllergyRow(allergenName).locator('button.cds--toggletip-button');
+  }
+
+  getAllergyNoteContent(allergenName: string) {
+    return this.getAllergyRow(allergenName).locator('.cds--toggletip-content');
+  }
+
+  async openAllergyNote(allergenName: string) {
+    const button = this.getAllergyNoteToggleButton(allergenName);
+    await button.waitFor({ state: 'visible', timeout: 10000 });
+    await button.click();
+  }
+
   getSectionArticle(section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations') {
     return this.page
       .locator('article')

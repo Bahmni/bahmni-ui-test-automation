@@ -7,7 +7,7 @@ import { vaccinationFaker } from '../../../../test-data/common/vaccinationData';
 import { vitalsFaker } from '../../../../test-data/common/vitalsData';
 
 test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
-  test('Add allergy with severity and reaction in consultation', async ({ clinicalSetup }) => {
+  test('Add and edit allergy with severity, reaction and note in consultation', async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
     const allergyData = generateAllergyData(ALLERGENS.PENICILLIN, SEVERITY_LEVELS.MILD, REACTIONS.RASH);
 
@@ -15,6 +15,15 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.addAllergyInConsultation(allergyData);
     await expect(page).toHaveURL(/.*clinical\/.*(?<!consultation)$/);
     await actions.clinical.verifyAllergyDisplayed(allergyData);
+
+    const editedAllergyData = generateAllergyData(
+      ALLERGENS.PENICILLIN,
+      SEVERITY_LEVELS.SEVERE,
+      REACTIONS.FEVER,
+      'Patient allergy symptoms has increased.'
+    );
+    await actions.clinical.editAllergyInConsultation(allergyData.allergen, editedAllergyData);
+    await actions.clinical.verifyAllergyDisplayed(editedAllergyData);
   });
 
   test('Order investigation in consultation', async ({ clinicalSetup }) => {

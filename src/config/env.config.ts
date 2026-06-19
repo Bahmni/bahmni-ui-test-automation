@@ -33,11 +33,11 @@ export const config = {
   urls: {
     login: process.env.LOGIN_URL || `${getRequiredEnv('BASE_URL')}/bahmni/home/index.html#/login`,
     location: process.env.LOCATION_URL || `${getRequiredEnv('BASE_URL')}/bahmni/home/index.html#/loginLocation`,
-    dashboard: process.env.DASHBOARD_URL || `${getRequiredEnv('BASE_URL')}/bahmni-new/`,
+    dashboard: process.env.DASHBOARD_URL || `${getRequiredEnv('BASE_URL')}/bahmni-v2/home/`,
     registrationSearch:
-      process.env.REGISTRATION_SEARCH_URL || `${getRequiredEnv('BASE_URL')}/bahmni-new/registration/search`,
+      process.env.REGISTRATION_SEARCH_URL || `${getRequiredEnv('BASE_URL')}/bahmni-v2/registration/search`,
     registrationNewPatient:
-      process.env.REGISTRATION_NEW_PATIENT_URL || `${getRequiredEnv('BASE_URL')}/bahmni-new/registration/patient/new`,
+      process.env.REGISTRATION_NEW_PATIENT_URL || `${getRequiredEnv('BASE_URL')}/bahmni-v2/registration/patient/new`,
     clinicalSearch:
       process.env.CLINICAL_SEARCH_URL ||
       `${getRequiredEnv('BASE_URL')}/bahmni/clinical/index.html#/default/patient/search`,

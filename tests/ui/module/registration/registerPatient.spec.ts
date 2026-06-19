@@ -87,7 +87,6 @@ test.describe('Patient registration tests', { tag: ['@regression'] }, () => {
     createdPatientIds.push(patientId1);
 
     await bahmni.createPatientPage.navigateToHomePage();
-    await bahmni.homePage.goto(); // Temp: legacy home doesn't auto-redirect to bahmni-new yet
     await bahmni.homePage.navigateToModule(bahmni.homePage.MODULES.REGISTRATION);
     await bahmni.registrationSearchPage.clickCreateNewPatientBtn();
 

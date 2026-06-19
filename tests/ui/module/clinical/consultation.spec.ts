@@ -51,8 +51,10 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
     await actions.clinical.addConditionAndDiagnosisInConsultation(condition, diagnosis);
-    await actions.clinical.verifyConditionDisplayed(condition);
+    await actions.clinical.verifyConditionDisplayed(condition, 'Active');
     await actions.clinical.verifyDiagnosisDisplayed(diagnosis);
+    await actions.clinical.markConditionAsInactive(condition);
+    await actions.clinical.verifyConditionDisplayed(condition, 'Inactive');
   });
 
   test.skip('Add medication in consultation', async ({ clinicalSetup }) => {

@@ -80,9 +80,15 @@ export class ClinicalActions {
     await expect(this.bahmni.clinicalPage.getSectionArticle(section)).toContainText(displayName);
   }
 
-  async verifyConditionDisplayed(conditionName: string) {
-    const conditions = await this.bahmni.clinicalPage.getDisplayedConditionNames();
+  async verifyConditionDisplayed(conditionName: string, tab: 'Active' | 'Inactive' = 'Active') {
+    const conditions = await this.bahmni.clinicalPage.getDisplayedConditionNames(tab);
     expect(conditions).toContainItemMatching(conditionName);
+    const status = await this.bahmni.clinicalPage.getDisplayedConditionStatus(conditionName, tab);
+    expect(status.toLowerCase()).toBe(tab.toLowerCase());
+  }
+
+  async markConditionAsInactive(conditionName: string) {
+    await this.bahmni.clinicalPage.markConditionAsInactive(conditionName);
   }
 
   async verifyDiagnosisDisplayed(diagnosisName: string) {

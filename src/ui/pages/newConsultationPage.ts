@@ -3,7 +3,7 @@ import { MedicationData } from '../../../test-data/common/medicationData';
 
 /**
  * NewConsultationPage class for Bahmni new consultation page
- * URL: https://docker.standard.mybahmni.in/bahmni-new/clinical/{patientUuid}/consultation
+ * URL: https://docker.standard.mybahmni.in/bahmni-v2/clinical/{patientUuid}/consultation
  */
 export class NewConsultationPage {
   private readonly page: Page;

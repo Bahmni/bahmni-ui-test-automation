@@ -16,7 +16,7 @@ export class FhirApiHelper {
 
   /**
    * Extracts the patient UUID from a clinical page URL
-   * Expected URL pattern: /bahmni-new/clinical/{patientUuid}
+   * Expected URL pattern: /bahmni-v2/clinical/{patientUuid}
    */
   getPatientUuidFromUrl(pageUrl: string): string {
     const match = pageUrl.match(/\/clinical\/([a-f0-9-]+)/);

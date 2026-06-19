@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 
 /**
  * ClinicalPage class for Bahmni clinical dashboard page
- * URL: https://docker.standard.mybahmni.in/bahmni-new/clinical/{patientUuid}
+ * URL: https://docker.standard.mybahmni.in/bahmni-v2/clinical/{patientUuid}
  */
 export class ClinicalPage {
   private readonly page: Page;
@@ -11,6 +11,11 @@ export class ClinicalPage {
   readonly MEDICATION_TABS = {
     ACTIVE_SCHEDULED: 'Active & Scheduled',
     ALL: 'All',
+  } as const;
+
+  readonly CONDITION_TABS = {
+    ACTIVE: 'Active',
+    INACTIVE: 'Inactive',
   } as const;
 
   // Locator selectors
@@ -347,8 +352,46 @@ export class ClinicalPage {
     return this.getSectionArticle(section).textContent();
   }
 
-  async getDisplayedConditionNames(): Promise<string[]> {
-    return this.getDisplayedNamesFromTable(this.selectors.conditionsTable, 'Conditions and Diagnoses');
+  async switchConditionTab(tab: 'Active' | 'Inactive') {
+    await this.navigateToSection('Conditions and Diagnoses');
+    await this.page.getByRole('tab', { name: `${tab} Conditions`, exact: true }).click();
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  async getDisplayedConditionNames(tab: 'Active' | 'Inactive' = 'Active'): Promise<string[]> {
+    await this.switchConditionTab(tab);
+    await this.page
+      .locator(this.selectors.conditionsTable)
+      .locator('tbody tr')
+      .first()
+      .waitFor({ state: 'visible', timeout: 10000 });
+    return this.page.locator(this.selectors.conditionsTable).locator('tbody tr td:first-child').allTextContents();
+  }
+
+  async getDisplayedConditionStatus(conditionName: string, tab: 'Active' | 'Inactive' = 'Active'): Promise<string> {
+    await this.switchConditionTab(tab);
+    const row = this.page
+      .locator(this.selectors.conditionsTable)
+      .locator('tbody tr')
+      .filter({ hasText: conditionName })
+      .first();
+    const cells = await row.locator('td').allTextContents();
+    return cells.map((c) => c.trim()).find((c) => /^(Active|Inactive)$/i.test(c)) ?? '';
+  }
+
+  async markConditionAsInactive(conditionName: string) {
+    await this.switchConditionTab('Active');
+    const row = this.page
+      .locator(this.selectors.conditionsTable)
+      .locator('tbody tr')
+      .filter({ hasText: conditionName })
+      .first();
+    await row.getByText(/mark as inactive/i).click();
+    const modal = this.page.locator('[data-testid="mark-inactive-confirm-modal"]');
+    await modal.waitFor({ state: 'visible' });
+    await modal.getByRole('button', { name: 'Yes', exact: true }).click();
+    await modal.waitFor({ state: 'hidden' });
+    await this.page.waitForLoadState('networkidle');
   }
 
   async getDisplayedDiagnosisNames(): Promise<string[]> {

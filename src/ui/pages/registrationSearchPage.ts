@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 
 /**
  * RegistrationSearchPage class for Bahmni patient search page
- * URL: https://docker.standard.mybahmni.in/bahmni-new/registration/search
+ * URL: https://docker.standard.mybahmni.in/bahmni-v2/registration/search
  */
 export class RegistrationSearchPage {
   private readonly page: Page;

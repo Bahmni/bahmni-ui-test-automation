@@ -21,6 +21,7 @@ export class RegistrationActions {
       lastName: patientData.lastName,
       gender: patientData.gender,
       dateOfBirth: patientData.dateOfBirth,
+      phoneNumber: patientData.phoneNumber,
     });
     await this.bahmni.createPatientPage.savePatient();
     return this.bahmni.createPatientPage.getPatientId();

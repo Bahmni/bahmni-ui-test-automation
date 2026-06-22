@@ -3,7 +3,7 @@ import { config } from '../../config/env.config';
 
 /**
  * HomePage class for the redesigned Bahmni home page.
- * URL: ${BASE_URL}/bahmni-new/
+ * URL: ${BASE_URL}/bahmni-v2/home/
  */
 export class HomePage {
   private readonly page: Page;

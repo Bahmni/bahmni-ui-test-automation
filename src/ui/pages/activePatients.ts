@@ -61,8 +61,9 @@ export class ActivePatientsPage {
    * @param patientId - Patient ID to click
    */
   async selectPatientById(patientId: string) {
+    await this.page.waitForLoadState('networkidle');
     const patientLocator = this.page.getByText(patientId, { exact: true });
-    await patientLocator.waitFor({ state: 'visible', timeout: 20000 });
+    await patientLocator.waitFor({ state: 'visible', timeout: 45000 });
     await patientLocator.click();
   }
 

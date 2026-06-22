@@ -3,7 +3,7 @@ import * as path from 'path';
 
 /**
  * CreatePatientPage class for Bahmni create new patient page
- * URL: https://docker.standard.mybahmni.in/bahmni-new/registration/patient/new
+ * URL: https://docker.standard.mybahmni.in/bahmni-v2/registration/patient/new
  */
 export class CreatePatientPage {
   private readonly page: Page;

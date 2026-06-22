@@ -3,7 +3,7 @@ import { MedicationData } from '../../../test-data/common/medicationData';
 
 /**
  * NewConsultationPage class for Bahmni new consultation page
- * URL: https://docker.standard.mybahmni.in/bahmni-new/clinical/{patientUuid}/consultation
+ * URL: https://docker.standard.mybahmni.in/bahmni-v2/clinical/{patientUuid}/consultation
  */
 export class NewConsultationPage {
   private readonly page: Page;
@@ -114,6 +114,43 @@ export class NewConsultationPage {
 
     // Press Escape to close any open dropdowns
     await this.page.keyboard.press('Escape');
+  }
+
+  /**
+   * Edit the currently displayed allergy entry in the consultation edit panel.
+   * Replaces severity and reaction, and optionally adds a note.
+   * @param severity - New severity level
+   * @param reaction - New reaction to set (clears any existing reactions first)
+   * @param note - Optional note text to add
+   */
+  async editAllergyDetails(severity: string, reaction: string, note?: string) {
+    const severityCombobox = this.page.getByRole('combobox', { name: /severity/i });
+    await severityCombobox.waitFor({ state: 'visible' });
+    await severityCombobox.click();
+    await this.page.getByRole('option', { name: severity, exact: true }).click();
+
+    const reactionCombobox = this.page.getByRole('combobox', { name: /reaction/i });
+    await reactionCombobox.waitFor({ state: 'visible' });
+    await reactionCombobox.click();
+
+    const selectedOptions = this.page.locator('li[role="option"][aria-selected="true"]');
+    const selectedCount = await selectedOptions.count();
+    for (let i = selectedCount - 1; i >= 0; i--) {
+      await selectedOptions.nth(i).click();
+    }
+
+    await this.page.getByRole('option', { name: reaction, exact: true }).click();
+    await this.page.keyboard.press('Escape');
+
+    if (note !== undefined) {
+      const addNoteLink = this.page.getByRole('link', { name: 'Add Note', exact: true });
+      if (await addNoteLink.isVisible()) {
+        await addNoteLink.click();
+      }
+      const noteInput = this.page.locator('[data-testid^="allergy-note-"]').first();
+      await noteInput.waitFor({ state: 'visible' });
+      await noteInput.fill(note);
+    }
   }
 
   /**

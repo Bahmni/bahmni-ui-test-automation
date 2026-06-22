@@ -1,7 +1,7 @@
 import { test, expect } from '../../../../src/ui/fixtures/appointmentFixture';
 
 test.describe('Appointments Display Control', { tag: ['@regression'] }, () => {
-  test.skip('Upcoming appointments sorted ASC and past appointments sorted DESC', async ({ appointmentSetup }) => {
+  test('Upcoming appointments sorted ASC and past appointments sorted DESC', async ({ appointmentSetup }) => {
     const { bahmni } = appointmentSetup;
     const widget = bahmni.appointmentsDisplayControl;
 

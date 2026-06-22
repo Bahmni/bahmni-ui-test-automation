@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 
 /**
  * ConsultationDashboard class for Bahmni consultation dashboard page
- * URL: https://docker.standard.mybahmni.in/bahmni-new/clinical/{patientUuid}
+ * URL: https://docker.standard.mybahmni.in/bahmni-v2/clinical/{patientUuid}
  */
 export class ConsultationDashboard {
   private readonly page: Page;

@@ -106,7 +106,7 @@ async function main() {
   }
 
   console.log('All 5 document references uploaded successfully.');
-  console.log(`View at: ${BASE_URL}/bahmni-new/clinical/${PATIENT_UUID}`);
+  console.log(`View at: ${BASE_URL}/bahmni-v2/clinical/${PATIENT_UUID}`);
 }
 
 main();

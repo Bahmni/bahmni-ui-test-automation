@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 
 /**
  * ClinicalPage class for Bahmni clinical dashboard page
- * URL: https://docker.standard.mybahmni.in/bahmni-new/clinical/{patientUuid}
+ * URL: https://docker.standard.mybahmni.in/bahmni-v2/clinical/{patientUuid}
  */
 export class ClinicalPage {
   private readonly page: Page;
@@ -11,6 +11,11 @@ export class ClinicalPage {
   readonly MEDICATION_TABS = {
     ACTIVE_SCHEDULED: 'Active & Scheduled',
     ALL: 'All',
+  } as const;
+
+  readonly CONDITION_TABS = {
+    ACTIVE: 'Active',
+    INACTIVE: 'Inactive',
   } as const;
 
   // Locator selectors
@@ -333,6 +338,44 @@ export class ClinicalPage {
     return this.page.locator(this.selectors.allergiesTable).locator('tbody tr').count();
   }
 
+  private getAllergyRow(allergenName: string) {
+    return this.page
+      .locator(this.selectors.allergiesTable)
+      .locator('tbody tr')
+      .filter({ hasText: allergenName })
+      .first();
+  }
+
+  async clickEditAllergy(allergenName: string) {
+    await this.navigateToSection('Allergies');
+    const row = this.getAllergyRow(allergenName);
+    await row.waitFor({ state: 'visible', timeout: 10000 });
+    await row.locator('[data-testid^="edit-allergy-"]').click();
+  }
+
+  async getDisplayedAllergySeverity(allergenName: string): Promise<string> {
+    const row = this.getAllergyRow(allergenName);
+    return (await row.locator('[class*="Severity"]').first().textContent())?.trim() ?? '';
+  }
+
+  getAllergyNoteIcon(allergenName: string) {
+    return this.getAllergyRow(allergenName).locator('[id="tooltip-icon-fa-file-lines"]');
+  }
+
+  getAllergyNoteToggleButton(allergenName: string) {
+    return this.getAllergyRow(allergenName).locator('button.cds--toggletip-button');
+  }
+
+  getAllergyNoteContent(allergenName: string) {
+    return this.getAllergyRow(allergenName).locator('.cds--toggletip-content');
+  }
+
+  async openAllergyNote(allergenName: string) {
+    const button = this.getAllergyNoteToggleButton(allergenName);
+    await button.waitFor({ state: 'visible', timeout: 10000 });
+    await button.click();
+  }
+
   getSectionArticle(section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations') {
     return this.page
       .locator('article')
@@ -347,8 +390,46 @@ export class ClinicalPage {
     return this.getSectionArticle(section).textContent();
   }
 
-  async getDisplayedConditionNames(): Promise<string[]> {
-    return this.getDisplayedNamesFromTable(this.selectors.conditionsTable, 'Conditions and Diagnoses');
+  async switchConditionTab(tab: 'Active' | 'Inactive') {
+    await this.navigateToSection('Conditions and Diagnoses');
+    await this.page.getByRole('tab', { name: `${tab} Conditions`, exact: true }).click();
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  async getDisplayedConditionNames(tab: 'Active' | 'Inactive' = 'Active'): Promise<string[]> {
+    await this.switchConditionTab(tab);
+    await this.page
+      .locator(this.selectors.conditionsTable)
+      .locator('tbody tr')
+      .first()
+      .waitFor({ state: 'visible', timeout: 10000 });
+    return this.page.locator(this.selectors.conditionsTable).locator('tbody tr td:first-child').allTextContents();
+  }
+
+  async getDisplayedConditionStatus(conditionName: string, tab: 'Active' | 'Inactive' = 'Active'): Promise<string> {
+    await this.switchConditionTab(tab);
+    const row = this.page
+      .locator(this.selectors.conditionsTable)
+      .locator('tbody tr')
+      .filter({ hasText: conditionName })
+      .first();
+    const cells = await row.locator('td').allTextContents();
+    return cells.map((c) => c.trim()).find((c) => /^(Active|Inactive)$/i.test(c)) ?? '';
+  }
+
+  async markConditionAsInactive(conditionName: string) {
+    await this.switchConditionTab('Active');
+    const row = this.page
+      .locator(this.selectors.conditionsTable)
+      .locator('tbody tr')
+      .filter({ hasText: conditionName })
+      .first();
+    await row.getByText(/mark as inactive/i).click();
+    const modal = this.page.locator('[data-testid="mark-inactive-confirm-modal"]');
+    await modal.waitFor({ state: 'visible' });
+    await modal.getByRole('button', { name: 'Yes', exact: true }).click();
+    await modal.waitFor({ state: 'hidden' });
+    await this.page.waitForLoadState('networkidle');
   }
 
   async getDisplayedDiagnosisNames(): Promise<string[]> {

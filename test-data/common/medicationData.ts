@@ -14,30 +14,29 @@ const MEDICATIONS = [
   'Prednisolone 20 mg',
 ];
 
-// Dosage units
+// Dosage units — regex matchers that tolerate label variants across envs
+// (e.g., dev-lite shows "Tablet(s)" / "Milliliter", standard shows "Tablet" / "ml")
 export const DOSAGE_UNITS = {
-  TABLET: 'Tablet',
-  CAPSULE: 'Capsule',
-  ML: 'ml',
-  MG: 'mg',
-  IU: 'IU',
-  DROP: 'Drop',
-  TABLESPOON: 'Tablespoon',
-  TEASPOON: 'Teaspoon',
-  UNIT: 'Unit',
-  PUFF: 'Puff',
+  TABLET: /^Tablet(\(s\))?$/,
+  CAPSULE: /^(Capsule|Cap\(s\))$/,
+  ML: /^(ml|Milliliter)$/,
+  MG: /^(mg|Milligram)$/,
+  IU: /^(IU|International units)$/,
+  DROP: /^Drop(\(s\))?$/,
+  TABLESPOON: /^Tablespoon(\(s\))?$/,
+  TEASPOON: /^Teaspoon(\(s\))?$/,
+  UNIT: /^Unit$/,
+  PUFF: /^Puff$/,
 } as const;
 
 // Frequency options
 export const FREQUENCIES = {
+  IMMEDIATELY: 'Immediately',
   ONCE_A_DAY: 'Once a day',
   TWICE_A_DAY: 'Twice a day',
   THRICE_A_DAY: 'Thrice a day',
   FOUR_TIMES_A_DAY: 'Four times a day',
-  FIVE_TIMES_A_DAY: 'Five times a day',
-  EVERY_HOUR: 'Every Hour',
   EVERY_2_HOURS: 'Every 2 hours',
-  EVERY_3_HOURS: 'Every 3 hours',
   EVERY_4_HOURS: 'Every 4 hours',
   EVERY_6_HOURS: 'Every 6 hours',
   EVERY_8_HOURS: 'Every 8 hours',
@@ -45,13 +44,7 @@ export const FREQUENCIES = {
   ON_ALTERNATE_DAYS: 'On alternate days',
   ONCE_A_WEEK: 'Once a week',
   TWICE_A_WEEK: 'Twice a week',
-  THRICE_A_WEEK: 'Thrice a week',
-  FOUR_DAYS_A_WEEK: 'Four days a week',
-  FIVE_DAYS_A_WEEK: 'Five days a week',
-  SIX_DAYS_A_WEEK: 'Six days a week',
-  EVERY_2_WEEKS: 'Every 2 weeks',
   EVERY_3_WEEKS: 'Every 3 weeks',
-  ONCE_A_MONTH: 'Once a month',
 } as const;
 
 // Duration units
@@ -98,7 +91,7 @@ export const ROUTES = {
 export interface MedicationData {
   name: string;
   dosage: number;
-  dosageUnit: string;
+  dosageUnit: string | RegExp;
   frequency: string;
   duration: number;
   durationUnit: string;

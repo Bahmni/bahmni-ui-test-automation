@@ -24,8 +24,20 @@ export class NewConsultationPage {
     allergiesSearchInput: '[data-testid="allergies-search-combobox"]',
     investigationsSearchInput: '[data-testid="investigations-search-combobox"]',
     diagnosesSearchInput: '[data-testid="diagnoses-search-combobox"]',
-    medicationsSearchInput: '[data-testid="medications-search-combobox"]',
-    vaccinationsSearchInput: '[data-testid="vaccinations-search-combobox"]',
+    medicationsSearchInput: '[data-testid="medication-search-combobox-test-id"]',
+    medicationItemDosageInput: '[data-testid^="medication-dosage-input-"][data-testid$="-test-id"]',
+    medicationItemDosageUnitDropdown: '[data-testid^="medication-dosage-unit-dropdown-"][data-testid$="-test-id"]',
+    medicationItemFrequencyDropdown: '[data-testid^="medication-frequency-dropdown-"][data-testid$="-test-id"]',
+    medicationItemDurationInput: '[data-testid^="medication-duration-input-"][data-testid$="-test-id"]',
+    medicationItemDurationUnitDropdown: '[data-testid^="medication-duration-unit-dropdown-"][data-testid$="-test-id"]',
+    medicationItemInstructionsDropdown: '[data-testid^="medication-instructions-dropdown-"][data-testid$="-test-id"]',
+    medicationItemRouteDropdown: '[data-testid^="medication-route-dropdown-"][data-testid$="-test-id"]',
+    medicationItemStatCheckbox: '[data-testid^="medication-stat-checkbox-"][data-testid$="-test-id"]',
+    medicationItemPrnCheckbox: '[data-testid^="medication-prn-checkbox-"][data-testid$="-test-id"]',
+    vaccinationsSearchInput: '[data-testid="vaccination-search-combobox-test-id"]',
+    vaccinationItemDosageInput: '[data-testid^="vaccination-dosage-input-"][data-testid$="-test-id"]',
+    vaccinationItemDosageUnitDropdown: '[data-testid^="vaccination-dosage-unit-dropdown-"][data-testid$="-test-id"]',
+    vaccinationItemRouteDropdown: '[data-testid^="vaccination-route-dropdown-"][data-testid$="-test-id"]',
     observationFormsSearchInput: '[data-testid="observation-forms-search-combobox"]',
 
     // Diagnosis/Condition action buttons
@@ -255,63 +267,45 @@ export class NewConsultationPage {
    * @param medication - Medication data object with all required fields
    */
   async addMedication(medication: MedicationData) {
-    // Search and select medication using only the base drug name
     await this.searchAndSelectMedication(medication.name);
 
-    // Fill dosage
-    const dosageInput = this.page.getByRole('spinbutton', { name: 'Dosage' });
+    const dosageInput = this.page.locator(this.selectors.medicationItemDosageInput);
     await dosageInput.waitFor({ state: 'visible' });
-    await dosageInput.clear();
     await dosageInput.fill(medication.dosage.toString());
 
-    // Select dosage unit if different from default
     if (medication.dosageUnit) {
-      const dosageUnitCombobox = this.page.getByRole('combobox', { name: 'Dosage Unit' });
-      await dosageUnitCombobox.click();
+      await this.page.locator(this.selectors.medicationItemDosageUnitDropdown).getByRole('combobox').click();
       await this.page.getByRole('option', { name: medication.dosageUnit, exact: true }).click();
     }
 
-    // Select frequency
-    const frequencyCombobox = this.page.getByRole('combobox', { name: 'Frequency' });
-    await frequencyCombobox.waitFor({ state: 'visible' });
-    await frequencyCombobox.click();
+    await this.page.locator(this.selectors.medicationItemFrequencyDropdown).getByRole('combobox').click();
     await this.page.getByRole('option', { name: medication.frequency, exact: true }).click();
 
-    // Fill duration
-    const durationInput = this.page.getByRole('spinbutton', { name: 'Duration' });
+    const durationInput = this.page.locator(this.selectors.medicationItemDurationInput);
     await durationInput.waitFor({ state: 'visible' });
-    await durationInput.clear();
     await durationInput.fill(medication.duration.toString());
 
-    // Select duration unit if different from default
     if (medication.durationUnit) {
-      const durationUnitCombobox = this.page.getByRole('combobox', { name: 'Duration Unit' });
-      await durationUnitCombobox.click();
+      await this.page.locator(this.selectors.medicationItemDurationUnitDropdown).getByRole('combobox').click();
       await this.page.getByRole('option', { name: medication.durationUnit, exact: true }).click();
     }
 
-    // Select instructions if different from default
     if (medication.instructions) {
-      const instructionsCombobox = this.page.getByRole('combobox', { name: 'Medication Instructions' });
-      await instructionsCombobox.click();
+      await this.page.locator(this.selectors.medicationItemInstructionsDropdown).getByRole('combobox').click();
       await this.page.getByRole('option', { name: medication.instructions, exact: true }).click();
     }
 
-    // Select route if different from default
     if (medication.route) {
-      const routeCombobox = this.page.getByRole('combobox', { name: 'Route' });
-      await routeCombobox.click();
+      await this.page.locator(this.selectors.medicationItemRouteDropdown).getByRole('combobox').click();
       await this.page.getByRole('option', { name: medication.route, exact: true }).click();
     }
 
-    // Check STAT if required
     if (medication.isStat) {
-      await this.page.getByRole('checkbox', { name: 'STAT' }).check();
+      await this.page.locator(this.selectors.medicationItemStatCheckbox).check();
     }
 
-    // Check PRN if required
     if (medication.isPrn) {
-      await this.page.getByRole('checkbox', { name: 'PRN' }).check();
+      await this.page.locator(this.selectors.medicationItemPrnCheckbox).check();
     }
   }
 
@@ -321,33 +315,20 @@ export class NewConsultationPage {
    * @param vaccination - Vaccination data object with required fields
    */
   async addVaccination(vaccination: MedicationData) {
-    // Search and select vaccination
     await this.page.locator(this.selectors.vaccinationsSearchInput).fill(vaccination.name);
     const option = this.page.locator(`li[role="option"]:has-text("${vaccination.name}")`).first();
     await option.waitFor({ state: 'visible', timeout: 5000 });
     await option.click();
 
-    // Fill dosage
-    const dosageInput = this.page.getByRole('spinbutton', { name: 'Dosage' });
+    const dosageInput = this.page.locator(this.selectors.vaccinationItemDosageInput);
     await dosageInput.waitFor({ state: 'visible' });
-    await dosageInput.clear();
     await dosageInput.fill(vaccination.dosage.toString());
 
-    // Select dosage unit
-    const dosageUnitCombobox = this.page.getByRole('combobox', { name: 'Dosage Unit' });
-    await dosageUnitCombobox.waitFor({ state: 'visible' });
-    await dosageUnitCombobox.click();
+    await this.page.locator(this.selectors.vaccinationItemDosageUnitDropdown).getByRole('combobox').click();
     await this.page.getByRole('option', { name: vaccination.dosageUnit, exact: true }).click();
 
-    // Select route (required field)
-    const routeCombobox = this.page.getByRole('combobox', { name: 'Route' });
-    await routeCombobox.waitFor({ state: 'visible' });
-    await routeCombobox.click();
+    await this.page.locator(this.selectors.vaccinationItemRouteDropdown).getByRole('combobox').click();
     await this.page.getByRole('option', { name: vaccination.route, exact: true }).click();
-
-    // Note: Instructions uses default value "As directed"
-    // Note: STAT checkbox is auto-enabled for vaccinations
-    // Note: Frequency, Duration, Duration Unit are auto-populated and disabled
   }
 
   /**

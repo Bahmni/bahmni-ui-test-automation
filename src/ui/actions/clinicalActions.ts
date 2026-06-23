@@ -42,6 +42,17 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.saveConsultation();
   }
 
+  /**
+   * Edits an existing medication on the consultation by opening its row's
+   * overflow menu, updating the form fields, and saving the consultation.
+   */
+  async editMedicationInConsultation(originalMedicationName: string, newMedication: MedicationData): Promise<void> {
+    await this.bahmni.clinicalPage.clickEditMedication(originalMedicationName);
+    await this.bahmni.newConsultationPage.editMedicationDetails(newMedication);
+    await this.bahmni.newConsultationPage.saveConsultation();
+    await this.bahmni.clinicalPage.waitForDashboardDataReady();
+  }
+
   async addVaccinationInConsultation(vaccinationData: MedicationData) {
     await this.startNewConsultation();
     await this.bahmni.newConsultationPage.addVaccination(vaccinationData);
@@ -116,6 +127,56 @@ export class ClinicalActions {
     const displayName = medication.name.split(/\s+\(/)[0];
     const medications = await this.bahmni.clinicalPage.getDisplayedMedicationNames();
     expect(medications).toContainItemMatching(displayName);
+  }
+
+  /**
+   * Verifies that the medication row in the Medications section displays the
+   * expected dosage, frequency, duration, duration unit, and instructions.
+   */
+  async verifyMedicationDetailsDisplayed(medication: MedicationData): Promise<void> {
+    const displayName = medication.name.split(/\s+\(/)[0];
+    await this.bahmni.clinicalPage.navigateToSection('Medications');
+    await this.bahmni.clinicalPage.waitForMedicationRowToContain(displayName, medication.frequency);
+    const row = this.bahmni.clinicalPage.getDisplayedMedicationRow(displayName);
+    await expect(row).toContainText(displayName);
+    await expect(row).toContainText(medication.dosage.toString());
+    await expect(row).toContainText(medication.frequency);
+    await expect(row).toContainText(medication.duration.toString());
+    await expect(row).toContainText(new RegExp(medication.durationUnit, 'i'));
+    await expect(row).toContainText(medication.instructions);
+  }
+
+  /**
+   * Stops an existing medication on the consultation by opening its row's
+   * overflow menu, filling the stop form (date defaults to today), and saving.
+   */
+  async stopMedicationInConsultation(medicationName: string, reason: string, note: string): Promise<void> {
+    await this.bahmni.clinicalPage.clickStopMedication(medicationName);
+    await this.bahmni.newConsultationPage.fillStopMedicationForm(reason, note);
+    await this.bahmni.newConsultationPage.saveConsultation();
+    await this.bahmni.clinicalPage.waitForDashboardDataReady();
+  }
+
+  /**
+   * Verifies that the medication appears as stopped under the All tab of the
+   * Medications section with the expected stop reason.
+   */
+  async verifyMedicationStopped(medicationName: string, reason: string): Promise<void> {
+    const displayName = medicationName.split(/\s+\(/)[0];
+    await this.bahmni.clinicalPage.navigateToSection('Medications');
+    await this.bahmni.clinicalPage.switchMedicationTab('All');
+
+    const today = new Date();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const todayLabel = `${mm}/${dd}/${yyyy}`;
+    await this.bahmni.clinicalPage.expandMedicationEncounter(todayLabel);
+
+    const article = this.bahmni.clinicalPage.getMedicationsArticle();
+    await expect(article).toContainText(displayName);
+    await expect(article).toContainText(/Stopped/i);
+    await expect(article).toContainText(reason);
   }
 
   async verifyVaccinationDisplayed(vaccination: MedicationData) {

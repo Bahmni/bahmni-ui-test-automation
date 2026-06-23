@@ -72,7 +72,7 @@ export class ClinicalPage {
     conditionsTable: 'table[aria-label="Conditions"]',
     diagnosesTable: 'table[aria-label="Diagnoses"]',
     vaccinationsTable: 'article:has(p:has-text("Vaccinations")) table[aria-label="Medications table"]',
-    medicationsTable: 'article:has(p:has-text("Medications")) table[aria-label="Medications table"]',
+    medicationsTable: 'article:has(p:has-text("Medications")) table[aria-label="Medications table"]:visible',
     vitalsFlowSheetTable: 'table[aria-label="Vital Flow Sheet Table"]',
 
     // Table headers - Using data-testid
@@ -164,11 +164,8 @@ export class ClinicalPage {
    * @param tab - Tab name to switch to ('Active & Scheduled' or 'All')
    */
   async switchMedicationTab(tab: 'Active & Scheduled' | 'All') {
-    if (tab === 'Active & Scheduled') {
-      await this.page.locator(this.selectors.activeScheduledTab).first().click();
-    } else {
-      await this.page.locator(this.selectors.allTab).first().click();
-    }
+    const medicationsArticle = this.page.locator('article:has(p:has-text("Medications"))');
+    await medicationsArticle.getByRole('tab', { name: tab, exact: true }).first().click();
   }
 
   /**
@@ -438,6 +435,91 @@ export class ClinicalPage {
 
   async getDisplayedMedicationNames(): Promise<string[]> {
     return this.getDisplayedNamesFromTable(this.selectors.medicationsTable, 'Medications');
+  }
+
+  getDisplayedMedicationRow(medicationName: string) {
+    const displayName = medicationName.split(/\s+\(/)[0];
+    return this.page
+      .locator(this.selectors.medicationsTable)
+      .locator('tbody tr')
+      .filter({ has: this.page.locator(`td:first-child:has-text("${displayName}")`) })
+      .first();
+  }
+
+  /**
+   * Returns the Medications article locator (used by both Active and All tab views).
+   */
+  getMedicationsArticle() {
+    return this.page.locator('article:has(p:has-text("Medications"))').first();
+  }
+
+  /**
+   * Expand a date-grouped encounter inside the Medications "All" tab.
+   * @param date - Encounter date label as displayed on the button (e.g. "06/22/2026")
+   */
+  async expandMedicationEncounter(date: string): Promise<void> {
+    const button = this.getMedicationsArticle().getByRole('button', { name: date }).first();
+    await button.waitFor({ state: 'visible', timeout: 10000 });
+    const expanded = await button.getAttribute('aria-expanded');
+    if (expanded === 'false' || expanded === null) {
+      await button.click();
+    }
+  }
+
+  /**
+   * Wait for the clinical dashboard to settle after a save (no explicit loader).
+   * Waits for URL to leave the consultation form and the page to reach network idle.
+   */
+  async waitForDashboardDataReady(): Promise<void> {
+    await this.page.waitForURL(/.*clinical\/.*(?<!\/consultation)$/, { timeout: 10000 });
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 });
+  }
+
+  /**
+   * Wait for a medication row's text to match the expected substring/pattern.
+   * Useful right after an edit save since the dashboard has no explicit loader.
+   */
+  async waitForMedicationRowToContain(medicationName: string, expected: string | RegExp): Promise<void> {
+    const row = this.getDisplayedMedicationRow(medicationName);
+    await row.waitFor({ state: 'visible', timeout: 15000 });
+    await this.page.locator(this.selectors.medicationsTable).locator('tbody tr').first().waitFor({
+      state: 'visible',
+      timeout: 15000,
+    });
+    await row.filter({ hasText: expected }).first().waitFor({ state: 'visible', timeout: 15000 });
+  }
+
+  /**
+   * Open the medication row's overflow menu and click the Edit option
+   */
+  async clickEditMedication(medicationName: string): Promise<void> {
+    await this.navigateToSection('Medications');
+    const row = this.getDisplayedMedicationRow(medicationName);
+    await row.waitFor({ state: 'visible', timeout: 10000 });
+    const overflowTrigger = row.locator('button.cds--overflow-menu').first();
+    await overflowTrigger.waitFor({ state: 'visible', timeout: 10000 });
+    await overflowTrigger.click();
+    const editOption = this.page.locator('[data-testid^="medication-action-edit-"]').first();
+    await editOption.waitFor({ state: 'visible', timeout: 10000 });
+    await editOption.click();
+  }
+
+  /**
+   * Open the medication row's overflow menu and click the Stop option
+   */
+  async clickStopMedication(medicationName: string): Promise<void> {
+    await this.navigateToSection('Medications');
+    const row = this.getDisplayedMedicationRow(medicationName);
+    await row.waitFor({ state: 'visible', timeout: 10000 });
+    const overflowTrigger = row.locator('button.cds--overflow-menu').first();
+    await overflowTrigger.waitFor({ state: 'visible', timeout: 10000 });
+    await overflowTrigger.click();
+    const stopOption = this.page.locator('[data-testid^="medication-action-stop-"]').first();
+    await stopOption.waitFor({ state: 'visible', timeout: 10000 });
+    await stopOption.click();
+    await this.page
+      .locator('[data-testid="stop-medication-form-tile"]')
+      .waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async getDisplayedVaccinationNames(): Promise<string[]> {

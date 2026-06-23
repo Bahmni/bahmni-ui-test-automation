@@ -87,6 +87,10 @@ export const ROUTES = {
   INHALATION: 'Inhalation',
 } as const;
 
+export const STOP_REASONS = {
+  REFUSED_TO_TAKE: 'Refused To Take',
+} as const;
+
 // Medication data type
 export interface MedicationData {
   name: string;

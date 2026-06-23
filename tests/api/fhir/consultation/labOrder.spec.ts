@@ -6,7 +6,7 @@ import {
   buildRadiologyOrderBundle,
   buildProcedureOrderBundle,
   buildRadiologyNewEncounterBundle,
-} from '../../../../test-data/api/consultationBundlePayload';
+} from '../../../../test-data/api/encounterBundlePayload';
 import {
   buildAbsoluteImmatureCellCountDRBundle,
   buildCompleteBloodCountDRBundle,
@@ -39,7 +39,7 @@ import { FhirApiHelper } from '../../../../src/utils/fhir-api-helper';
 import { echocardiogramReportData, xRayArmReportData } from '../../../../test-data/common/labOrderData';
 
 test.describe.serial(
-  'POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/ServiceRequest',
+  'POST /fhir2/R4/EncounterBundle → GET /fhir2/R4/ServiceRequest',
   { tag: ['@regression'] },
   () => {
     let ctx: ConsultationContext;
@@ -50,7 +50,7 @@ test.describe.serial(
     });
 
     test('POST single lab test — order is saved and GET returns expected fields', async ({ api }) => {
-      const { body } = await api.fhir.submitConsultationBundle(buildSingleLabOrderBundle(ctx));
+      const { body } = await api.fhir.submitEncounterBundle(buildSingleLabOrderBundle(ctx));
       encounterUuid = extractFirstUuidFromBundle(body, 'Encounter');
 
       const { body: getBody } = await api.fhir.getLabServiceRequests(ctx.patientUuid);
@@ -70,7 +70,7 @@ test.describe.serial(
     test('POST panel lab test — order is saved, GET returns expected fields and reuses same encounter', async ({
       api,
     }) => {
-      await api.fhir.submitConsultationBundle(buildPanelLabOrderBundle(ctx, encounterUuid));
+      await api.fhir.submitEncounterBundle(buildPanelLabOrderBundle(ctx, encounterUuid));
 
       const { body: getBody } = await api.fhir.getLabServiceRequests(ctx.patientUuid);
       const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
@@ -90,7 +90,7 @@ test.describe.serial(
     test('POST radiology order — order is saved, GET returns expected fields and reuses same encounter', async ({
       api,
     }) => {
-      await api.fhir.submitConsultationBundle(buildRadiologyOrderBundle(ctx, encounterUuid));
+      await api.fhir.submitEncounterBundle(buildRadiologyOrderBundle(ctx, encounterUuid));
 
       const { body: getBody } = await api.fhir.getRadiologyServiceRequests(ctx.patientUuid);
       const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
@@ -110,7 +110,7 @@ test.describe.serial(
       'POST procedure order — order is saved, GET returns expected fields and reuses same encounter',
       { tag: '@onlyStandard' },
       async ({ api }) => {
-        await api.fhir.submitConsultationBundle(buildProcedureOrderBundle(ctx, encounterUuid));
+        await api.fhir.submitEncounterBundle(buildProcedureOrderBundle(ctx, encounterUuid));
 
         const { body: getBody } = await api.fhir.getProcedureServiceRequests(ctx.patientUuid);
         const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
@@ -142,8 +142,8 @@ test.describe.serial(
     test.beforeAll(async ({ api }) => {
       ctx = await setupConsultationContext(api);
 
-      await api.fhir.submitConsultationBundle(buildSingleLabOrderBundle(ctx, LAB_CONCEPTS.absoluteImmatureCellCount));
-      await api.fhir.submitConsultationBundle(buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.echocardiogram));
+      await api.fhir.submitEncounterBundle(buildSingleLabOrderBundle(ctx, LAB_CONCEPTS.absoluteImmatureCellCount));
+      await api.fhir.submitEncounterBundle(buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.echocardiogram));
 
       await api.visit.endVisit(ctx.visitUuid);
 
@@ -151,8 +151,8 @@ test.describe.serial(
       ctx.visitUuid = visitUuid;
       ctx.visitEncounterUuid = visitEncounterUuid;
 
-      await api.fhir.submitConsultationBundle(buildSingleLabOrderBundle(ctx, LAB_CONCEPTS.completeBloodCount));
-      await api.fhir.submitConsultationBundle(
+      await api.fhir.submitEncounterBundle(buildSingleLabOrderBundle(ctx, LAB_CONCEPTS.completeBloodCount));
+      await api.fhir.submitEncounterBundle(
         buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.xRaySkullFourViews)
       );
     });
@@ -217,7 +217,7 @@ test.describe.serial('POST DiagnosticReport/$submit-bundle → GET $fetch-bundle
     ctx = await setupConsultationContext(api);
 
     const submitOrder = async (code: string) => {
-      const { body } = await api.fhir.submitConsultationBundle(buildSingleLabOrderBundle(ctx, code));
+      const { body } = await api.fhir.submitEncounterBundle(buildSingleLabOrderBundle(ctx, code));
       return {
         enc: extractFirstUuidFromBundle(body, 'Encounter'),
         sr: extractFirstUuidFromBundle(body, 'ServiceRequest'),
@@ -411,13 +411,13 @@ test.describe.serial(
     test.beforeAll(async ({ api, request }) => {
       ctx = await setupConsultationContext(api);
 
-      const { body: echoBody } = await api.fhir.submitConsultationBundle(
+      const { body: echoBody } = await api.fhir.submitEncounterBundle(
         buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.echocardiogram)
       );
       encounterUuid = extractFirstUuidFromBundle(echoBody, 'Encounter');
       echoServiceRequestUuid = extractFirstUuidFromBundle(echoBody, 'ServiceRequest');
 
-      const { body: xRayBody } = await api.fhir.submitConsultationBundle(
+      const { body: xRayBody } = await api.fhir.submitEncounterBundle(
         buildRadiologyNewEncounterBundle(ctx, RADIOLOGY_CONCEPTS.xRayArm)
       );
       xRayServiceRequestUuid = extractFirstUuidFromBundle(xRayBody, 'ServiceRequest');

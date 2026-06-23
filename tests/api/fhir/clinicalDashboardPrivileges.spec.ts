@@ -1,6 +1,6 @@
 import { test, expect } from '../../../src/api/fixtures/apiFixture';
 import { request } from '@playwright/test';
-import { buildAllergyBundle } from '../../../test-data/api/consultationBundlePayload';
+import { buildAllergyBundle } from '../../../test-data/api/encounterBundlePayload';
 import { config } from '../../../src/config/env.config';
 import { FHIR } from '../../../src/api/endpoints';
 import {
@@ -31,7 +31,7 @@ async function submitAsRoleWithCleanup(
 ): Promise<void> {
   const freshCtx = await setupConsultationContext(api);
   try {
-    const { status } = await api.fhir.submitConsultationBundleRaw(buildAllergyBundle(freshCtx), role);
+    const { status } = await api.fhir.submitEncounterBundleRaw(buildAllergyBundle(freshCtx), role);
     expectStatusFn(status);
   } finally {
     await teardownConsultationContext(api, freshCtx);
@@ -43,7 +43,7 @@ test.describe.serial('Clinical Dashboard — privilege checks', { tag: ['@regres
 
   test.beforeAll(async ({ api }) => {
     ctx = await setupConsultationContext(api);
-    await api.fhir.submitConsultationBundle(buildAllergyBundle(ctx));
+    await api.fhir.submitEncounterBundle(buildAllergyBundle(ctx));
   });
 
   // --- Unauthenticated (fresh context — no session cookie) ---
@@ -103,9 +103,9 @@ test.describe.serial('Clinical Dashboard — privilege checks', { tag: ['@regres
     });
   }
 
-  // --- ConsultationBundle write ---
+  // --- EncounterBundle write ---
 
-  test('POST /fhir2/R4/ConsultationBundle — doctor role can write (returns 200/201)', async ({ api }) => {
+  test('POST /fhir2/R4/EncounterBundle — doctor role can write (returns 200/201)', async ({ api }) => {
     await submitAsRoleWithCleanup(api, 'doctor', (status) => {
       expect([200, 201]).toContain(status);
     });
@@ -116,7 +116,7 @@ test.describe.serial('Clinical Dashboard — privilege checks', { tag: ['@regres
   // role-privilege model. Re-enable once the team confirms the intended write permissions
   // and update the assertion to `expect(status).toBe(403)`.
 
-  test.fixme('POST /fhir2/R4/ConsultationBundle — clinicalRead role returns 403 (TODO: confirm intended privilege)', async ({
+  test.fixme('POST /fhir2/R4/EncounterBundle — clinicalRead role returns 403 (TODO: confirm intended privilege)', async ({
     api,
   }) => {
     await submitAsRoleWithCleanup(api, 'clinicalRead', (status) => {
@@ -124,7 +124,7 @@ test.describe.serial('Clinical Dashboard — privilege checks', { tag: ['@regres
     });
   });
 
-  test.fixme('POST /fhir2/R4/ConsultationBundle — receptionist role returns 403 (TODO: confirm intended privilege)', async ({
+  test.fixme('POST /fhir2/R4/EncounterBundle — receptionist role returns 403 (TODO: confirm intended privilege)', async ({
     api,
   }) => {
     await submitAsRoleWithCleanup(api, 'receptionist', (status) => {
@@ -132,7 +132,7 @@ test.describe.serial('Clinical Dashboard — privilege checks', { tag: ['@regres
     });
   });
 
-  test.fixme('POST /fhir2/R4/ConsultationBundle — frontdesk role returns 403 (TODO: confirm intended privilege)', async ({
+  test.fixme('POST /fhir2/R4/EncounterBundle — frontdesk role returns 403 (TODO: confirm intended privilege)', async ({
     api,
   }) => {
     await submitAsRoleWithCleanup(api, 'frontdesk', (status) => {

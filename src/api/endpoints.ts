@@ -28,7 +28,7 @@ export const FHIR = {
   condition: '/openmrs/ws/fhir2/R4/Condition',
   medicationRequest: '/openmrs/ws/fhir2/R4/MedicationRequest',
   observation: '/openmrs/ws/fhir2/R4/Observation',
-  consultationBundle: '/openmrs/ws/fhir2/R4/ConsultationBundle',
+  encounterBundle: '/openmrs/ws/fhir2/R4/EncounterBundle',
   valueSet: '/openmrs/ws/fhir2/R4/ValueSet',
   documentReference: '/openmrs/ws/fhir2/R4/DocumentReference',
   appointment: '/openmrs/ws/fhir2/R4/Appointment',

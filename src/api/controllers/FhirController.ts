@@ -214,18 +214,18 @@ export class FhirController extends BaseApiController {
     );
   }
 
-  async submitConsultationBundle(
+  async submitEncounterBundle(
     bundle: Record<string, unknown>,
     role: UserRole = 'admin'
   ): Promise<ApiResponse<FhirBundleResponse>> {
-    return this.post<FhirBundleResponse>(FHIR.consultationBundle, bundle, role, 'application/fhir+json');
+    return this.post<FhirBundleResponse>(FHIR.encounterBundle, bundle, role, 'application/fhir+json');
   }
 
-  async submitConsultationBundleRaw(
+  async submitEncounterBundleRaw(
     bundle: Record<string, unknown>,
     role: UserRole = 'admin'
   ): Promise<ApiResponse<FhirBundleResponse>> {
-    return this.postRaw<FhirBundleResponse>(FHIR.consultationBundle, bundle, role, 'application/fhir+json');
+    return this.postRaw<FhirBundleResponse>(FHIR.encounterBundle, bundle, role, 'application/fhir+json');
   }
 
   async submitDiagnosticReport(bundle: FhirBundle, role: UserRole = 'admin'): Promise<ApiResponse<FhirBundleResponse>> {

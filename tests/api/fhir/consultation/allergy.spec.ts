@@ -4,7 +4,7 @@ import {
   buildAllergyBundle,
   buildAllergyBundleWithCode,
   buildBundleWithInvalidPatientRef,
-} from '../../../../test-data/api/consultationBundlePayload';
+} from '../../../../test-data/api/encounterBundlePayload';
 import { ALLERGY_CODES, ALLERGY_REACTION_CODES } from '../../../../test-data/api/constants';
 import {
   ConsultationContext,
@@ -15,7 +15,7 @@ import {
 import { AllergyIntoleranceEntry } from '../../../../src/api/types/fhir-resources.types';
 
 test.describe.serial(
-  'POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/AllergyIntolerance',
+  'POST /fhir2/R4/EncounterBundle → GET /fhir2/R4/AllergyIntolerance',
   { tag: ['@regression'] },
   () => {
     let ctx: ConsultationContext;
@@ -23,11 +23,11 @@ test.describe.serial(
 
     test.beforeAll(async ({ api }) => {
       ctx = await setupConsultationContext(api);
-      const { body } = await api.fhir.submitConsultationBundle(buildAllergyBundle(ctx));
+      const { body } = await api.fhir.submitEncounterBundle(buildAllergyBundle(ctx));
       encounterUuid = extractFirstUuidFromBundle(body, 'Encounter');
     });
 
-    test('GET /fhir2/R4/AllergyIntolerance — saved allergy appears in patient record after ConsultationBundle submission', async ({
+    test('GET /fhir2/R4/AllergyIntolerance — saved allergy appears in patient record after EncounterBundle submission', async ({
       api,
     }) => {
       const { status, body } = await api.fhir.getAllergyIntolerances(ctx.patientUuid);
@@ -83,7 +83,7 @@ test.describe.serial(
       expect(allergies[0].reaction[0].manifestation[0].coding[0].code).toBe(ALLERGY_REACTION_CODES.rash);
     });
 
-    test('POST /fhir2/R4/ConsultationBundle — submitting duplicate allergen for same patient returns 400 (DB uniqueness constraint)', async ({
+    test('POST /fhir2/R4/EncounterBundle — submitting duplicate allergen for same patient returns 400 (DB uniqueness constraint)', async ({
       api,
     }) => {
       const duplicateBundle = buildAllergyBundleWithCode(
@@ -93,21 +93,21 @@ test.describe.serial(
         'food',
         'moderate'
       );
-      const { status } = await api.fhir.submitConsultationBundleRaw(duplicateBundle);
+      const { status } = await api.fhir.submitEncounterBundleRaw(duplicateBundle);
 
       expect(status).toBe(400);
     });
 
-    test('POST /fhir2/R4/ConsultationBundle — bundle with invalid patient reference returns 400 (FHIR validation failure)', async ({
+    test('POST /fhir2/R4/EncounterBundle — bundle with invalid patient reference returns 400 (FHIR validation failure)', async ({
       api,
     }) => {
-      const { status } = await api.fhir.submitConsultationBundleRaw(buildBundleWithInvalidPatientRef(ctx));
+      const { status } = await api.fhir.submitEncounterBundleRaw(buildBundleWithInvalidPatientRef(ctx));
 
       expect(status).toBe(400);
     });
 
     test('GET /fhir2/R4/AllergyIntolerance — _count=1 returns 1 entry, _count=2 returns 2 entries', async ({ api }) => {
-      await api.fhir.submitConsultationBundle(buildAllergyBundle(ctx, ALLERGY_CODES.aspirin));
+      await api.fhir.submitEncounterBundle(buildAllergyBundle(ctx, ALLERGY_CODES.aspirin));
 
       const { body: body1 } = await api.fhir.getAllergyIntolerances(ctx.patientUuid, 1);
       expect(body1.entry?.length ?? 0).toBe(1);

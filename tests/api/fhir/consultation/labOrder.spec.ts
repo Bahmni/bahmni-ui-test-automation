@@ -38,100 +38,96 @@ import {
 import { FhirApiHelper } from '../../../../src/utils/fhir-api-helper';
 import { echocardiogramReportData, xRayArmReportData } from '../../../../test-data/common/labOrderData';
 
-test.describe.serial(
-  'POST /fhir2/R4/EncounterBundle → GET /fhir2/R4/ServiceRequest',
-  { tag: ['@regression'] },
-  () => {
-    let ctx: ConsultationContext;
-    let encounterUuid: string;
+test.describe.serial('POST /fhir2/R4/EncounterBundle → GET /fhir2/R4/ServiceRequest', { tag: ['@regression'] }, () => {
+  let ctx: ConsultationContext;
+  let encounterUuid: string;
 
-    test.beforeAll(async ({ api }) => {
-      ctx = await setupConsultationContext(api);
-    });
+  test.beforeAll(async ({ api }) => {
+    ctx = await setupConsultationContext(api);
+  });
 
-    test('POST single lab test — order is saved and GET returns expected fields', async ({ api }) => {
-      const { body } = await api.fhir.submitEncounterBundle(buildSingleLabOrderBundle(ctx));
-      encounterUuid = extractFirstUuidFromBundle(body, 'Encounter');
+  test('POST single lab test — order is saved and GET returns expected fields', async ({ api }) => {
+    const { body } = await api.fhir.submitEncounterBundle(buildSingleLabOrderBundle(ctx));
+    encounterUuid = extractFirstUuidFromBundle(body, 'Encounter');
 
-      const { body: getBody } = await api.fhir.getLabServiceRequests(ctx.patientUuid);
+    const { body: getBody } = await api.fhir.getLabServiceRequests(ctx.patientUuid);
+    const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
+    const order = orders.find((o) => o.code.coding[0].code === LAB_CONCEPTS.absoluteImmatureCellCount);
+
+    expect(order).toBeDefined();
+    expect(order?.status).toBe('active');
+    expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.lab);
+    expect(order?.code.coding[0].display).toBeDefined();
+    expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
+    expect(order?.occurrencePeriod?.start).toBeDefined();
+    expect(order?.note?.[0].text).toBeDefined();
+    expect(order?.extension?.[0].valueString).toBe('Test');
+  });
+
+  test('POST panel lab test — order is saved, GET returns expected fields and reuses same encounter', async ({
+    api,
+  }) => {
+    await api.fhir.submitEncounterBundle(buildPanelLabOrderBundle(ctx, encounterUuid));
+
+    const { body: getBody } = await api.fhir.getLabServiceRequests(ctx.patientUuid);
+    const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
+    const order = orders.find((o) => o.code.coding[0].code === LAB_CONCEPTS.completeBloodCount);
+
+    expect(order).toBeDefined();
+    expect(order?.status).toBe('active');
+    expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.lab);
+    expect(order?.code.coding[0].display).toBeDefined();
+    expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
+    expect(order?.occurrencePeriod?.start).toBeDefined();
+    expect(order?.note?.[0].text).toBeDefined();
+    expect(order?.extension?.[0].valueString).toBe('Panel');
+    expect(order?.encounter.reference).toContain(encounterUuid);
+  });
+
+  test('POST radiology order — order is saved, GET returns expected fields and reuses same encounter', async ({
+    api,
+  }) => {
+    await api.fhir.submitEncounterBundle(buildRadiologyOrderBundle(ctx, encounterUuid));
+
+    const { body: getBody } = await api.fhir.getRadiologyServiceRequests(ctx.patientUuid);
+    const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
+    const order = orders.find((o) => o.code.coding[0].code === RADIOLOGY_CONCEPTS.echocardiogram);
+
+    expect(order).toBeDefined();
+    expect(order?.status).toBe('active');
+    expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.radiology);
+    expect(order?.code.coding[0].display).toBeDefined();
+    expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
+    expect(order?.occurrencePeriod?.start).toBeDefined();
+    expect(order?.note?.[0].text).toBeDefined();
+    expect(order?.encounter.reference).toContain(encounterUuid);
+  });
+
+  test(
+    'POST procedure order — order is saved, GET returns expected fields and reuses same encounter',
+    { tag: '@onlyStandard' },
+    async ({ api }) => {
+      await api.fhir.submitEncounterBundle(buildProcedureOrderBundle(ctx, encounterUuid));
+
+      const { body: getBody } = await api.fhir.getProcedureServiceRequests(ctx.patientUuid);
       const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
-      const order = orders.find((o) => o.code.coding[0].code === LAB_CONCEPTS.absoluteImmatureCellCount);
+      const order = orders.find((o) => o.code.coding[0].code === PROCEDURE_CONCEPTS.reconstructionProcedure);
 
       expect(order).toBeDefined();
       expect(order?.status).toBe('active');
-      expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.lab);
+      expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.procedure);
       expect(order?.code.coding[0].display).toBeDefined();
       expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
       expect(order?.occurrencePeriod?.start).toBeDefined();
       expect(order?.note?.[0].text).toBeDefined();
-      expect(order?.extension?.[0].valueString).toBe('Test');
-    });
-
-    test('POST panel lab test — order is saved, GET returns expected fields and reuses same encounter', async ({
-      api,
-    }) => {
-      await api.fhir.submitEncounterBundle(buildPanelLabOrderBundle(ctx, encounterUuid));
-
-      const { body: getBody } = await api.fhir.getLabServiceRequests(ctx.patientUuid);
-      const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
-      const order = orders.find((o) => o.code.coding[0].code === LAB_CONCEPTS.completeBloodCount);
-
-      expect(order).toBeDefined();
-      expect(order?.status).toBe('active');
-      expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.lab);
-      expect(order?.code.coding[0].display).toBeDefined();
-      expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
-      expect(order?.occurrencePeriod?.start).toBeDefined();
-      expect(order?.note?.[0].text).toBeDefined();
-      expect(order?.extension?.[0].valueString).toBe('Panel');
       expect(order?.encounter.reference).toContain(encounterUuid);
-    });
+    }
+  );
 
-    test('POST radiology order — order is saved, GET returns expected fields and reuses same encounter', async ({
-      api,
-    }) => {
-      await api.fhir.submitEncounterBundle(buildRadiologyOrderBundle(ctx, encounterUuid));
-
-      const { body: getBody } = await api.fhir.getRadiologyServiceRequests(ctx.patientUuid);
-      const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
-      const order = orders.find((o) => o.code.coding[0].code === RADIOLOGY_CONCEPTS.echocardiogram);
-
-      expect(order).toBeDefined();
-      expect(order?.status).toBe('active');
-      expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.radiology);
-      expect(order?.code.coding[0].display).toBeDefined();
-      expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
-      expect(order?.occurrencePeriod?.start).toBeDefined();
-      expect(order?.note?.[0].text).toBeDefined();
-      expect(order?.encounter.reference).toContain(encounterUuid);
-    });
-
-    test(
-      'POST procedure order — order is saved, GET returns expected fields and reuses same encounter',
-      { tag: '@onlyStandard' },
-      async ({ api }) => {
-        await api.fhir.submitEncounterBundle(buildProcedureOrderBundle(ctx, encounterUuid));
-
-        const { body: getBody } = await api.fhir.getProcedureServiceRequests(ctx.patientUuid);
-        const orders = getBundleEntriesByType<ServiceRequestEntry>(getBody, 'ServiceRequest');
-        const order = orders.find((o) => o.code.coding[0].code === PROCEDURE_CONCEPTS.reconstructionProcedure);
-
-        expect(order).toBeDefined();
-        expect(order?.status).toBe('active');
-        expect(order?.category?.[0].coding[0].code).toBe(SERVICE_REQUEST_CATEGORIES.procedure);
-        expect(order?.code.coding[0].display).toBeDefined();
-        expect(order?.requester?.reference).toContain(ctx.practitionerUuid);
-        expect(order?.occurrencePeriod?.start).toBeDefined();
-        expect(order?.note?.[0].text).toBeDefined();
-        expect(order?.encounter.reference).toContain(encounterUuid);
-      }
-    );
-
-    test.afterAll(async ({ api }) => {
-      await teardownConsultationContext(api, ctx);
-    });
-  }
-);
+  test.afterAll(async ({ api }) => {
+    await teardownConsultationContext(api, ctx);
+  });
+});
 
 test.describe.serial(
   'GET /fhir2/R4/ServiceRequest — numberOfVisits limits orders to N most recent visits',

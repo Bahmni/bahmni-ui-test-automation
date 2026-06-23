@@ -517,9 +517,7 @@ export class ClinicalPage {
     const stopOption = this.page.locator('[data-testid^="medication-action-stop-"]').first();
     await stopOption.waitFor({ state: 'visible', timeout: 10000 });
     await stopOption.click();
-    await this.page
-      .locator('[data-testid="stop-medication-form-tile"]')
-      .waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator('[data-testid="stop-medication-form-tile"]').waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async getDisplayedVaccinationNames(): Promise<string[]> {

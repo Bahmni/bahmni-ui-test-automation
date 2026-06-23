@@ -310,6 +310,80 @@ export class NewConsultationPage {
   }
 
   /**
+   * Update fields on a pre-loaded medication panel (e.g. after clicking Edit on the dashboard)
+   * @param medication - Medication data object with updated field values
+   */
+  async editMedicationDetails(medication: MedicationData): Promise<void> {
+    const dosageInput = this.page.locator(this.selectors.medicationItemDosageInput);
+    await dosageInput.waitFor({ state: 'visible' });
+    await dosageInput.fill(medication.dosage.toString());
+
+    if (medication.dosageUnit) {
+      await this.page.locator(this.selectors.medicationItemDosageUnitDropdown).getByRole('combobox').click();
+      await this.page.getByRole('option', { name: medication.dosageUnit, exact: true }).click();
+    }
+
+    await this.page.locator(this.selectors.medicationItemFrequencyDropdown).getByRole('combobox').click();
+    await this.page.getByRole('option', { name: medication.frequency, exact: true }).click();
+
+    const durationInput = this.page.locator(this.selectors.medicationItemDurationInput);
+    await durationInput.waitFor({ state: 'visible' });
+    await durationInput.fill(medication.duration.toString());
+
+    if (medication.durationUnit) {
+      await this.page.locator(this.selectors.medicationItemDurationUnitDropdown).getByRole('combobox').click();
+      await this.page.getByRole('option', { name: medication.durationUnit, exact: true }).click();
+    }
+
+    if (medication.instructions) {
+      await this.page.locator(this.selectors.medicationItemInstructionsDropdown).getByRole('combobox').click();
+      await this.page.getByRole('option', { name: medication.instructions, exact: true }).click();
+    }
+
+    if (medication.route) {
+      await this.page.locator(this.selectors.medicationItemRouteDropdown).getByRole('combobox').click();
+      await this.page.getByRole('option', { name: medication.route, exact: true }).click();
+    }
+
+    if (medication.isStat) {
+      await this.page.locator(this.selectors.medicationItemStatCheckbox).check();
+    }
+
+    if (medication.isPrn) {
+      await this.page.locator(this.selectors.medicationItemPrnCheckbox).check();
+    }
+  }
+
+  /**
+   * Fill the Stop Medication form panel with reason, note, and optional stop date.
+   * @param reason - Stop reason to select from the dropdown
+   * @param note - Note text to enter in the description textarea
+   * @param stopDate - Optional stop date in dd/mm/yyyy format (defaults to today)
+   */
+  async fillStopMedicationForm(reason: string, note: string, stopDate?: string): Promise<void> {
+    const formTile = this.page.locator('[data-testid="stop-medication-form-tile"]');
+    await formTile.waitFor({ state: 'visible', timeout: 10000 });
+
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const dateValue = stopDate ?? `${dd}/${mm}/${yyyy}`;
+    await this.page.locator('[data-testid="stop-medication-date-input"]').fill(dateValue);
+
+    await this.page.locator('[data-testid="stop-medication-reason-dropdown"]').getByRole('combobox').click();
+    await this.page.getByRole('option', { name: reason, exact: true }).click();
+
+    const addNoteLink = this.page.getByRole('link', { name: 'Add Note', exact: true });
+    if (await addNoteLink.isVisible()) {
+      await addNoteLink.click();
+    }
+    const noteTextarea = this.page.locator('#stop-medication-note');
+    await noteTextarea.waitFor({ state: 'visible', timeout: 10000 });
+    await noteTextarea.fill(note);
+  }
+
+  /**
    * Add a vaccination with complete prescription details
    * Note: For vaccinations, STAT is auto-enabled and frequency/duration are auto-populated
    * @param vaccination - Vaccination data object with required fields

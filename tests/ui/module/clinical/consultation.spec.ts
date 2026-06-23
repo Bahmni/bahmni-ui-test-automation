@@ -2,7 +2,16 @@ import { test, expect } from '../../../../src/ui/fixtures/clinicalFixture';
 import { generateAllergyData, ALLERGENS, SEVERITY_LEVELS, REACTIONS } from '../../../../test-data/common/allergyData';
 import { medicalFaker } from '../../../../test-data/common/investigationData';
 import { diagnosisFaker } from '../../../../test-data/common/diagnosisData';
-import { medicationFaker } from '../../../../test-data/common/medicationData';
+import {
+  medicationFaker,
+  MedicationData,
+  DOSAGE_UNITS,
+  FREQUENCIES,
+  DURATION_UNITS,
+  INSTRUCTIONS,
+  ROUTES,
+  STOP_REASONS,
+} from '../../../../test-data/common/medicationData';
 import { vaccinationFaker } from '../../../../test-data/common/vaccinationData';
 import { vitalsFaker } from '../../../../test-data/common/vitalsData';
 
@@ -66,13 +75,40 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyConditionDisplayed(condition, 'Inactive');
   });
 
-  test('Add medication in consultation', async ({ clinicalSetup }) => {
+  test('Add and edit medication in consultation', async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
     const medication = medicationFaker.medication();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
     await actions.clinical.addMedicationInConsultation(medication);
     await actions.clinical.verifyMedicationDisplayed(medication);
+
+    const editedMedication: MedicationData = {
+      ...medication,
+      dosage: 2,
+      dosageUnit: DOSAGE_UNITS.TABLET,
+      frequency: FREQUENCIES.THRICE_A_DAY,
+      duration: 5,
+      durationUnit: DURATION_UNITS.DAYS,
+      instructions: INSTRUCTIONS.AFTER_MEALS,
+      route: ROUTES.ORAL,
+    };
+    await actions.clinical.editMedicationInConsultation(medication.name, editedMedication);
+    await actions.clinical.verifyMedicationDetailsDisplayed(editedMedication);
+  });
+
+  test('Stop medication in consultation', async ({ clinicalSetup }) => {
+    const { actions, page } = clinicalSetup;
+    const medication = medicationFaker.medication();
+    const stopReason = STOP_REASONS.REFUSED_TO_TAKE;
+    const stopNote = 'Medication stopped as patient refused to take';
+
+    await expect(page).toHaveURL(/.*clinical\/.*/);
+    await actions.clinical.addMedicationInConsultation(medication);
+    await actions.clinical.verifyMedicationDisplayed(medication);
+
+    await actions.clinical.stopMedicationInConsultation(medication.name, stopReason, stopNote);
+    await actions.clinical.verifyMedicationStopped(medication.name, stopReason);
   });
 
   test('Add vaccination in consultation', async ({ clinicalSetup }) => {

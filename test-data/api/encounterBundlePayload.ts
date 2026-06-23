@@ -95,9 +95,9 @@ function existingEncounterEntry(encounterUuid: string, ctx: BundleContext, times
 // Bundle wrapper
 // ---------------------------------------------------------------------------
 
-function consultationBundle(entries: Record<string, unknown>[], timestamp: string): Record<string, unknown> {
+function encounterBundle(entries: Record<string, unknown>[], timestamp: string): Record<string, unknown> {
   return {
-    resourceType: 'ConsultationBundle',
+    resourceType: 'EncounterBundle',
     type: 'transaction',
     id: faker.string.uuid(),
     timestamp,
@@ -115,7 +115,7 @@ export function buildAllergyBundle(
 ): Record<string, unknown> {
   const ts = pastTimestamp();
   const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
-  return consultationBundle(
+  return encounterBundle(
     [
       encounterEntry,
       {
@@ -137,7 +137,7 @@ export function buildAllergyBundle(
 }
 
 /**
- * Single ConsultationBundle that creates one Encounter and many AllergyIntolerance entries.
+ * Single EncounterBundle that creates one Encounter and many AllergyIntolerance entries.
  * Used to seed >10 allergies in one round-trip for pagination testing.
  */
 export function buildBundleWithMultipleAllergies(ctx: BundleContext, allergyCodes: string[]): Record<string, unknown> {
@@ -156,7 +156,7 @@ export function buildBundleWithMultipleAllergies(ctx: BundleContext, allergyCode
     },
     request: { method: 'POST', url: 'AllergyIntolerance' },
   }));
-  return consultationBundle([encounterEntry, ...allergyEntries], ts);
+  return encounterBundle([encounterEntry, ...allergyEntries], ts);
 }
 
 export function buildAllergyBundleWithCode(
@@ -167,7 +167,7 @@ export function buildAllergyBundleWithCode(
   severity: 'mild' | 'moderate' | 'severe'
 ): Record<string, unknown> {
   const ts = pastTimestamp();
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterRef, ctx, ts),
       {
@@ -258,7 +258,7 @@ export function buildConditionsBundle(ctx: BundleContext, encounterUuid: string)
   const ts = pastTimestamp();
   // Onset 5 days before recordedDate, mirroring the real-world UI payload
   const onsetDateTime = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 - 2 * 60 * 1000).toISOString();
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterUuid, ctx, ts),
       diagnosisConditionEntry(ctx, encounterUuid, CONDITION_CODES.malaria, ts),
@@ -271,7 +271,7 @@ export function buildConditionsBundle(ctx: BundleContext, encounterUuid: string)
 /** Bundle with only an encounter-diagnosis Condition. */
 export function buildDiagnosisBundle(ctx: BundleContext, encounterUuid: string): Record<string, unknown> {
   const ts = pastTimestamp();
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterUuid, ctx, ts),
       diagnosisConditionEntry(ctx, encounterUuid, CONDITION_CODES.malaria, ts),
@@ -284,7 +284,7 @@ export function buildDiagnosisBundle(ctx: BundleContext, encounterUuid: string):
 export function buildProblemListBundle(ctx: BundleContext, encounterUuid: string): Record<string, unknown> {
   const ts = pastTimestamp();
   const onsetDateTime = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 - 2 * 60 * 1000).toISOString();
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterUuid, ctx, ts),
       problemListConditionEntry(ctx, encounterUuid, CONDITION_CODES.anaemia, ts, onsetDateTime),
@@ -300,7 +300,7 @@ export function buildProblemListBundle(ctx: BundleContext, encounterUuid: string
 export function buildLabOrderBundle(ctx: BundleContext): Record<string, unknown> {
   const ts = pastTimestamp();
   const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
-  return consultationBundle(
+  return encounterBundle(
     [
       encounterEntry,
       serviceRequestEntry(
@@ -330,7 +330,7 @@ export function buildSingleLabOrderBundle(
 ): Record<string, unknown> {
   const ts = pastTimestamp();
   const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
-  return consultationBundle(
+  return encounterBundle(
     [
       encounterEntry,
       {
@@ -359,7 +359,7 @@ export function buildRadiologyNewEncounterBundle(
 ): Record<string, unknown> {
   const ts = pastTimestamp();
   const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
-  return consultationBundle(
+  return encounterBundle(
     [
       encounterEntry,
       {
@@ -384,7 +384,7 @@ export function buildRadiologyNewEncounterBundle(
 
 export function buildPanelLabOrderBundle(ctx: BundleContext, encounterUuid: string): Record<string, unknown> {
   const ts = pastTimestamp();
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterUuid, ctx, ts),
       {
@@ -413,7 +413,7 @@ export function buildRadiologyOrderBundle(
   radiologyConceptCode: string = RADIOLOGY_CONCEPTS.echocardiogram
 ): Record<string, unknown> {
   const ts = pastTimestamp();
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterUuid, ctx, ts),
       {
@@ -438,7 +438,7 @@ export function buildRadiologyOrderBundle(
 
 export function buildProcedureOrderBundle(ctx: BundleContext, encounterUuid: string): Record<string, unknown> {
   const ts = pastTimestamp();
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterUuid, ctx, ts),
       {
@@ -469,7 +469,7 @@ export function buildProcedureOrderBundle(ctx: BundleContext, encounterUuid: str
 export function buildAnemiaPanelOrderBundle(ctx: BundleContext): Record<string, unknown> {
   const ts = pastTimestamp();
   const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
-  return consultationBundle(
+  return encounterBundle(
     [
       encounterEntry,
       serviceRequestEntry(
@@ -517,7 +517,7 @@ export function buildMedicationRequestBundle(
   medicationUuid: string
 ): Record<string, unknown> {
   const ts = pastTimestamp();
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterUuid, ctx, ts),
       medicationRequestEntry(encounterUuid, ctx.patientUuid, ctx.practitionerUuid, medicationUuid, 'routine', ts),
@@ -631,7 +631,7 @@ export function buildMedicationOrderBundle(
 ): Record<string, unknown> {
   const ts = pastTimestamp();
   const endDate = new Date(Date.now() + options.durationValue * DURATION_MS[options.durationUcumCode]).toISOString();
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterUuid, ctx, ts),
       {
@@ -678,7 +678,7 @@ export function buildVitalsBundle(ctx: BundleContext, encounterUuid: string): Re
   const bpDiastolicUuid = faker.string.uuid();
   const bpPositionUuid = faker.string.uuid();
 
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterUuid, ctx, ts),
       singleObservationEntry(
@@ -764,7 +764,7 @@ export function buildHistoryExaminationBundle(ctx: BundleContext, encounterUuid:
   const durationUuid = faker.string.uuid();
   const durationUnitUuid = faker.string.uuid();
 
-  return consultationBundle(
+  return encounterBundle(
     [
       existingEncounterEntry(encounterUuid, ctx, ts),
       namedObservationEntry(
@@ -1078,7 +1078,7 @@ export function buildVitalsAndGynaecologyBundle(ctx: BundleContext): VitalsAndGy
     },
   ];
 
-  return { bundle: consultationBundle(entries, ts), submittedObs };
+  return { bundle: encounterBundle(entries, ts), submittedObs };
 }
 
 // DiagnosticReport submission for tests is handled via the proven `FhirApiHelper.postAnemiaReport`
@@ -1097,7 +1097,7 @@ export function buildBundleWithFutureEncounterDatetime(ctx: BundleContext): Reco
     resource: encounterResource(ctx, ts),
     request: { method: 'POST', url: 'Encounter' },
   };
-  return consultationBundle(
+  return encounterBundle(
     [
       encounterEntry,
       {
@@ -1127,7 +1127,7 @@ export function buildBundleWithPreVisitEncounterDatetime(ctx: BundleContext): Re
     resource: encounterResource(ctx, ts),
     request: { method: 'POST', url: 'Encounter' },
   };
-  return consultationBundle(
+  return encounterBundle(
     [
       encounterEntry,
       {
@@ -1151,7 +1151,7 @@ export function buildBundleWithPreVisitEncounterDatetime(ctx: BundleContext): Re
 export function buildBundleWithValidAllergyAndInvalidServiceRequest(ctx: BundleContext): Record<string, unknown> {
   const ts = pastTimestamp();
   const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
-  return consultationBundle(
+  return encounterBundle(
     [
       encounterEntry,
       {
@@ -1188,7 +1188,7 @@ export function buildBundleWithValidAllergyAndInvalidServiceRequest(ctx: BundleC
 export function buildBundleWithInvalidPatientRef(ctx: BundleContext): Record<string, unknown> {
   const ts = pastTimestamp();
   const { tempUuid, entry: encounterEntry } = newEncounterEntry(ctx, ts);
-  return consultationBundle(
+  return encounterBundle(
     [
       encounterEntry,
       {

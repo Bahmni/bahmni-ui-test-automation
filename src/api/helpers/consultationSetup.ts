@@ -49,8 +49,8 @@ export async function teardownConsultationContext(api: ApiFactory, ctx: Consulta
 }
 
 /**
- * Returns the id of the first resource of the given type in a ConsultationBundle response.
- * ConsultationBundle responses always contain exactly one Encounter, so this is safe for that case.
+ * Returns the id of the first resource of the given type in a EncounterBundle response.
+ * EncounterBundle responses always contain exactly one Encounter, so this is safe for that case.
  * For resource types where multiple may exist (e.g., ServiceRequest), use `getBundleEntriesByType` directly.
  */
 export async function startNewVisit(
@@ -78,6 +78,6 @@ export function extractFirstUuidFromBundle(
   resourceType: string
 ): string {
   const entry = bundleResponse.entry?.find((e) => e.resource.resourceType === resourceType);
-  if (!entry) throw new Error(`No ${resourceType} found in ConsultationBundle response`);
+  if (!entry) throw new Error(`No ${resourceType} found in EncounterBundle response`);
   return entry.resource.id;
 }

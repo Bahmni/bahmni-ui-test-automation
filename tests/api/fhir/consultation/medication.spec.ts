@@ -6,7 +6,7 @@ import {
   buildMedicationOrderBundle,
   calculateTotalQuantity,
   MedicationOrderOptions,
-} from '../../../../test-data/api/consultationBundlePayload';
+} from '../../../../test-data/api/encounterBundlePayload';
 import { DRUG_ORDER, DRUGS } from '../../../../test-data/api/constants';
 import {
   ConsultationContext,
@@ -47,12 +47,12 @@ test.describe.serial('POST medication orders — routes, dose units, formulation
 
   test.beforeAll(async ({ api }) => {
     ctx = await setupConsultationContext(api);
-    const { body } = await api.fhir.submitConsultationBundle(buildAllergyBundle(ctx));
+    const { body } = await api.fhir.submitEncounterBundle(buildAllergyBundle(ctx));
     encounterUuid = extractFirstUuidFromBundle(body, 'Encounter');
   });
 
   const submitAndFind = async (api: ApiFactory, medicationUuid: string, opts: MedicationOrderOptions) => {
-    await api.fhir.submitConsultationBundle(buildMedicationOrderBundle(ctx, encounterUuid, medicationUuid, opts));
+    await api.fhir.submitEncounterBundle(buildMedicationOrderBundle(ctx, encounterUuid, medicationUuid, opts));
     const { body } = await api.fhir.getMedicationRequests(ctx.patientUuid);
     const requests = getBundleEntriesByType<MedicationRequestEntry>(body, 'MedicationRequest');
     return requests.find((r) => r.medicationReference.reference.includes(medicationUuid));

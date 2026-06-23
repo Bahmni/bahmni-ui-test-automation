@@ -5,7 +5,7 @@ import {
   INTERPRETATION_ABNORMAL,
   VitalsAndGynaecologyBundleSpec,
   VitalsAndGynaecologySubmittedObs,
-} from '../../../../test-data/api/consultationBundlePayload';
+} from '../../../../test-data/api/encounterBundlePayload';
 import { FORM_NAMES, FORM_NAMESPACE_EXT_URL } from '../../../../test-data/api/constants';
 import {
   ConsultationContext,
@@ -69,7 +69,7 @@ function assertObsMatchesSpec(
 }
 
 test.describe.serial(
-  'POST /fhir2/R4/ConsultationBundle (Vitals + Obstetrics & Gynaecology)',
+  'POST /fhir2/R4/EncounterBundle (Vitals + Obstetrics & Gynaecology)',
   { tag: ['@regression'] },
   () => {
     let ctx: ConsultationContext;
@@ -81,10 +81,10 @@ test.describe.serial(
       bundleSpec = buildVitalsAndGynaecologyBundle(ctx);
     });
 
-    test('POST /fhir2/R4/ConsultationBundle — response echoes every submitted observation with matching value, note, interpretation, and form-namespace extension', async ({
+    test('POST /fhir2/R4/EncounterBundle — response echoes every submitted observation with matching value, note, interpretation, and form-namespace extension', async ({
       api,
     }) => {
-      const { status, body } = await api.fhir.submitConsultationBundle(bundleSpec.bundle);
+      const { status, body } = await api.fhir.submitEncounterBundle(bundleSpec.bundle);
 
       expect(status).toBe(201);
       encounterUuid = extractFirstUuidFromBundle(body, 'Encounter');

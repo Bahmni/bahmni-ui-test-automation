@@ -4,7 +4,7 @@ import {
   buildAllergyBundle,
   buildDiagnosisBundle,
   buildProblemListBundle,
-} from '../../../../test-data/api/consultationBundlePayload';
+} from '../../../../test-data/api/encounterBundlePayload';
 import { CONDITION_CODES } from '../../../../test-data/api/constants';
 import {
   ConsultationContext,
@@ -14,20 +14,20 @@ import {
 } from '../../../../src/api/helpers/consultationSetup';
 import { ConditionEntry } from '../../../../src/api/types/fhir-resources.types';
 
-test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/Condition', { tag: ['@regression'] }, () => {
+test.describe.serial('POST /fhir2/R4/EncounterBundle → GET /fhir2/R4/Condition', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
   let encounterUuid: string;
 
   test.beforeAll(async ({ api }) => {
     ctx = await setupConsultationContext(api);
-    const { body: allergyResponse } = await api.fhir.submitConsultationBundle(buildAllergyBundle(ctx));
+    const { body: allergyResponse } = await api.fhir.submitEncounterBundle(buildAllergyBundle(ctx));
     encounterUuid = extractFirstUuidFromBundle(allergyResponse, 'Encounter');
   });
 
-  test('POST /fhir2/R4/ConsultationBundle (encounter-diagnosis only) — save diagnosis and validate response fields', async ({
+  test('POST /fhir2/R4/EncounterBundle (encounter-diagnosis only) — save diagnosis and validate response fields', async ({
     api,
   }) => {
-    const { status, body } = await api.fhir.submitConsultationBundle(buildDiagnosisBundle(ctx, encounterUuid));
+    const { status, body } = await api.fhir.submitEncounterBundle(buildDiagnosisBundle(ctx, encounterUuid));
 
     expect(status).toBe(201);
     const conditions = getBundleEntriesByType<ConditionEntry>(body, 'Condition');
@@ -42,10 +42,10 @@ test.describe.serial('POST /fhir2/R4/ConsultationBundle → GET /fhir2/R4/Condit
     expect(diagnosis.recorder?.reference).toContain(ctx.userUuid);
   });
 
-  test('POST /fhir2/R4/ConsultationBundle (problem-list-item only) — save condition and validate response fields', async ({
+  test('POST /fhir2/R4/EncounterBundle (problem-list-item only) — save condition and validate response fields', async ({
     api,
   }) => {
-    const { status, body } = await api.fhir.submitConsultationBundle(buildProblemListBundle(ctx, encounterUuid));
+    const { status, body } = await api.fhir.submitEncounterBundle(buildProblemListBundle(ctx, encounterUuid));
 
     expect(status).toBe(201);
     const conditions = getBundleEntriesByType<ConditionEntry & { onsetDateTime?: string }>(body, 'Condition');

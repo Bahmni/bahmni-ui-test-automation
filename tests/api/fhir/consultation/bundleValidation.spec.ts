@@ -4,7 +4,7 @@ import {
   buildBundleWithFutureEncounterDatetime,
   buildBundleWithPreVisitEncounterDatetime,
   buildBundleWithValidAllergyAndInvalidServiceRequest,
-} from '../../../../test-data/api/consultationBundlePayload';
+} from '../../../../test-data/api/encounterBundlePayload';
 import { ENCOUNTER_TYPES } from '../../../../test-data/api/constants';
 import {
   ConsultationContext,
@@ -13,11 +13,11 @@ import {
 } from '../../../../src/api/helpers/consultationSetup';
 
 /**
- * Verifies server-enforced ConsultationBundle validations that depend on real DB state
+ * Verifies server-enforced EncounterBundle validations that depend on real DB state
  * (visit lifecycle, server clock, transaction semantics) and cannot be tested at the
  * module unit-test level.
  */
-test.describe.serial('POST /fhir2/R4/ConsultationBundle — server-enforced validation', { tag: ['@regression'] }, () => {
+test.describe.serial('POST /fhir2/R4/EncounterBundle — server-enforced validation', { tag: ['@regression'] }, () => {
   let ctx: ConsultationContext;
 
   test.beforeAll(async ({ api }) => {
@@ -26,14 +26,14 @@ test.describe.serial('POST /fhir2/R4/ConsultationBundle — server-enforced vali
 
   // --- Encounter datetime validation (Bahmni-specific business rule, not FHIR spec) ---
 
-  test('POST /fhir2/R4/ConsultationBundle — encounter datetime in the future is rejected', async ({ api }) => {
-    const { status } = await api.fhir.submitConsultationBundleRaw(buildBundleWithFutureEncounterDatetime(ctx));
+  test('POST /fhir2/R4/EncounterBundle — encounter datetime in the future is rejected', async ({ api }) => {
+    const { status } = await api.fhir.submitEncounterBundleRaw(buildBundleWithFutureEncounterDatetime(ctx));
 
     expect(status).toBe(400);
   });
 
-  test('POST /fhir2/R4/ConsultationBundle — encounter datetime before visit start is rejected', async ({ api }) => {
-    const { status } = await api.fhir.submitConsultationBundleRaw(buildBundleWithPreVisitEncounterDatetime(ctx));
+  test('POST /fhir2/R4/EncounterBundle — encounter datetime before visit start is rejected', async ({ api }) => {
+    const { status } = await api.fhir.submitEncounterBundleRaw(buildBundleWithPreVisitEncounterDatetime(ctx));
 
     expect(status).toBe(400);
   });
@@ -43,10 +43,10 @@ test.describe.serial('POST /fhir2/R4/ConsultationBundle — server-enforced vali
   // Tests that a failing ServiceRequest in the middle of a bundle leaves no orphaned
   // Encounter or AllergyIntolerance behind.
 
-  test('POST /fhir2/R4/ConsultationBundle — partial failure rolls back: no Encounter persisted', async ({ api }) => {
+  test('POST /fhir2/R4/EncounterBundle — partial failure rolls back: no Encounter persisted', async ({ api }) => {
     const isolatedCtx = await setupConsultationContext(api);
     try {
-      const { status } = await api.fhir.submitConsultationBundleRaw(
+      const { status } = await api.fhir.submitEncounterBundleRaw(
         buildBundleWithValidAllergyAndInvalidServiceRequest(isolatedCtx)
       );
       expect(status).toBe(400);
@@ -64,12 +64,12 @@ test.describe.serial('POST /fhir2/R4/ConsultationBundle — server-enforced vali
     }
   });
 
-  test('POST /fhir2/R4/ConsultationBundle — partial failure rolls back: no AllergyIntolerance persisted', async ({
+  test('POST /fhir2/R4/EncounterBundle — partial failure rolls back: no AllergyIntolerance persisted', async ({
     api,
   }) => {
     const isolatedCtx = await setupConsultationContext(api);
     try {
-      const { status } = await api.fhir.submitConsultationBundleRaw(
+      const { status } = await api.fhir.submitEncounterBundleRaw(
         buildBundleWithValidAllergyAndInvalidServiceRequest(isolatedCtx)
       );
       expect(status).toBe(400);

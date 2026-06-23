@@ -1,6 +1,6 @@
 import { test, expect } from '../../../src/api/fixtures/apiFixture';
 import { getBundleEntriesByType } from '../../../src/utils/fhir-bundle-utils';
-import { buildAllergyBundle } from '../../../test-data/api/consultationBundlePayload';
+import { buildAllergyBundle } from '../../../test-data/api/encounterBundlePayload';
 import { ALLERGY_CODES } from '../../../test-data/api/constants';
 import {
   ConsultationContext,
@@ -26,9 +26,9 @@ test.describe.serial(
       ctxB = await setupConsultationContext(api);
 
       // Patient A gets a penicillin allergy
-      await api.fhir.submitConsultationBundle(buildAllergyBundle(ctxA, ALLERGY_CODES.penicillin));
+      await api.fhir.submitEncounterBundle(buildAllergyBundle(ctxA, ALLERGY_CODES.penicillin));
       // Patient B gets an aspirin allergy
-      await api.fhir.submitConsultationBundle(buildAllergyBundle(ctxB, ALLERGY_CODES.aspirin));
+      await api.fhir.submitEncounterBundle(buildAllergyBundle(ctxB, ALLERGY_CODES.aspirin));
     });
 
     test("GET /fhir2/R4/AllergyIntolerance?patient={A} — returns A's allergy and never B's", async ({ api }) => {

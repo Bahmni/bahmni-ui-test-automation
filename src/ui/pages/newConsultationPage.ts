@@ -200,7 +200,6 @@ export class NewConsultationPage {
     return this.page.locator(`li[role="option"]:has-text("${investigationName} (Already Added)")`).first();
   }
 
-
   /**
    * Close the investigations/procedures dropdown so it doesn't overlay/intercept subsequent clicks (e.g. Done button).
    */
@@ -496,7 +495,4 @@ export class NewConsultationPage {
       timeout: 10000,
     });
   }
-
-
- 
 }

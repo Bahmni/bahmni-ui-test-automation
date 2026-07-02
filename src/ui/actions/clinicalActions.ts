@@ -16,8 +16,8 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
   }
 
-  async continueConsultation(){
-     await this.bahmni.clinicalPage.clickContinueConsultation();
+  async continueConsultation() {
+    await this.bahmni.clinicalPage.clickContinueConsultation();
   }
 
   async addAllergyInConsultation(allergyData: AllergyData) {

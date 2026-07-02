@@ -136,13 +136,12 @@ export class ClinicalPage {
     await this.page.locator(this.selectors.newConsultationButton).click();
   }
 
-    /**
+  /**
    * Click Continue Consultation button
    */
   async clickContinueConsultation() {
     await this.page.locator(this.selectors.continueConsultationButton).click();
   }
-
 
   /**
    * Returns the New Consultation button locator (for visibility assertions)

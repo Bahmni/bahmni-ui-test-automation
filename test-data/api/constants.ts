@@ -184,7 +184,7 @@ export const CONDITION_CODES = {
 export const FHIR_CODED_VALUES = {
   fever: { code: env('CODED_VALUE_FEVER'), display: 'Fever' },
   hours: { code: env('CODED_VALUE_HOURS'), display: 'Hours' },
-  sitting: { code: env('CODED_VALUE_SITTING'), display: 'sitting' },
+  sitting: { code: env('CODED_VALUE_SITTING'), display: 'Sitting' },
   cephalic: { code: env('CODED_VALUE_CEPHALIC'), display: 'Cephalic' },
 };
 

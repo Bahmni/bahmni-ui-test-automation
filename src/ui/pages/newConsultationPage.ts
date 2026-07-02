@@ -177,6 +177,36 @@ export class NewConsultationPage {
   }
 
   /**
+   * Search the investigations/procedures combobox for a term, without selecting anything.
+   * @param searchTerm - Name of the investigation/procedure to search for
+   */
+  async searchInvestigation(searchTerm: string) {
+    await this.page.locator(this.selectors.investigationsSearchInput).fill(searchTerm);
+  }
+
+  /**
+   * Wait for a fixed duration, e.g. to allow a debounced search to settle.
+   * @param ms - Milliseconds to wait (default: 1000)
+   */
+  async waitForSearchDebounce(ms: number = 1000) {
+    await this.page.waitForTimeout(ms);
+  }
+
+  /**
+   * Locator for the dropdown option showing an investigation/procedure as already added to this encounter.
+   * @param investigationName - Name of the investigation/procedure
+   */
+  getAlreadyAddedOption(investigationName: string) {
+    return this.page.locator(`li[role="option"]:has-text("${investigationName} (Already Added)")`).first();
+  }
+
+
+  /**
+   * Close the investigations/procedures dropdown so it doesn't overlay/intercept subsequent clicks (e.g. Done button).
+   */
+  async closeInvestigationsDropdown() {
+    await this.page.keyboard.press('Escape');
+  } /**
    * Add a diagnosis by searching, selecting, and choosing certainty
    * @param diagnosisName - Name of the diagnosis to add
    * @param certainty - Diagnosis certainty (default: 'Confirmed')
@@ -466,4 +496,7 @@ export class NewConsultationPage {
       timeout: 10000,
     });
   }
+
+
+ 
 }

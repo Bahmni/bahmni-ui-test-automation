@@ -50,6 +50,9 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation, 'Lab Investigations');
     await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation_panel, 'Lab Investigations');
     await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation_radiology, 'Radiology Investigations');
+    await actions.clinical.continueConsultation();
+    await actions.clinical.verifyProcedureAlreadyAdded(investigation_radiology);
+    await actions.clinical.verifyProcedureAlreadyAdded(investigation_panel);
   });
 
   test('Order procedure in consultation', { tag: '@onlyStandard' }, async ({ clinicalSetup }) => {
@@ -57,8 +60,12 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     const procedure = medicalFaker.procedure();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
-    await actions.clinical.addInvestigationsInConsultation([procedure]);
+    await actions.clinical.startNewConsultation();
+    await actions.clinical.addInvestigation(procedure);
+    await actions.clinical.saveConsultation();
     await actions.clinical.verifyInvestigationOrProcedureDisplayed(procedure, 'Procedures');
+    await actions.clinical.continueConsultation();
+    await actions.clinical.verifyProcedureAlreadyAdded(procedure);
   });
 
   test('Add condition and diagnosis in consultation', async ({ clinicalSetup }) => {

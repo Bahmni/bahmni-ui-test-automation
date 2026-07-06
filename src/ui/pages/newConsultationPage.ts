@@ -4,7 +4,7 @@ import { MedicationData } from '../../../test-data/common/medicationData';
 /**
  * NewConsultationPage class for Bahmni new consultation page
  * URL: https://docker.standard.mybahmni.in/bahmni-v2/clinical/{patientUuid}/consultation
- */
+ */ 
 export class NewConsultationPage {
   private readonly page: Page;
 
@@ -166,7 +166,7 @@ export class NewConsultationPage {
   }
 
   /**
-   * Add an investigation/procedure by searching and selecting
+   * Add an investigation or a procedure by searching and selecting
    * @param investigationName - Name of the investigation/procedure to add
    */
   async addInvestigation(investigationName: string) {
@@ -495,4 +495,7 @@ export class NewConsultationPage {
       timeout: 10000,
     });
   }
+
+
+ 
 }

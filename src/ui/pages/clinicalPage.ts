@@ -51,6 +51,7 @@ export class ClinicalPage {
     patientGender: 'p:has(img[alt="gender"])',
     patientAge: 'p:has(img[alt="age"])',
     newConsultationButton: '[data-testid="consultation-action-button"]',
+    continueConsultationButton: '[data-testid="consultation-action-button"]:has-text("Continue Consultation")',
 
     // Section headings
     // Using text-based selectors as no IDs are present
@@ -133,6 +134,13 @@ export class ClinicalPage {
    */
   async clickNewConsultation() {
     await this.page.locator(this.selectors.newConsultationButton).click();
+  }
+
+  /**
+   * Click Continue Consultation button
+   */
+  async clickContinueConsultation() {
+    await this.page.locator(this.selectors.continueConsultationButton).click();
   }
 
   /**

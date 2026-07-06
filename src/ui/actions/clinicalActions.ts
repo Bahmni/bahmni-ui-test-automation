@@ -16,6 +16,10 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
   }
 
+  async continueConsultation() {
+    await this.bahmni.clinicalPage.clickContinueConsultation();
+  }
+
   async addAllergyInConsultation(allergyData: AllergyData) {
     await this.startNewConsultation();
     await this.bahmni.newConsultationPage.addAllergyWithDetails(
@@ -64,6 +68,22 @@ export class ClinicalActions {
     for (const investigation of investigations) {
       await this.bahmni.newConsultationPage.addInvestigation(investigation);
     }
+    await this.bahmni.newConsultationPage.saveConsultation();
+  }
+  async addInvestigation(investigationName: string) {
+    await this.bahmni.newConsultationPage.addInvestigation(investigationName);
+  }
+
+  async verifyProcedureAlreadyAdded(investigationName: string) {
+    await this.bahmni.newConsultationPage.searchInvestigation(investigationName);
+    const option = this.bahmni.newConsultationPage.getAlreadyAddedOption(investigationName);
+    await this.bahmni.newConsultationPage.waitForSearchDebounce(3000);
+    await expect(option).toBeVisible();
+    await expect(option).toHaveAttribute('disabled', '');
+    await this.bahmni.newConsultationPage.closeInvestigationsDropdown();
+  }
+
+  async saveConsultation() {
     await this.bahmni.newConsultationPage.saveConsultation();
   }
 

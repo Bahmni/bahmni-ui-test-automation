@@ -131,7 +131,7 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyVaccinationDisplayed(vaccination);
   });
 
-  test.skip('Add vitals observation form in consultation', async ({ clinicalSetup }) => {
+  test('Add vitals observation form in consultation', async ({ clinicalSetup }) => {
     test.setTimeout(60000);
     const { actions, bahmni, page } = clinicalSetup;
     const vitalsData = vitalsFaker.normalVitals();

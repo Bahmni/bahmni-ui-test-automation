@@ -1,12 +1,11 @@
-import { test, expect } from '../../../../src/ui/fixtures/clinicalFixture';
+import { test, expect } from '../../../../src/ui/fixtures/apiClinicalFixture';
 import { admissionLetterFaker } from '../../../../test-data/common/admissionLetterData';
 import { deathNoteFaker } from '../../../../test-data/common/deathNoteData';
 import { diabetesProgressFaker } from '../../../../test-data/common/diabetesProgressData';
 import { malariaFaker } from '../../../../test-data/common/malariaData';
 import { vitalsFaker } from '../../../../test-data/common/vitalsData';
 
-//Refactor required for form2control change
-test.describe.skip('Observation form Tests', () => {
+test.describe('Observation form Tests', () => {
   test('Add admission letter observation form in consultation', async ({ clinicalSetup }) => {
     test.setTimeout(60000);
     const { actions, bahmni, page } = clinicalSetup;

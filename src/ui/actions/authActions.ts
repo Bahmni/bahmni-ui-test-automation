@@ -33,5 +33,6 @@ export class AuthActions {
   async logout() {
     await this.bahmni.homePage.goto();
     await this.bahmni.homePage.logout();
+    await this.bahmni.loginPage.waitForPage();
   }
 }

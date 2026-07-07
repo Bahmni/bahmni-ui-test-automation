@@ -1,4 +1,4 @@
-import { test, expect } from '../../../../src/ui/fixtures/clinicalFixture';
+import { test, expect } from '../../../../src/ui/fixtures/apiClinicalFixture';
 import {
   ANEMIA_PANEL_NAME,
   anemiaReportData,
@@ -8,6 +8,7 @@ import {
   echocardiogramReportData,
 } from '../../../../test-data/common/labOrderData';
 import { FhirApiHelper } from '../../../../src/utils/fhir-api-helper';
+import { SERVICE_REQUEST_CATEGORIES } from '../../../../test-data/api/constants';
 
 test.describe('Lab Orders', { tag: ['@regression', '@onlyStandard'] }, () => {
   test('validate lab orders - order anemia panel and absolute atypical lymphocyte count and verify results', async ({
@@ -26,7 +27,7 @@ test.describe('Lab Orders', { tag: ['@regression', '@onlyStandard'] }, () => {
     const encounterUuid = await fhirApi.getLatestEncounterUuid(patientUuid);
     const [atypicalLymphServiceRequestUuid, anemiaServiceRequestUuid] = await fhirApi.getLatestServiceRequestUuids(
       patientUuid,
-      2
+      SERVICE_REQUEST_CATEGORIES.lab
     );
 
     await fhirApi.postAnemiaReport(patientUuid, encounterUuid, anemiaServiceRequestUuid, anemiaReportData);
@@ -60,7 +61,10 @@ test.describe('Radiology Investigations', { tag: ['@regression', '@onlyStandard'
 
     const patientUuid = fhirApi.getPatientUuidFromUrl(page.url());
     const encounterUuid = await fhirApi.getLatestEncounterUuid(patientUuid);
-    const [echoServiceRequestUuid] = await fhirApi.getLatestServiceRequestUuids(patientUuid, 1);
+    const [echoServiceRequestUuid] = await fhirApi.getLatestServiceRequestUuids(
+      patientUuid,
+      SERVICE_REQUEST_CATEGORIES.radiology
+    );
 
     await fhirApi.postEchocardiogramReport(
       patientUuid,

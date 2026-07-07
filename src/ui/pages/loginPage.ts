@@ -36,8 +36,14 @@ export class LoginPage {
    * Navigate to the login page
    */
   async goto() {
-    await this.page.goto(config.urls.login);
+    if (!this.page.url().includes('#/login')) {
+      await this.page.goto(config.urls.login);
+    }
     await this.page.waitForLoadState('networkidle');
+  }
+
+  async waitForPage() {
+    await this.page.waitForURL(/.*#\/login/, { timeout: 10000 });
   }
 
   /**

@@ -24,7 +24,7 @@ test.describe('E2E patient flow', { tag: ['@regression'] }, () => {
     }
   });
 
-  test.skip('E2E patient flow', async ({ browser }) => {
+  test('E2E patient flow', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const bahmni = new PageFactory(page);

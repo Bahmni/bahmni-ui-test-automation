@@ -42,12 +42,12 @@ export class VitalsForm {
     systolicBPLabel: 'Systolic blood pressure (mmHg)', // Normal: 100-140
     diastolicBPLabel: 'Diastolic blood pressure (mmHg)', // Normal: 60-90
 
-    // Notes toggle button (same class for all fields; .active when open)
-    notesToggleButton: 'button.form-builder-comment-button-toggle',
-    notesToggleButtonActive: 'button.form-builder-comment-button-toggle.active',
+    // Notes toggle link (same class for all fields; aria-expanded="true" when open)
+    notesToggleButton: 'a.ds-obs-add-note-link',
+    notesToggleButtonActive: 'a.ds-obs-add-note-link[aria-expanded="true"]',
 
-    // Notes textarea (appears when notes icon is clicked)
-    notesTextarea: 'textarea[placeholder="Notes"]',
+    // Notes textarea (appears when notes link is clicked)
+    notesTextarea: 'textarea',
 
     // Body position buttons
     bodyPositionSitting: 'button:has-text("sitting")',
@@ -77,12 +77,16 @@ export class VitalsForm {
     await this.page.locator(this.selectors.saveFormButton).waitFor({ state: 'visible', timeout: 10000 });
   }
 
+  private numberInputByLabel(labelText: string) {
+    return this.page.locator(`.form-field-wrap:has(label:text-is("${labelText}")) input[type="number"]`);
+  }
+
   /**
    * Fill pulse (beats/min)
    * @param pulse - Pulse value (normal range: 60-100)
    */
   async fillPulse(pulse: string) {
-    await this.page.getByRole('spinbutton', { name: this.selectors.pulseLabel }).fill(pulse);
+    await this.numberInputByLabel(this.selectors.pulseLabel).fill(pulse);
   }
 
   /**
@@ -90,7 +94,7 @@ export class VitalsForm {
    * @param oxygenSaturation - Oxygen saturation value (normal: >95)
    */
   async fillOxygenSaturation(oxygenSaturation: string) {
-    await this.page.getByRole('spinbutton', { name: this.selectors.oxygenSaturationLabel }).fill(oxygenSaturation);
+    await this.numberInputByLabel(this.selectors.oxygenSaturationLabel).fill(oxygenSaturation);
   }
 
   /**
@@ -98,9 +102,7 @@ export class VitalsForm {
    * @param respiratoryRate - Respiratory rate value (normal range: 12-18)
    */
   async fillRespiratoryRate(respiratoryRate: string) {
-    await this.page
-      .getByRole('spinbutton', { name: this.selectors.respiratoryRateLabel, exact: true })
-      .fill(respiratoryRate);
+    await this.numberInputByLabel(this.selectors.respiratoryRateLabel).fill(respiratoryRate);
   }
 
   /**
@@ -108,7 +110,7 @@ export class VitalsForm {
    * @param temperature - Temperature value (normal range: 95-99.86)
    */
   async fillTemperature(temperature: string) {
-    await this.page.getByRole('spinbutton', { name: this.selectors.temperatureLabel }).fill(temperature);
+    await this.numberInputByLabel(this.selectors.temperatureLabel).fill(temperature);
   }
 
   /**
@@ -116,7 +118,7 @@ export class VitalsForm {
    * @param systolic - Systolic BP value (normal range: 100-140)
    */
   async fillSystolicBP(systolic: string) {
-    await this.page.getByRole('spinbutton', { name: this.selectors.systolicBPLabel }).fill(systolic);
+    await this.numberInputByLabel(this.selectors.systolicBPLabel).fill(systolic);
   }
 
   /**
@@ -124,7 +126,7 @@ export class VitalsForm {
    * @param diastolic - Diastolic BP value (normal range: 60-90)
    */
   async fillDiastolicBP(diastolic: string) {
-    await this.page.getByRole('spinbutton', { name: this.selectors.diastolicBPLabel }).fill(diastolic);
+    await this.numberInputByLabel(this.selectors.diastolicBPLabel).fill(diastolic);
   }
 
   /**

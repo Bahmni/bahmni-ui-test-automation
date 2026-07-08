@@ -81,11 +81,14 @@ export class ClinicalActions {
     await expect(option).toBeVisible();
     await expect(option).toHaveAttribute('disabled', '');
     await this.bahmni.newConsultationPage.closeInvestigationsDropdown();
-    await this.bahmni.newConsultationPage.cancelConsultation();
   }
 
   async saveConsultation() {
     await this.bahmni.newConsultationPage.saveConsultation();
+  }
+
+  async cancelConsultation() {
+    await this.bahmni.newConsultationPage.cancelConsultation();
   }
 
   async addConditionAndDiagnosisInConsultation(condition: string, diagnosis: string) {

@@ -53,6 +53,7 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.continueConsultation();
     await actions.clinical.verifyOrderAlreadyAdded(investigation_radiology);
     await actions.clinical.verifyOrderAlreadyAdded(investigation_panel);
+    await actions.clinical.cancelConsultation();
   });
 
   test('Order procedure in consultation', { tag: '@onlyStandard' }, async ({ clinicalSetup }) => {
@@ -66,6 +67,7 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyOrderDisplayed(procedure, 'Procedures');
     await actions.clinical.continueConsultation();
     await actions.clinical.verifyOrderAlreadyAdded(procedure);
+    await actions.clinical.cancelConsultation();
   });
 
   test('Add condition and diagnosis in consultation', async ({ clinicalSetup }) => {

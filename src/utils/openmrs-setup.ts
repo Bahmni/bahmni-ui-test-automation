@@ -1520,11 +1520,6 @@ async function globalSetup(playwrightConfig: FullConfig) {
   console.log(`Browser: ${playwrightConfig.projects[0]?.name || 'chromium'}`);
   console.log('=================================\n');
 
-  if (process.env.SKIP_GLOBAL_SETUP === 'true') {
-    console.log('⏭  SKIP_GLOBAL_SETUP=true — skipping role/user/UUID provisioning\n');
-    return;
-  }
-
   // Verify environment is accessible
   try {
     const https = await import('https');

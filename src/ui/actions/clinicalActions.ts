@@ -74,13 +74,14 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.addInvestigation(investigationName);
   }
 
-  async verifyProcedureAlreadyAdded(investigationName: string) {
+  async verifyOrderAlreadyAdded(investigationName: string) {
     await this.bahmni.newConsultationPage.searchInvestigation(investigationName);
     const option = this.bahmni.newConsultationPage.getAlreadyAddedOption(investigationName);
     await this.bahmni.newConsultationPage.waitForSearchDebounce(3000);
     await expect(option).toBeVisible();
     await expect(option).toHaveAttribute('disabled', '');
     await this.bahmni.newConsultationPage.closeInvestigationsDropdown();
+    await this.bahmni.newConsultationPage.cancelConsultation();
   }
 
   async saveConsultation() {
@@ -118,7 +119,7 @@ export class ClinicalActions {
     }
   }
 
-  async verifyInvestigationOrProcedureDisplayed(
+  async verifyOrderDisplayed(
     name: string,
     section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations'
   ) {

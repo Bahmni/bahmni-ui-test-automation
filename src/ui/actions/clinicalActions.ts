@@ -74,7 +74,7 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.addInvestigation(investigationName);
   }
 
-  async verifyProcedureAlreadyAdded(investigationName: string) {
+  async verifyOrderAlreadyAdded(investigationName: string) {
     await this.bahmni.newConsultationPage.searchInvestigation(investigationName);
     const option = this.bahmni.newConsultationPage.getAlreadyAddedOption(investigationName);
     await this.bahmni.newConsultationPage.waitForSearchDebounce(3000);
@@ -85,6 +85,10 @@ export class ClinicalActions {
 
   async saveConsultation() {
     await this.bahmni.newConsultationPage.saveConsultation();
+  }
+
+  async cancelConsultation() {
+    await this.bahmni.newConsultationPage.cancelConsultation();
   }
 
   async addConditionAndDiagnosisInConsultation(condition: string, diagnosis: string) {
@@ -118,10 +122,7 @@ export class ClinicalActions {
     }
   }
 
-  async verifyInvestigationOrProcedureDisplayed(
-    name: string,
-    section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations'
-  ) {
+  async verifyOrderDisplayed(name: string, section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations') {
     const displayName = name.replace(/ \(Panel\)$/, '');
     await this.bahmni.clinicalPage.navigateToSection(section);
     await expect(this.bahmni.clinicalPage.getSectionArticle(section)).toContainText(displayName);

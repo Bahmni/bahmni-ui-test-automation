@@ -86,7 +86,7 @@ export class MalariaForm {
   }
 
   async fillTreatmentStartDate(date: string) {
-    await this.page.getByRole('textbox', { name: 'Treatment start date' }).fill(date);
+    await this.page.getByLabel('Date of death').fill(date);
   }
 
   async fillMalariaForm(data: {

@@ -43,13 +43,14 @@ export class FhirApiHelper {
    * Fetches the UUID of the most recent ServiceRequest for a given patient
    */
   async getLatestServiceRequestUuid(patientUuid: string): Promise<string> {
-    const uuids = await this.getLatestServiceRequestUuids(patientUuid, 1);
+    const uuids = await this.getLatestServiceRequestUuids(patientUuid);
     return uuids[0];
   }
 
-  async getLatestServiceRequestUuids(patientUuid: string, count: number): Promise<string[]> {
+  async getLatestServiceRequestUuids(patientUuid: string, category?: string): Promise<string[]> {
+    const categoryFilter = category ? `&category=${category}` : '';
     const response = await this.request.get(
-      `${this.fhirBaseUrl}/ServiceRequest?patient=${patientUuid}&_sort=-date&_count=${count}`,
+      `${this.fhirBaseUrl}/ServiceRequest?patient=${patientUuid}&_sort=-_lastUpdated&_count=100${categoryFilter}`,
       { headers: this.getAuthHeaders() }
     );
     const bundle = await response.json();

@@ -47,12 +47,13 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
       investigation_panel,
       investigation_radiology,
     ]);
-    await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation, 'Lab Investigations');
-    await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation_panel, 'Lab Investigations');
-    await actions.clinical.verifyInvestigationOrProcedureDisplayed(investigation_radiology, 'Radiology Investigations');
+    await actions.clinical.verifyOrderDisplayed(investigation, 'Lab Investigations');
+    await actions.clinical.verifyOrderDisplayed(investigation_panel, 'Lab Investigations');
+    await actions.clinical.verifyOrderDisplayed(investigation_radiology, 'Radiology Investigations');
     await actions.clinical.continueConsultation();
-    await actions.clinical.verifyProcedureAlreadyAdded(investigation_radiology);
-    await actions.clinical.verifyProcedureAlreadyAdded(investigation_panel);
+    await actions.clinical.verifyOrderAlreadyAdded(investigation_radiology);
+    await actions.clinical.verifyOrderAlreadyAdded(investigation_panel);
+    await actions.clinical.cancelConsultation();
   });
 
   test('Order procedure in consultation', { tag: '@onlyStandard' }, async ({ clinicalSetup }) => {
@@ -63,9 +64,10 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.startNewConsultation();
     await actions.clinical.addInvestigation(procedure);
     await actions.clinical.saveConsultation();
-    await actions.clinical.verifyInvestigationOrProcedureDisplayed(procedure, 'Procedures');
+    await actions.clinical.verifyOrderDisplayed(procedure, 'Procedures');
     await actions.clinical.continueConsultation();
-    await actions.clinical.verifyProcedureAlreadyAdded(procedure);
+    await actions.clinical.verifyOrderAlreadyAdded(procedure);
+    await actions.clinical.cancelConsultation();
   });
 
   test('Add condition and diagnosis in consultation', async ({ clinicalSetup }) => {
@@ -131,7 +133,7 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyVaccinationDisplayed(vaccination);
   });
 
-  test.skip('Add vitals observation form in consultation', async ({ clinicalSetup }) => {
+  test('Add vitals observation form in consultation', async ({ clinicalSetup }) => {
     test.setTimeout(60000);
     const { actions, bahmni, page } = clinicalSetup;
     const vitalsData = vitalsFaker.normalVitals();

@@ -119,10 +119,7 @@ export class ClinicalActions {
     }
   }
 
-  async verifyOrderDisplayed(
-    name: string,
-    section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations'
-  ) {
+  async verifyOrderDisplayed(name: string, section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations') {
     const displayName = name.replace(/ \(Panel\)$/, '');
     await this.bahmni.clinicalPage.navigateToSection(section);
     await expect(this.bahmni.clinicalPage.getSectionArticle(section)).toContainText(displayName);

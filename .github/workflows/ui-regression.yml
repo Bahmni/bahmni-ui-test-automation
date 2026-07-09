@@ -61,7 +61,7 @@ jobs:
           } > .env.local
 
       - name: Run UI regression tests
-        run: NODE_ENV=local npx playwright test --project=chromium --grep @regression --grep-invert @onlyStandard
+        run: NODE_ENV=local npx playwright test --project=chromium --grep "@regression|@onlyLite" --grep-invert @onlyStandard
 
       - name: Generate Allure report
         if: always()

@@ -61,9 +61,56 @@ bahmni-test-automation/
 
 ### API Tests
 
-3-layer architecture: **Endpoints → Controllers → Tests**. Each controller extends `BaseApiController` which handles authentication (Basic Auth) and provides `get/post/put/del` methods returning `{ status, body }`.
+```mermaid
+flowchart TD
+    subgraph TestData["Test Data — test-data/api/"]
+        PB["Payload builders\npatientPayload · visitPayload · …"]
+        CO["constants.ts\nenv-driven UUIDs & codes"]
+        SC["JSON schemas"]
+        CS["helpers/consultationSetup.ts\nsetup & teardown for complex flows"]
+    end
 
-Controllers also provide `Raw` variants (`getRaw`, `postRaw`, etc.) that never throw — used for negative tests asserting on 4xx/5xx responses.
+    subgraph Tests["Test Layer — tests/api/"]
+        SPEC["*.spec.ts\ntest blocks · assertions"]
+    end
+
+    subgraph Fixture["src/api/fixtures/apiFixture.ts"]
+        FIX["Worker-scoped APIRequestContext\nprovides api: ApiFactory"]
+    end
+
+    subgraph Factory["src/api/ApiFactory.ts"]
+        FAC["ApiFactory\ninstantiates all controllers"]
+    end
+
+    subgraph Controllers["Domain Controllers — src/api/controllers/"]
+        BASE["BaseApiController\nget · post · put · del  throw on non-2xx\ngetRaw · postRaw · putRaw · delRaw  never throw\nBasic Auth headers per role"]
+        PC["PatientController"] & VC["VisitController"] & LC["LocationController"]
+        FC["FhirController"] & UC["UserController"] & AC["AppointmentController"]
+        BFC["BahmniFormsController"] & PEC["ProgramEnrollmentController"] & CC["ConceptController"]
+    end
+
+    subgraph Config["Config & Endpoints"]
+        EP["endpoints.ts — REST & FHIR path constants"]
+        ENV["env.config.ts — credentials · baseUrl"]
+    end
+
+    TestData -->|import payloads & constants| SPEC
+    SPEC -->|import test from| FIX
+    FIX -->|provides api:| FAC
+    FAC --> PC & VC & LC & FC & UC & AC & BFC & PEC & CC
+    PC & VC & LC & FC & UC & AC & BFC & PEC & CC -->|extends| BASE
+    BASE --> EP & ENV
+```
+
+**Data flow in a test:**
+
+```
+test spec → ApiFactory → PatientController.create(payload)
+  → BaseApiController.post() → Playwright APIRequestContext → HTTP → Bahmni
+  ← { status, body } ← assert status · body fields
+```
+
+`Raw` method variants (`getRaw`, `postRaw`, etc.) return status without throwing — used for negative tests asserting 4xx/5xx responses. `consultationSetup.ts` encapsulates the multi-step prerequisite flow (create patient → start visit → get encounter) shared across consultation test suites.
 
 ## Environment Configuration
 

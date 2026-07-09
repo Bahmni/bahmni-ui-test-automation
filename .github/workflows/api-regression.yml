@@ -56,7 +56,7 @@ jobs:
           } > .env.local
 
       - name: Run API regression tests
-        run: NODE_ENV=local npx playwright test --project=api --grep @regression --grep-invert @onlyStandard
+        run: NODE_ENV=local npx playwright test --project=api --grep "@regression|@onlyLite" --grep-invert @onlyStandard --workers=5
 
       - name: Generate Allure report
         if: always()

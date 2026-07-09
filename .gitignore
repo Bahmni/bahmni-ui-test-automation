@@ -19,7 +19,6 @@ allure-report/
 .env.*.local
 # Keep the example file
 !.env.example
-.env.dev-lite
 
 # Claude Code
 .claude

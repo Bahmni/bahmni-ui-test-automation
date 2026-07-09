@@ -29,6 +29,7 @@ jobs:
 
       - name: Run UI regression tests
         env:
+          HEADLESS: true
           USER_ADMIN_PASSWORD: ${{ secrets.USER_ADMIN_PASSWORD }}
           USER_DOCTOR_PASSWORD: ${{ secrets.USER_DOCTOR_PASSWORD }}
           USER_NURSE_PASSWORD: ${{ secrets.USER_NURSE_PASSWORD }}

@@ -10,7 +10,7 @@ import {
 import { FhirApiHelper } from '../../../../src/utils/fhir-api-helper';
 import { SERVICE_REQUEST_CATEGORIES } from '../../../../test-data/api/constants';
 
-test.describe('Lab Orders', { tag: ['@regression', '@onlyStandard'] }, () => {
+test.describe('Lab Orders', { tag: ['@regression'] }, () => {
   test('validate lab orders - order anemia panel and absolute atypical lymphocyte count and verify results', async ({
     clinicalSetup,
     request,

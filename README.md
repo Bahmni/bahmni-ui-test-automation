@@ -55,62 +55,83 @@ bahmni-test-automation/
 
 ## Architecture
 
-### UI Tests
-
-3-layer architecture: **Pages → Actions → Tests**. Assertions live in the test layer only.
-
-### API Tests
+### UI Automation
 
 ```mermaid
 flowchart TD
-    subgraph TestData["Test Data — test-data/api/"]
-        PB["Payload builders\npatientPayload · visitPayload · …"]
-        CO["constants.ts\nenv-driven UUIDs & codes"]
-        SC["JSON schemas"]
-        CS["helpers/consultationSetup.ts\nsetup & teardown for complex flows"]
+    subgraph Prereq["Prerequisites — run once per session"]
+        GS["Global Setup\nSeed OpenMRS concepts & attributes"]
+        AS["Auth Setup\nCapture authenticated session"]
     end
 
-    subgraph Tests["Test Layer — tests/api/"]
-        SPEC["*.spec.ts\ntest blocks · assertions"]
+    TD["Test Data\nPayloads · constants"]
+    FIX["Test Fixtures\nInject shared context"]
+
+    subgraph POM["Page Object Model"]
+        TEST["Test Layer\nArrange · Act · Assert"]
+        ACT["Action Layer\nBusiness workflows — compose pages"]
+        PO["Page Object Layer\nLocators & element interactions"]
     end
 
-    subgraph Fixture["src/api/fixtures/apiFixture.ts"]
-        FIX["Worker-scoped APIRequestContext\nprovides api: ApiFactory"]
-    end
+    PW["Playwright API"]
+    BR["Browser — Bahmni UI"]
 
-    subgraph Factory["src/api/ApiFactory.ts"]
-        FAC["ApiFactory\ninstantiates all controllers"]
-    end
-
-    subgraph Controllers["Domain Controllers — src/api/controllers/"]
-        BASE["BaseApiController\nget · post · put · del  throw on non-2xx\ngetRaw · postRaw · putRaw · delRaw  never throw\nBasic Auth headers per role"]
-        PC["PatientController"] & VC["VisitController"] & LC["LocationController"]
-        FC["FhirController"] & UC["UserController"] & AC["AppointmentController"]
-        BFC["BahmniFormsController"] & PEC["ProgramEnrollmentController"] & CC["ConceptController"]
-    end
-
-    subgraph Config["Config & Endpoints"]
-        EP["endpoints.ts — REST & FHIR path constants"]
-        ENV["env.config.ts — credentials · baseUrl"]
-    end
-
-    TestData -->|import payloads & constants| SPEC
-    SPEC -->|import test from| FIX
-    FIX -->|provides api:| FAC
-    FAC --> PC & VC & LC & FC & UC & AC & BFC & PEC & CC
-    PC & VC & LC & FC & UC & AC & BFC & PEC & CC -->|extends| BASE
-    BASE --> EP & ENV
+    GS --> AS --> FIX
+    FIX --> TEST
+    TD --> TEST
+    TEST -->|invokes workflow| ACT
+    ACT -->|calls page methods| PO
+    PO -->|drives| PW
+    PW --> BR
 ```
 
-**Data flow in a test:**
+**How the Page Object Model works here:**
 
-```
-test spec → ApiFactory → PatientController.create(payload)
-  → BaseApiController.post() → Playwright APIRequestContext → HTTP → Bahmni
-  ← { status, body } ← assert status · body fields
+- **Test Layer** knows nothing about locators. It calls an action (e.g. `clinicalActions.startConsultation(patient)`) and asserts on the observed state.
+- **Action Layer** owns the business workflow. A single action may compose several page objects — e.g. registering a patient touches `LoginPage`, `HomePage`, and `CreatePatientPage`.
+- **Page Object Layer** owns locators and low-level element interactions for one screen. A page object never asserts and never orchestrates other pages.
+- **Playwright** is only touched inside page objects — actions and tests never call `page.click()` directly.
+
+---
+
+### API Automation
+
+```mermaid
+flowchart TD
+    subgraph Prereq["Prerequisites — run once per session"]
+        GS["Global Setup\nSeed OpenMRS concepts & attributes"]
+    end
+
+    TD["Test Data\nPayload builders · JSON schemas"]
+    FIX["Test Fixtures\nWorker-scoped APIRequestContext"]
+
+    subgraph CP["API Controller Pattern"]
+        TEST["Test Layer\nArrange · Act · Assert"]
+        FAC["API Factory\nAggregates all controllers"]
+        CTRL["Domain Controllers\nPatient · Visit · FHIR · Appointment · …"]
+        BASE["Base Controller\nHTTP verbs · auth · error handling"]
+    end
+
+    PW["Playwright APIRequestContext"]
+    API["Bahmni REST / FHIR APIs"]
+
+    GS --> FIX
+    FIX --> TEST
+    TD --> TEST
+    TEST -->|calls| FAC
+    FAC -->|routes to| CTRL
+    CTRL -->|extends| BASE
+    BASE -->|uses| PW
+    PW --> API
 ```
 
-`Raw` method variants (`getRaw`, `postRaw`, etc.) return status without throwing — used for negative tests asserting 4xx/5xx responses. `consultationSetup.ts` encapsulates the multi-step prerequisite flow (create patient → start visit → get encounter) shared across consultation test suites.
+**How the API Controller Pattern works here:**
+
+- **Test Layer** knows nothing about HTTP. It calls a controller method (e.g. `api.patient.create(payload)`) and asserts on `{ status, body }`.
+- **API Factory** is the single entry point — it aggregates all domain controllers and shares one `APIRequestContext` across them.
+- **Domain Controllers** own endpoint paths and request shapes for their domain. They expose typed methods and never format HTTP details.
+- **Base Controller** owns HTTP verbs, auth headers, and error handling. `get / post / put / del` throw on non-2xx; `getRaw / postRaw / putRaw / delRaw` return `{ status, body }` without throwing — used for negative tests.
+- Only the Base Controller touches Playwright's `APIRequestContext` — controllers and tests never build requests directly.
 
 ## Environment Configuration
 

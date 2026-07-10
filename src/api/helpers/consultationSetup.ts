@@ -1,5 +1,5 @@
 import { ApiFactory } from '../ApiFactory';
-import { buildCreatePatientPayload } from '../../../test-data/api/patientPayload';
+import { buildCreatePatientPayload, PatientInput } from '../../../test-data/api/patientPayload';
 import { buildStartVisitPayload } from '../../../test-data/api/visitPayload';
 import { IDENTIFIER, LOCATIONS, VISIT_TYPES } from '../../../test-data/api/constants';
 import { getBundleEntriesByType } from '../../utils/fhir-bundle-utils';
@@ -10,9 +10,12 @@ export interface ConsultationContext extends BundleContext {
   userUuid: string;
 }
 
-export async function setupConsultationContext(api: ApiFactory): Promise<ConsultationContext> {
+export async function setupConsultationContext(
+  api: ApiFactory,
+  patientInput?: PatientInput
+): Promise<ConsultationContext> {
   const identifier = await api.patient.generateIdentifier(IDENTIFIER.sourceUuid);
-  const { body: patientBody } = await api.patient.create(buildCreatePatientPayload(identifier));
+  const { body: patientBody } = await api.patient.create(buildCreatePatientPayload(identifier, patientInput));
   const patientUuid = patientBody.id;
 
   const { body: locationBody } = await api.location.getByName(LOCATIONS.opd1);

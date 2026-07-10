@@ -18,6 +18,10 @@ export const REST = {
   idgenIdentifierSource: '/openmrs/ws/rest/v1/idgen/identifiersource',
 } as const;
 
+export const REPORTS = {
+  report: '/bahmnireports/report',
+} as const;
+
 export const FHIR = {
   patient: '/openmrs/ws/fhir2/R4/Patient',
   encounter: '/openmrs/ws/fhir2/R4/Encounter',

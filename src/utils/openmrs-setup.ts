@@ -506,13 +506,18 @@ function writeEnvVar(envPath: string, key: string, value: string): void {
   writeFileSync(envPath, updated);
 }
 
+function activeEnvPath(): string {
+  const env = process.env.NODE_ENV || 'dev';
+  return resolve(process.cwd(), `.env.${env}`);
+}
+
 /**
  * Resolve the identifierType UUID from the configured identifier source and inject it
  * into process.env and .env.local so workers pick it up at test runtime.
  */
 async function setupIdentifierSource(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = resolve(process.cwd(), '.env.local');
+  const envPath = activeEnvPath();
 
   try {
     // Fetch all identifier sources and use the first active sequential generator
@@ -579,7 +584,7 @@ async function setupPersonAttributeTypes(baseUrl: string): Promise<void> {
       byName.set(attr.display.toLowerCase(), attr.uuid);
     }
 
-    const envPath = resolve(process.cwd(), '.env.local');
+    const envPath = activeEnvPath();
     const mappings: Array<{ envKey: string; name: string }> = [
       { envKey: 'PERSON_ATTR_PHONE_NUMBER', name: 'phonenumber' },
       { envKey: 'PERSON_ATTR_ALT_PHONE_NUMBER', name: 'alternatephonenumber' },
@@ -607,7 +612,7 @@ async function setupPersonAttributeTypes(baseUrl: string): Promise<void> {
  */
 async function setupOrderTypes(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = resolve(process.cwd(), '.env.local');
+  const envPath = activeEnvPath();
 
   try {
     const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/ordertype?v=default`, {
@@ -665,7 +670,7 @@ async function setupEncounterTypes(baseUrl: string): Promise<void> {
       byName.set(et.display.toLowerCase(), et.uuid);
     }
 
-    const envPath = resolve(process.cwd(), '.env.local');
+    const envPath = activeEnvPath();
     const consultation = byName.get('consultation');
     if (consultation) {
       process.env.ENCOUNTER_TYPE_CONSULTATION = consultation;
@@ -685,7 +690,7 @@ async function setupEncounterTypes(baseUrl: string): Promise<void> {
  */
 async function setupConcepts(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = resolve(process.cwd(), '.env.local');
+  const envPath = activeEnvPath();
 
   async function lookupByUuid(uuid: string): Promise<string | undefined> {
     try {
@@ -1043,7 +1048,7 @@ function findDrug(drugs: DrugResult[], dosageForm: string, keywords: string[]): 
  */
 async function setupDrugs(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = resolve(process.cwd(), '.env.local');
+  const envPath = activeEnvPath();
 
   const drugSearches: Array<{
     envKey: string;
@@ -1172,7 +1177,7 @@ async function setupDrugs(baseUrl: string): Promise<void> {
  */
 async function setupOrderFrequencies(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = resolve(process.cwd(), '.env.local');
+  const envPath = activeEnvPath();
 
   try {
     const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/orderfrequency?v=default&limit=100`, {
@@ -1238,7 +1243,7 @@ async function setupOrderFrequencies(baseUrl: string): Promise<void> {
  */
 async function setupDrugRoutes(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = resolve(process.cwd(), '.env.local');
+  const envPath = activeEnvPath();
 
   try {
     // Get the allowed routes concept set UUID from global properties
@@ -1314,7 +1319,7 @@ async function setupDrugRoutes(baseUrl: string): Promise<void> {
  */
 async function setupDrugOrderConcepts(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = resolve(process.cwd(), '.env.local');
+  const envPath = activeEnvPath();
   const headers = { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' };
 
   type ConceptNode = { uuid: string; display: string; setMembers?: ConceptNode[] };
@@ -1429,7 +1434,7 @@ async function setupLocations(baseUrl: string): Promise<void> {
       return;
     }
 
-    const envPath = resolve(process.cwd(), '.env.local');
+    const envPath = activeEnvPath();
     process.env.LOCATION_OPD = chosen.display;
     process.env.LOCATION_LOGIN_UUID = chosen.uuid;
     writeEnvVar(envPath, 'LOCATION_OPD', chosen.display);
@@ -1446,7 +1451,7 @@ async function setupLocations(baseUrl: string): Promise<void> {
  */
 async function setupAppointmentService(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = resolve(process.cwd(), '.env.local');
+  const envPath = activeEnvPath();
 
   try {
     const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/appointmentService/all/full`, {

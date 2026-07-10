@@ -22,41 +22,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create .env.local from secrets
-        env:
-          BASE_URL: ${{ secrets.BASE_URL }}
-          USER_ADMIN_USERNAME: ${{ secrets.USER_ADMIN_USERNAME }}
-          USER_ADMIN_PASSWORD: ${{ secrets.USER_ADMIN_PASSWORD }}
-          USER_DOCTOR_USERNAME: ${{ secrets.USER_DOCTOR_USERNAME }}
-          USER_DOCTOR_PASSWORD: ${{ secrets.USER_DOCTOR_PASSWORD }}
-          USER_NURSE_USERNAME: ${{ secrets.USER_NURSE_USERNAME }}
-          USER_NURSE_PASSWORD: ${{ secrets.USER_NURSE_PASSWORD }}
-          USER_RECEPTIONIST_USERNAME: ${{ secrets.USER_RECEPTIONIST_USERNAME }}
-          USER_RECEPTIONIST_PASSWORD: ${{ secrets.USER_RECEPTIONIST_PASSWORD }}
-          USER_FRONTDESK_USERNAME: ${{ secrets.USER_FRONTDESK_USERNAME }}
-          USER_FRONTDESK_PASSWORD: ${{ secrets.USER_FRONTDESK_PASSWORD }}
-          USER_CLINICAL_READONLY_USERNAME: ${{ secrets.USER_CLINICAL_READONLY_USERNAME }}
-          USER_CLINICAL_READONLY_PASSWORD: ${{ secrets.USER_CLINICAL_READONLY_PASSWORD }}
-        run: |
-          {
-            printf 'BASE_URL=%s\n' "$BASE_URL"
-            printf 'USER_ADMIN_USERNAME=%s\n' "$USER_ADMIN_USERNAME"
-            printf 'USER_ADMIN_PASSWORD=%s\n' "$USER_ADMIN_PASSWORD"
-            printf 'USER_DOCTOR_USERNAME=%s\n' "$USER_DOCTOR_USERNAME"
-            printf 'USER_DOCTOR_PASSWORD=%s\n' "$USER_DOCTOR_PASSWORD"
-            printf 'USER_NURSE_USERNAME=%s\n' "$USER_NURSE_USERNAME"
-            printf 'USER_NURSE_PASSWORD=%s\n' "$USER_NURSE_PASSWORD"
-            printf 'USER_RECEPTIONIST_USERNAME=%s\n' "$USER_RECEPTIONIST_USERNAME"
-            printf 'USER_RECEPTIONIST_PASSWORD=%s\n' "$USER_RECEPTIONIST_PASSWORD"
-            printf 'USER_FRONTDESK_USERNAME=%s\n' "$USER_FRONTDESK_USERNAME"
-            printf 'USER_FRONTDESK_PASSWORD=%s\n' "$USER_FRONTDESK_PASSWORD"
-            printf 'USER_CLINICAL_READONLY_USERNAME=%s\n' "$USER_CLINICAL_READONLY_USERNAME"
-            printf 'USER_CLINICAL_READONLY_PASSWORD=%s\n' "$USER_CLINICAL_READONLY_PASSWORD"
-            printf 'IGNORE_HTTPS_ERRORS=false\n'
-          } > .env.local
-
       - name: Run API regression tests
-        run: NODE_ENV=local npx playwright test --project=api --grep @regression --grep-invert @onlyStandard
+        env:
+          USER_ADMIN_PASSWORD: ${{ secrets.USER_ADMIN_PASSWORD }}
+          USER_DOCTOR_PASSWORD: ${{ secrets.USER_DOCTOR_PASSWORD }}
+          USER_NURSE_PASSWORD: ${{ secrets.USER_NURSE_PASSWORD }}
+          USER_RECEPTIONIST_PASSWORD: ${{ secrets.USER_RECEPTIONIST_PASSWORD }}
+          USER_LAB_PASSWORD: ${{ secrets.USER_LAB_PASSWORD }}
+          USER_FRONTDESK_PASSWORD: ${{ secrets.USER_FRONTDESK_PASSWORD }}
+          USER_CLINICAL_READONLY_PASSWORD: ${{ secrets.USER_CLINICAL_READONLY_PASSWORD }}
+          USER_PATIENT_READONLY_PASSWORD: ${{ secrets.USER_PATIENT_READONLY_PASSWORD }}
+          USER_IPD_PASSWORD: ${{ secrets.USER_IPD_PASSWORD }}
+        run: NODE_ENV=dev-lite npx playwright test --project=api --grep "@regression|@onlyLite" --grep-invert @onlyStandard --workers=5
 
       - name: Generate Allure report
         if: always()

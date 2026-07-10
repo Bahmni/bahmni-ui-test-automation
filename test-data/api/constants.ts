@@ -178,6 +178,9 @@ export const FHIR_DEFAULT_PAGE_SIZE = 10 as const;
 export const CONDITION_CODES = {
   malaria: env('CONDITION_CODE_MALARIA'),
   anaemia: env('CONDITION_CODE_ANAEMIA'),
+  dengue: env('CONDITION_CODE_DENGUE'),
+  tetanus: env('CONDITION_CODE_TETANUS'),
+  typhoidFever: env('CONDITION_CODE_TYPHOID_FEVER'),
 };
 
 // Concept codes used as observation values (valueCodeableConcept)

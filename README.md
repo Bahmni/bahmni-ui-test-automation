@@ -55,15 +55,83 @@ bahmni-test-automation/
 
 ## Architecture
 
-### UI Tests
+### UI Automation
 
-3-layer architecture: **Pages → Actions → Tests**. Assertions live in the test layer only.
+```mermaid
+flowchart TD
+    subgraph Prereq["Prerequisites — run once per session"]
+        GS["Global Setup\nSeed OpenMRS concepts & attributes"]
+        AS["Auth Setup\nCapture authenticated session"]
+    end
 
-### API Tests
+    TD["Test Data\nPayloads · constants"]
+    FIX["Test Fixtures\nInject shared context"]
 
-3-layer architecture: **Endpoints → Controllers → Tests**. Each controller extends `BaseApiController` which handles authentication (Basic Auth) and provides `get/post/put/del` methods returning `{ status, body }`.
+    subgraph POM["Page Object Model"]
+        TEST["Test Layer\nArrange · Act · Assert"]
+        ACT["Action Layer\nBusiness workflows — compose pages"]
+        PO["Page Object Layer\nLocators & element interactions"]
+    end
 
-Controllers also provide `Raw` variants (`getRaw`, `postRaw`, etc.) that never throw — used for negative tests asserting on 4xx/5xx responses.
+    PW["Playwright API"]
+    BR["Browser — Bahmni UI"]
+
+    GS --> AS --> FIX
+    FIX --> TEST
+    TD --> TEST
+    TEST -->|invokes workflow| ACT
+    ACT -->|calls page methods| PO
+    PO -->|drives| PW
+    PW --> BR
+```
+
+**How the Page Object Model works here:**
+
+- **Test Layer** knows nothing about locators. It calls an action (e.g. `clinicalActions.startConsultation(patient)`) and asserts on the observed state.
+- **Action Layer** owns the business workflow. A single action may compose several page objects — e.g. registering a patient touches `LoginPage`, `HomePage`, and `CreatePatientPage`.
+- **Page Object Layer** owns locators and low-level element interactions for one screen. A page object never asserts and never orchestrates other pages.
+- **Playwright** is only touched inside page objects — actions and tests never call `page.click()` directly.
+
+---
+
+### API Automation
+
+```mermaid
+flowchart TD
+    subgraph Prereq["Prerequisites — run once per session"]
+        GS["Global Setup\nSeed OpenMRS concepts & attributes"]
+    end
+
+    TD["Test Data\nPayload builders · JSON schemas"]
+    FIX["Test Fixtures\nWorker-scoped APIRequestContext"]
+
+    subgraph CP["API Controller Pattern"]
+        TEST["Test Layer\nArrange · Act · Assert"]
+        FAC["API Factory\nAggregates all controllers"]
+        CTRL["Domain Controllers\nPatient · Visit · FHIR · Appointment · …"]
+        BASE["Base Controller\nHTTP verbs · auth · error handling"]
+    end
+
+    PW["Playwright APIRequestContext"]
+    API["Bahmni REST / FHIR APIs"]
+
+    GS --> FIX
+    FIX --> TEST
+    TD --> TEST
+    TEST -->|calls| FAC
+    FAC -->|routes to| CTRL
+    CTRL -->|extends| BASE
+    BASE -->|uses| PW
+    PW --> API
+```
+
+**How the API Controller Pattern works here:**
+
+- **Test Layer** knows nothing about HTTP. It calls a controller method (e.g. `api.patient.create(payload)`) and asserts on `{ status, body }`.
+- **API Factory** is the single entry point — it aggregates all domain controllers and shares one `APIRequestContext` across them.
+- **Domain Controllers** own endpoint paths and request shapes for their domain. They expose typed methods and never format HTTP details.
+- **Base Controller** owns HTTP verbs, auth headers, and error handling. `get / post / put / del` throw on non-2xx; `getRaw / postRaw / putRaw / delRaw` return `{ status, body }` without throwing — used for negative tests.
+- Only the Base Controller touches Playwright's `APIRequestContext` — controllers and tests never build requests directly.
 
 ## Environment Configuration
 

@@ -280,6 +280,22 @@ export function buildDiagnosisBundle(ctx: BundleContext, encounterUuid: string):
   );
 }
 
+/** Bundle with multiple encounter-diagnosis Conditions for given concept codes. */
+export function buildMultipleDiagnosisBundle(
+  ctx: BundleContext,
+  encounterUuid: string,
+  conceptCodes: string[]
+): Record<string, unknown> {
+  const ts = pastTimestamp();
+  return encounterBundle(
+    [
+      existingEncounterEntry(encounterUuid, ctx, ts),
+      ...conceptCodes.map((code) => diagnosisConditionEntry(ctx, encounterUuid, code, ts)),
+    ],
+    ts
+  );
+}
+
 /** Bundle with only a problem-list-item Condition (includes onsetDateTime). */
 export function buildProblemListBundle(ctx: BundleContext, encounterUuid: string): Record<string, unknown> {
   const ts = pastTimestamp();

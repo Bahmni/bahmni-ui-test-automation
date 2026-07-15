@@ -1,16 +1,15 @@
-import { test as base, expect, request } from '@playwright/test';
+// Test-scoped fixture: API patient + pre-uploaded documents, uploaded before dashboard nav so the documents widget sees them on first render.
+import { test as base, Page } from '@playwright/test';
 import { PageFactory } from '../pages/PageFactory';
 import { ActionFactory } from '../actions/ActionFactory';
 import { DocumentApiHelper } from '../../utils/document-api-helper';
-import { ApiFactory } from '../../api/ApiFactory';
-import { config } from '../../config/env.config';
-import { setupConsultationContext, teardownConsultationContext } from '../../api/helpers/consultationSetup';
+import { createSharedClinicalContext, disposeSharedClinicalContext } from './sharedClinicalContext';
 
 type DocumentFixtures = {
   documentSetup: {
     bahmni: PageFactory;
     actions: ActionFactory;
-    page: import('@playwright/test').Page;
+    page: Page;
   };
 };
 
@@ -37,34 +36,16 @@ const DOCUMENTS_TO_UPLOAD = [
 
 export const test = base.extend<DocumentFixtures>({
   documentSetup: async ({ browser }, use) => {
-    const apiContext = await request.newContext({ ignoreHTTPSErrors: true });
-    const api = new ApiFactory(apiContext);
+    const ctx = await createSharedClinicalContext(browser, 'api', async ({ apiContext, patientUuid }) => {
+      const documentApi = new DocumentApiHelper(apiContext);
+      await documentApi.uploadAndRegisterDocuments(patientUuid, DOCUMENTS_TO_UPLOAD);
+    });
 
-    const consultationCtx = await setupConsultationContext(api);
-    const { patientUuid } = consultationCtx;
+    await use({ bahmni: ctx.bahmni, actions: ctx.actions, page: ctx.page });
 
-    const documentApi = new DocumentApiHelper(apiContext);
-    await documentApi.uploadAndRegisterDocuments(patientUuid, DOCUMENTS_TO_UPLOAD);
-
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    const bahmni = new PageFactory(page);
-    const actions = new ActionFactory(bahmni);
-
-    await actions.auth.loginAsAdmin();
-    await page.goto(`${config.baseUrl}/bahmni-v2/clinical/${patientUuid}`);
-    await page.waitForLoadState('networkidle', { timeout: 20000 });
-
-    await use({ bahmni, actions, page });
-
-    try {
-      await teardownConsultationContext(api, consultationCtx);
-    } finally {
-      await apiContext.dispose();
-      await context.close();
-    }
+    await disposeSharedClinicalContext(ctx);
   },
 });
 
-export { expect };
+export { expect } from './expectExtensions';
 export { DOCUMENT_IDENTIFIER, DOCUMENT_TYPE, TOTAL_DOCUMENTS };

@@ -47,8 +47,8 @@ export async function setupConsultationContext(
 }
 
 export async function teardownConsultationContext(api: ApiFactory, ctx: ConsultationContext): Promise<void> {
-  if (ctx.visitUuid) await api.visit.end(ctx.visitUuid).catch(() => {});
-  if (ctx.patientUuid) await api.patient.delete(ctx.patientUuid).catch(() => {});
+  if (ctx.visitUuid) await api.visit.end(ctx.visitUuid);
+  if (ctx.patientUuid) await api.patient.delete(ctx.patientUuid);
 }
 
 /**

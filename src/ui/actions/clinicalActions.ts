@@ -1,4 +1,4 @@
-import { expect } from '../fixtures/clinicalFixture';
+import { expect } from '../fixtures/expectExtensions';
 import { PageFactory } from '../pages/PageFactory';
 import { AllergyData } from '../../../test-data/common/allergyData';
 import { MedicationData } from '../../../test-data/common/medicationData';

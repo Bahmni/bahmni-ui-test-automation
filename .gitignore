@@ -8,8 +8,6 @@ node_modules/
 /videos/
 storageState*.json
 screenshots/
-allure-results/
-allure-report/
 
 # Environment files with credentials
 .env

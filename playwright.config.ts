@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices, ReporterDescription } from '@playwright/test';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 
@@ -9,6 +9,41 @@ import * as dotenv from 'dotenv';
  */
 const env = process.env.NODE_ENV || 'dev';
 dotenv.config({ path: path.resolve(process.cwd(), `.env.${env}`) });
+
+const parseRpAttributes = (raw?: string) =>
+  (raw ?? '')
+    .split(';')
+    .map((pair) => pair.trim())
+    .filter(Boolean)
+    .map((pair) => {
+      const [key, ...rest] = pair.split(':');
+      const value = rest.join(':').trim();
+      return value ? { key: key.trim(), value } : { value: key.trim() };
+    });
+
+const reporters: ReporterDescription[] = [
+  ['html', { outputFolder: 'reports/html-report', open: 'never' }],
+  ['json', { outputFile: 'reports/test-results.json' }],
+  ['list'],
+];
+
+if (process.env.RP_API_KEY && process.env.RP_ENDPOINT && process.env.RP_PROJECT) {
+  reporters.unshift([
+    '@reportportal/agent-js-playwright',
+    {
+      apiKey: process.env.RP_API_KEY,
+      endpoint: process.env.RP_ENDPOINT,
+      project: process.env.RP_PROJECT,
+      launch: process.env.RP_LAUNCH || 'playwright',
+      description: process.env.RP_DESCRIPTION || `env=${env}`,
+      attributes: parseRpAttributes(process.env.RP_ATTRIBUTES),
+      includeTestSteps: true,
+      uploadTrace: true,
+      uploadVideo: true,
+      restClientConfig: { timeout: 30000 },
+    },
+  ]);
+}
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -32,24 +67,7 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [
-    [
-      'allure-playwright',
-      {
-        resultsDir: 'reports/allure-results',
-        detail: true,
-        suiteTitle: true,
-        environmentInfo: {
-          'Node Version': process.version,
-          Environment: env,
-          'Base URL': process.env.BASE_URL || 'https://localhost',
-        },
-      },
-    ],
-    ['html', { outputFolder: 'reports/html-report', open: 'never' }],
-    ['json', { outputFile: 'reports/test-results.json' }],
-    ['list'],
-  ],
+  reporter: reporters,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */

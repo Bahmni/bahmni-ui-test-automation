@@ -17,6 +17,8 @@ import { VitalsForm } from './obsForms/vitalsForm';
 import { SecondVitalsForm } from './obsForms/secondVitalsForm';
 import { PatientDocumentsPage } from './patientDocumentsPage';
 import { AppointmentsDisplayControlPage } from './appointmentsDisplayControlPage';
+import { LabEntryHomePage } from './labEntryHomePage';
+import { LabEntryPatientPage } from './labEntryPatientPage';
 
 /**
  * PageFactory class to initialize all page objects
@@ -41,6 +43,8 @@ export class PageFactory {
   readonly secondVitalsForm: SecondVitalsForm;
   readonly patientDocumentsPage: PatientDocumentsPage;
   readonly appointmentsDisplayControl: AppointmentsDisplayControlPage;
+  readonly labEntryHomePage: LabEntryHomePage;
+  readonly labEntryPatientPage: LabEntryPatientPage;
 
   constructor(page: Page) {
     this.loginPage = new LoginPage(page);
@@ -61,5 +65,7 @@ export class PageFactory {
     this.secondVitalsForm = new SecondVitalsForm(page);
     this.patientDocumentsPage = new PatientDocumentsPage(page);
     this.appointmentsDisplayControl = new AppointmentsDisplayControlPage(page);
+    this.labEntryHomePage = new LabEntryHomePage(page);
+    this.labEntryPatientPage = new LabEntryPatientPage(page);
   }
 }

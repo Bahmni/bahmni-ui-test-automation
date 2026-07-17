@@ -50,6 +50,7 @@ export class ClinicalPage {
     patientId: 'p:has(img[alt="id-card"])',
     patientGender: 'p:has(img[alt="gender"])',
     patientAge: 'p:has(img[alt="age"])',
+    patientIdentifierText: 'p:has(span[aria-label="id-card"]) span:not([aria-label])',
     newConsultationButton: '[data-testid="consultation-action-button"]',
     continueConsultationButton: '[data-testid="consultation-action-button"]:has-text("Continue Consultation")',
 
@@ -566,6 +567,12 @@ export class ClinicalPage {
 
   getLabReferenceRangeCell(testName: string) {
     return this.getLabResultRow(testName).locator('[data-testid$="-referenceRange"]');
+  }
+
+  async getPatientIdentifier(): Promise<string> {
+    const el = this.page.locator(this.selectors.patientIdentifierText).first();
+    await el.waitFor({ state: 'visible', timeout: 10000 });
+    return ((await el.textContent()) ?? '').trim();
   }
 
   getRadiologyViewReportLink() {

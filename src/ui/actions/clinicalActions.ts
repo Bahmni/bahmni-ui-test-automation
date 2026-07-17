@@ -7,6 +7,7 @@ import {
   AtypicalLymphReportData,
   EchocardiogramReportData,
 } from '../../../test-data/common/labOrderData';
+import { CbcPanelResults, LabValueEntry } from '../../../test-data/common/labEntryData';
 
 export class ClinicalActions {
   constructor(private readonly bahmni: PageFactory) {}
@@ -315,5 +316,98 @@ export class ClinicalActions {
 
   async verifyNewConsultationButtonNotVisible() {
     await expect(this.bahmni.clinicalPage.getNewConsultationButton()).not.toBeVisible();
+  }
+
+  async verifyCbcLabResults(reportData: CbcPanelResults) {
+    await this.bahmni.clinicalPage.navigateToSection('Lab Investigations');
+
+    const hematocritCell = this.bahmni.clinicalPage.getLabResultValueCell('Hematocrit');
+    await expect(hematocritCell).toContainText(reportData.hematocrit.value.toString());
+    await expect(hematocritCell).toContainText(reportData.hematocrit.unit);
+    await expect(hematocritCell).not.toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Hematocrit')).toHaveText('32.3 - 51.9');
+
+    const haemoglobinCell = this.bahmni.clinicalPage.getLabResultValueCell('Haemoglobin');
+    await expect(haemoglobinCell).toContainText(reportData.haemoglobin.value.toString());
+    await expect(haemoglobinCell).toContainText(reportData.haemoglobin.unit);
+    await expect(haemoglobinCell).toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Haemoglobin')).toHaveText('10.4 - 17.8');
+
+    const mchcCell = this.bahmni.clinicalPage.getLabResultValueCell('Mean cell hemoglobin concentration');
+    await expect(mchcCell).toContainText(reportData.mchc.value.toString());
+    await expect(mchcCell).toContainText(reportData.mchc.unit);
+    await expect(mchcCell).not.toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Mean cell hemoglobin concentration')).toHaveText(
+      '33 - 37'
+    );
+
+    const mchCell = this.bahmni.clinicalPage.getLabResultValueCell('Mean corpuscular hemoglobin');
+    await expect(mchCell).toContainText(reportData.mch.value.toString());
+    await expect(mchCell).toContainText(reportData.mch.unit);
+    await expect(mchCell).not.toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Mean corpuscular hemoglobin')).toHaveText(
+      '26 - 34'
+    );
+
+    const mcvCell = this.bahmni.clinicalPage.getLabResultValueCell('Mean corpuscular volume');
+    await expect(mcvCell).toContainText(reportData.mcv.value.toString());
+    await expect(mcvCell).toContainText(reportData.mcv.unit);
+    await expect(mcvCell).not.toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Mean corpuscular volume')).toHaveText('80 - 100');
+
+    const plateletsCell = this.bahmni.clinicalPage.getLabResultValueCell('Platelets');
+    await expect(plateletsCell).toContainText(reportData.platelets.value.toString());
+    await expect(plateletsCell).toContainText(reportData.platelets.unit);
+    await expect(plateletsCell).toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Platelets')).toHaveText('134 - 419');
+
+    const rbcCell = this.bahmni.clinicalPage.getLabResultValueCell('Red blood cells');
+    await expect(rbcCell).toContainText(reportData.rbc.value.toString());
+    await expect(rbcCell).toContainText(reportData.rbc.unit);
+    await expect(rbcCell).not.toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Red blood cells')).toHaveText('4 - 6.1');
+
+    const rdwCell = this.bahmni.clinicalPage.getLabResultValueCell('Red cell distribution width');
+    await expect(rdwCell).toContainText(reportData.rdw.value.toString());
+    await expect(rdwCell).toContainText(reportData.rdw.unit);
+    await expect(rdwCell).not.toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('Red cell distribution width')).toHaveText(
+      '10 - 20'
+    );
+
+    const wbcCell = this.bahmni.clinicalPage.getLabResultValueCell('White blood cells');
+    await expect(wbcCell).toContainText(reportData.wbc.value.toString());
+    await expect(wbcCell).toContainText(reportData.wbc.unit);
+    await expect(wbcCell).toHaveClass(/abnormalResult/);
+    await expect(this.bahmni.clinicalPage.getLabReferenceRangeCell('White blood cells')).toHaveText('4 - 11');
+
+    const neutrophilsCell = this.bahmni.clinicalPage.getLabResultValueCell('Neutrophils (%) - microscopic exam');
+    await expect(neutrophilsCell).toContainText(reportData.neutrophils.value.toString());
+    await expect(neutrophilsCell).toContainText(reportData.neutrophils.unit);
+    await expect(neutrophilsCell).not.toHaveClass(/abnormalResult/);
+
+    const lymphocytesCell = this.bahmni.clinicalPage.getLabResultValueCell('Lymphocytes (%) - microscopic exam');
+    await expect(lymphocytesCell).toContainText(reportData.lymphocytes.value.toString());
+    await expect(lymphocytesCell).toContainText(reportData.lymphocytes.unit);
+    await expect(lymphocytesCell).not.toHaveClass(/abnormalResult/);
+
+    const mixedCell = this.bahmni.clinicalPage.getLabResultValueCell(
+      'Combined % of monocytes, eosinophils and basophils'
+    );
+    await expect(mixedCell).toContainText(reportData.mixed.value.toString());
+    await expect(mixedCell).toContainText(reportData.mixed.unit);
+    await expect(mixedCell).not.toHaveClass(/abnormalResult/);
+    await expect(
+      this.bahmni.clinicalPage.getLabReferenceRangeCell('Combined % of monocytes, eosinophils and basophils')
+    ).toHaveText('1 - 10');
+  }
+
+  async verifyTshLabResult(reportData: LabValueEntry) {
+    await this.bahmni.clinicalPage.navigateToSection('Lab Investigations');
+
+    const tshCell = this.bahmni.clinicalPage.getLabResultValueCell('Thyroid stimulating hormone test');
+    await expect(tshCell).toContainText(reportData.value.toString());
+    await expect(tshCell).toContainText(reportData.unit);
+    await expect(tshCell).not.toHaveClass(/abnormalResult/);
   }
 }

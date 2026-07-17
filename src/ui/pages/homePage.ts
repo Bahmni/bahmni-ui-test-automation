@@ -22,7 +22,7 @@ export class HomePage {
     IMPLEMENTER_INTERFACE: 'Implementer Interface',
     ATOMFEED_CONSOLE: 'AtomFeed Console',
     APPOINTMENT_SCHEDULING: 'Appointment Scheduling',
-    LAB_ENTRY: 'Lab entry',
+    LAB_ENTRY: 'Lab Entry',
   } as const;
 
   constructor(page: Page) {

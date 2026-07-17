@@ -39,6 +39,14 @@ curl -sS -o /dev/null -w '' \
   -d "{\"id\": \"${PROJECT_ID}\"}" \
   "${ALLURE_SERVER_URL%/}/allure-docker-service/projects" || true
 
+# Clear any leftover results from a previous run so this run produces a discrete
+# report (history/trend data lives inside reports/<N>/, not in results/, so it
+# is unaffected by clean-results).
+curl -sS -o /dev/null -w '' \
+  "${AUTH_ARGS[@]}" \
+  -X GET \
+  "${ALLURE_SERVER_URL%/}/allure-docker-service/clean-results?project_id=${PROJECT_ID}" || true
+
 FILE_ARGS=()
 COUNT=0
 while IFS= read -r -d '' f; do

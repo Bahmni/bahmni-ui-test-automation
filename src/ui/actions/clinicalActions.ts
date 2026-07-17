@@ -318,6 +318,10 @@ export class ClinicalActions {
     await expect(this.bahmni.clinicalPage.getNewConsultationButton()).not.toBeVisible();
   }
 
+  async verifyClinicalModuleNotVisible() {
+    await expect(this.bahmni.homePage.getModuleLocator(this.bahmni.homePage.MODULES.CLINICAL)).not.toBeVisible();
+  }
+
   async verifyCbcLabResults(reportData: CbcPanelResults) {
     await this.bahmni.clinicalPage.navigateToSection('Lab Investigations');
 

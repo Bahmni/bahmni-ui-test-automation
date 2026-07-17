@@ -44,6 +44,12 @@ export class HomePage {
     await link.or(button).click();
   }
 
+  getModuleLocator(moduleName: string) {
+    const link = this.page.getByRole('link', { name: moduleName, exact: true });
+    const button = this.page.getByRole('button', { name: moduleName, exact: true });
+    return link.or(button);
+  }
+
   async openUserMenu() {
     await this.page.getByRole('button', { name: 'User Menu' }).click();
   }

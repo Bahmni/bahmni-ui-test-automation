@@ -39,7 +39,7 @@ jobs:
           USER_CLINICAL_READONLY_PASSWORD: ${{ secrets.USER_CLINICAL_READONLY_PASSWORD }}
           USER_PATIENT_READONLY_PASSWORD: ${{ secrets.USER_PATIENT_READONLY_PASSWORD }}
           USER_IPD_PASSWORD: ${{ secrets.USER_IPD_PASSWORD }}
-        run: NODE_ENV=dev-lite npx playwright test --project=chromium --grep "@regression|@onlyLite" --grep-invert @onlyStandard
+        run: NODE_ENV=dev-lite npx playwright test --project=chromium --grep "@regression|@onlyLite" --grep-invert @onlyStandard tests/ui/module/clinical/consultation.spec.ts
 
       - name: Generate Allure report
         if: always()

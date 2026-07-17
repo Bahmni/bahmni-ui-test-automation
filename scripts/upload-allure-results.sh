@@ -60,5 +60,15 @@ curl -sS --fail-with-body \
   "${ALLURE_SERVER_URL%/}/allure-docker-service/send-results?project_id=${PROJECT_ID}"
 
 echo
-echo "Upload complete. Dashboard: ${ALLURE_DASHBOARD_URL:-<set ALLURE_DASHBOARD_URL to print here>}"
+echo "Generating report for project '$PROJECT_ID'..."
+
+# allure-docker-service only auto-generates reports for the "default" project.
+# For any custom project_id, we must trigger generation explicitly.
+curl -sS --fail-with-body -o /dev/null \
+  "${AUTH_ARGS[@]}" \
+  -X GET \
+  "${ALLURE_SERVER_URL%/}/allure-docker-service/generate-report?project_id=${PROJECT_ID}"
+
+echo "Report generated."
+echo "Dashboard: ${ALLURE_DASHBOARD_URL:-<set ALLURE_DASHBOARD_URL to print here>}"
 echo "Project: ${PROJECT_ID}"

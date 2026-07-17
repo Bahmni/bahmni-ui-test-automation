@@ -45,6 +45,15 @@ jobs:
         if: always()
         run: npm run allure:generate
 
+      - name: Upload results to Allure dashboard
+        if: always()
+        env:
+          ALLURE_SERVER_URL: ${{ secrets.ALLURE_SERVER_URL }}
+          ALLURE_SERVER_USER: ${{ secrets.ALLURE_SERVER_USER }}
+          ALLURE_SERVER_PASS: ${{ secrets.ALLURE_SERVER_PASS }}
+          ALLURE_PROJECT_ID: bahmni-regression-ui
+        run: npm run allure:upload
+
       - name: Upload test reports and artifacts
         if: always()
         uses: actions/upload-artifact@v4

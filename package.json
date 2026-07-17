@@ -20,6 +20,7 @@
     "allure:open": "allure open reports/allure-report",
     "allure:serve": "allure serve reports/allure-results",
     "allure:clean": "rm -rf reports/allure-results reports/allure-report",
+    "allure:upload": "bash scripts/upload-allure-results.sh",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",

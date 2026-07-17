@@ -1,0 +1,27 @@
+services:
+  allure:
+    image: frankescobar/allure-docker-service:latest
+    environment:
+      CHECK_RESULTS_EVERY_SECONDS: 3
+      KEEP_HISTORY: 1
+      KEEP_HISTORY_LATEST: 60
+      SECURITY_ENABLED: ${SECURITY_ENABLED:-0}
+      SECURITY_USER: ${SECURITY_USER:-}
+      SECURITY_PASS: ${SECURITY_PASS:-}
+      MAKE_VIEWER_ENDPOINTS_PUBLIC: ${MAKE_VIEWER_ENDPOINTS_PUBLIC:-1}
+    ports:
+      - '5050:5050'
+    volumes:
+      - ./data/projects:/app/projects
+    restart: unless-stopped
+
+  allure-ui:
+    image: frankescobar/allure-docker-service-ui:latest
+    environment:
+      ALLURE_DOCKER_PUBLIC_API_URL: ${ALLURE_DOCKER_PUBLIC_API_URL:-http://localhost:5050}
+      ALLURE_DOCKER_PUBLIC_API_URL_PREFIX: ''
+    ports:
+      - '5252:5252'
+    depends_on:
+      - allure
+    restart: unless-stopped

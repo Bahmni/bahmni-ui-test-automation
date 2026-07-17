@@ -67,4 +67,8 @@ export class RegistrationActions {
     const name = await this.bahmni.createPatientPage.getRelationshipPatientName();
     expect(name?.trim()).toContain(patientName);
   }
+
+  async verifyRegistrationModuleNotVisible() {
+    await expect(this.bahmni.homePage.getModuleLocator(this.bahmni.homePage.MODULES.REGISTRATION)).not.toBeVisible();
+  }
 }

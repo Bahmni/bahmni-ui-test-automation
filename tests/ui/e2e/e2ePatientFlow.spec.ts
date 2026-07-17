@@ -36,6 +36,7 @@ test.describe('E2E patient flow', { tag: ['@regression'] }, () => {
     const medicationData = medicationFaker.medication();
 
     await actions.auth.loginAsFrontDesk();
+    await actions.clinical.verifyClinicalModuleNotVisible();
     const patientId = await actions.registration.registerPatientWithMandatoryDetails(patientData);
     createdPatientId = patientId;
     await bahmni.createPatientPage.saveAndStartOPDVisit();
@@ -52,7 +53,9 @@ test.describe('E2E patient flow', { tag: ['@regression'] }, () => {
     await actions.auth.logout();
 
     await actions.auth.loginAsClinicalRead();
+    await actions.registration.verifyRegistrationModuleNotVisible();
     await actions.clinical.navigateToClinicalFromHome(patientId);
+    await actions.clinical.verifyNewConsultationButtonNotVisible();
     await actions.clinical.verifyAllergyDisplayed(allergyData);
     await actions.clinical.verifyDiagnosisDisplayed(diagnosis);
     await actions.clinical.verifyMedicationDisplayed(medicationData);

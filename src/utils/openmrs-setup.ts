@@ -963,6 +963,24 @@ async function setupConcepts(baseUrl: string): Promise<void> {
       searchName: 'Anaemia',
       matchName: 'anaemia',
     },
+    {
+      envKey: 'CONDITION_CODE_DENGUE',
+      cielUuid: '142592AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      searchName: 'Dengue fever',
+      matchName: 'dengue fever',
+    },
+    {
+      envKey: 'CONDITION_CODE_TETANUS',
+      cielUuid: '124957AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      searchName: 'Tetanus',
+      matchName: 'tetanus',
+    },
+    {
+      envKey: 'CONDITION_CODE_TYPHOID_FEVER',
+      cielUuid: '141AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      searchName: 'Typhoid fever',
+      matchName: 'typhoid fever',
+    },
     // FHIR coded values
     {
       envKey: 'CODED_VALUE_FEVER',

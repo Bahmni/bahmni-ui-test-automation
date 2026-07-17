@@ -10,6 +10,7 @@ type DocumentFixtures = {
     bahmni: PageFactory;
     actions: ActionFactory;
     page: Page;
+    patientUuid: string;
   };
 };
 
@@ -41,7 +42,7 @@ export const test = base.extend<DocumentFixtures>({
       await documentApi.uploadAndRegisterDocuments(patientUuid, DOCUMENTS_TO_UPLOAD);
     });
 
-    await use({ bahmni: ctx.bahmni, actions: ctx.actions, page: ctx.page });
+    await use({ bahmni: ctx.bahmni, actions: ctx.actions, page: ctx.page, patientUuid: ctx.patientUuid });
 
     await disposeSharedClinicalContext(ctx);
   },

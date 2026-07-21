@@ -1,5 +1,5 @@
 import { FullConfig } from '@playwright/test';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { config } from '../config/env.config';
 
@@ -496,28 +496,11 @@ async function createRelationshipType(aIsToB: string, bIsToA: string, baseUrl: s
 }
 
 /**
- * Write a key=value pair into .env.local, creating or updating the line in place.
- */
-function writeEnvVar(envPath: string, key: string, value: string): void {
-  const envContent = readFileSync(envPath, 'utf-8');
-  const updated = envContent.includes(`${key}=`)
-    ? envContent.replace(new RegExp(`^${key}=.*$`, 'm'), `${key}=${value}`)
-    : `${envContent}\n${key}=${value}`;
-  writeFileSync(envPath, updated);
-}
-
-function activeEnvPath(): string {
-  const env = process.env.NODE_ENV || 'dev';
-  return resolve(process.cwd(), `.env.${env}`);
-}
-
-/**
  * Resolve the identifierType UUID from the configured identifier source and inject it
- * into process.env and .env.local so workers pick it up at test runtime.
+ * into process.env for the current process.
  */
 async function setupIdentifierSource(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = activeEnvPath();
 
   try {
     // Fetch all identifier sources and use the first active sequential generator
@@ -542,17 +525,14 @@ async function setupIdentifierSource(baseUrl: string): Promise<void> {
     }
 
     process.env.IDENTIFIER_SOURCE_UUID = source.uuid;
-    writeEnvVar(envPath, 'IDENTIFIER_SOURCE_UUID', source.uuid);
 
     if (source.prefix) {
       process.env.IDENTIFIER_PREFIX = source.prefix;
-      writeEnvVar(envPath, 'IDENTIFIER_PREFIX', source.prefix);
     }
 
     const identifierTypeUuid = source.identifierType?.uuid;
     if (identifierTypeUuid) {
       process.env.IDENTIFIER_TYPE_UUID = identifierTypeUuid;
-      writeEnvVar(envPath, 'IDENTIFIER_TYPE_UUID', identifierTypeUuid);
     }
 
     console.log(`  ✓ Identifier source resolved — UUID: ${source.uuid}, identifierType: ${identifierTypeUuid}`);
@@ -584,7 +564,6 @@ async function setupPersonAttributeTypes(baseUrl: string): Promise<void> {
       byName.set(attr.display.toLowerCase(), attr.uuid);
     }
 
-    const envPath = activeEnvPath();
     const mappings: Array<{ envKey: string; name: string }> = [
       { envKey: 'PERSON_ATTR_PHONE_NUMBER', name: 'phonenumber' },
       { envKey: 'PERSON_ATTR_ALT_PHONE_NUMBER', name: 'alternatephonenumber' },
@@ -595,7 +574,6 @@ async function setupPersonAttributeTypes(baseUrl: string): Promise<void> {
       const uuid = byName.get(name);
       if (uuid) {
         process.env[envKey] = uuid;
-        writeEnvVar(envPath, envKey, uuid);
         console.log(`  ✓ ${name} attribute type UUID: ${uuid}`);
       } else {
         console.warn(`  ⚠ Person attribute type "${name}" not found on server`);
@@ -612,7 +590,6 @@ async function setupPersonAttributeTypes(baseUrl: string): Promise<void> {
  */
 async function setupOrderTypes(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = activeEnvPath();
 
   try {
     const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/ordertype?v=default`, {
@@ -637,7 +614,6 @@ async function setupOrderTypes(baseUrl: string): Promise<void> {
       const match = types.find((t) => t.display.toLowerCase().includes(matchName));
       if (match) {
         process.env[envKey] = match.uuid;
-        writeEnvVar(envPath, envKey, match.uuid);
         console.log(`  ✓ Order type "${match.display}" UUID: ${match.uuid}`);
       } else {
         console.warn(`  ⚠ Order type not found for "${matchName}"`);
@@ -670,11 +646,9 @@ async function setupEncounterTypes(baseUrl: string): Promise<void> {
       byName.set(et.display.toLowerCase(), et.uuid);
     }
 
-    const envPath = activeEnvPath();
     const consultation = byName.get('consultation');
     if (consultation) {
       process.env.ENCOUNTER_TYPE_CONSULTATION = consultation;
-      writeEnvVar(envPath, 'ENCOUNTER_TYPE_CONSULTATION', consultation);
       console.log(`  ✓ Consultation encounter type UUID: ${consultation}`);
     } else {
       console.warn(`  ⚠ "Consultation" encounter type not found on server`);
@@ -690,7 +664,6 @@ async function setupEncounterTypes(baseUrl: string): Promise<void> {
  */
 async function setupConcepts(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = activeEnvPath();
 
   async function lookupByUuid(uuid: string): Promise<string | undefined> {
     try {
@@ -1019,7 +992,6 @@ async function setupConcepts(baseUrl: string): Promise<void> {
     const uuid = await resolveConceptUuid(cielUuid, searchName, matchName);
     if (uuid) {
       process.env[envKey] = uuid;
-      writeEnvVar(envPath, envKey, uuid);
       resolved++;
     } else {
       console.warn(`  ⚠ Concept not found: "${searchName}"`);
@@ -1066,7 +1038,6 @@ function findDrug(drugs: DrugResult[], dosageForm: string, keywords: string[]): 
  */
 async function setupDrugs(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = activeEnvPath();
 
   const drugSearches: Array<{
     envKey: string;
@@ -1183,7 +1154,6 @@ async function setupDrugs(baseUrl: string): Promise<void> {
     }
 
     process.env[envKey] = match.uuid;
-    writeEnvVar(envPath, envKey, match.uuid);
     resolved++;
   }
   console.log(`  ✓ Drugs resolved (${resolved}/${drugSearches.length})`);
@@ -1195,7 +1165,6 @@ async function setupDrugs(baseUrl: string): Promise<void> {
  */
 async function setupOrderFrequencies(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = activeEnvPath();
 
   try {
     const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/orderfrequency?v=default&limit=100`, {
@@ -1234,15 +1203,12 @@ async function setupOrderFrequencies(baseUrl: string): Promise<void> {
       const uuid = matchTerms.reduce<string | undefined>((found, term) => found ?? byDisplay.get(term), undefined);
       if (uuid) {
         process.env[envKey] = uuid;
-        writeEnvVar(envPath, envKey, uuid);
         resolved++;
       } else {
-        // Fallback: partial match
         const fallback = freqs.find((f) => matchTerms.some((t) => f.display.toLowerCase().includes(t)));
         if (fallback) {
           const fallbackUuid = fallback.concept?.uuid ?? fallback.uuid;
           process.env[envKey] = fallbackUuid;
-          writeEnvVar(envPath, envKey, fallbackUuid);
           resolved++;
         } else {
           console.warn(`  ⚠ Order frequency not found for: ${matchTerms[0]}`);
@@ -1261,7 +1227,6 @@ async function setupOrderFrequencies(baseUrl: string): Promise<void> {
  */
 async function setupDrugRoutes(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = activeEnvPath();
 
   try {
     // Get the allowed routes concept set UUID from global properties
@@ -1318,7 +1283,6 @@ async function setupDrugRoutes(baseUrl: string): Promise<void> {
       );
       if (uuid) {
         process.env[envKey] = uuid;
-        writeEnvVar(envPath, envKey, uuid);
         resolved++;
       } else {
         console.warn(`  ⚠ Route not found in allowed set: ${keywords[0]}`);
@@ -1337,7 +1301,6 @@ async function setupDrugRoutes(baseUrl: string): Promise<void> {
  */
 async function setupDrugOrderConcepts(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = activeEnvPath();
   const headers = { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' };
 
   type ConceptNode = { uuid: string; display: string; setMembers?: ConceptNode[] };
@@ -1414,7 +1377,6 @@ async function setupDrugOrderConcepts(baseUrl: string): Promise<void> {
         continue;
       }
       process.env[envKey] = uuid;
-      writeEnvVar(envPath, envKey, uuid);
       resolved++;
     }
     console.log(`  ✓ Drug dose units resolved (${resolved}/${unitMappings.length}) from allowed sets`);
@@ -1452,11 +1414,8 @@ async function setupLocations(baseUrl: string): Promise<void> {
       return;
     }
 
-    const envPath = activeEnvPath();
     process.env.LOCATION_OPD = chosen.display;
     process.env.LOCATION_LOGIN_UUID = chosen.uuid;
-    writeEnvVar(envPath, 'LOCATION_OPD', chosen.display);
-    writeEnvVar(envPath, 'LOCATION_LOGIN_UUID', chosen.uuid);
     console.log(`  ✓ OPD location resolved — "${chosen.display}" (${chosen.uuid})`);
   } catch (error) {
     console.warn(`  ⚠ Error fetching locations: ${error}`);
@@ -1469,7 +1428,6 @@ async function setupLocations(baseUrl: string): Promise<void> {
  */
 async function setupAppointmentService(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
-  const envPath = activeEnvPath();
 
   try {
     const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/appointmentService/all/full`, {
@@ -1490,7 +1448,6 @@ async function setupAppointmentService(baseUrl: string): Promise<void> {
     }
 
     process.env.APPOINTMENT_SERVICE_UUID = chosen.uuid;
-    writeEnvVar(envPath, 'APPOINTMENT_SERVICE_UUID', chosen.uuid);
     console.log(`  ✓ Appointment service resolved — "${chosen.name ?? 'unknown'}" (${chosen.uuid})`);
   } catch (error) {
     console.warn(`  ⚠ Error fetching appointment services: ${error}`);

@@ -496,10 +496,25 @@ async function createRelationshipType(aIsToB: string, bIsToA: string, baseUrl: s
 }
 
 /**
+ * True when every key in `keys` already has a non-empty value in process.env.
+ * Used to skip OpenMRS resolution when the active .env file already provides all UUIDs.
+ */
+function allEnvKeysPresent(keys: string[]): boolean {
+  return keys.every((k) => {
+    const v = process.env[k];
+    return typeof v === 'string' && v.length > 0;
+  });
+}
+
+/**
  * Resolve the identifierType UUID from the configured identifier source and inject it
  * into process.env for the current process.
  */
 async function setupIdentifierSource(baseUrl: string): Promise<void> {
+  if (allEnvKeysPresent(['IDENTIFIER_SOURCE_UUID', 'IDENTIFIER_PREFIX', 'IDENTIFIER_TYPE_UUID'])) {
+    console.log('  ✓ Identifier source already configured — skipping resolution');
+    return;
+  }
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
 
   try {
@@ -546,6 +561,10 @@ async function setupIdentifierSource(baseUrl: string): Promise<void> {
  * process.env and .env.local so workers pick them up at test runtime.
  */
 async function setupPersonAttributeTypes(baseUrl: string): Promise<void> {
+  if (allEnvKeysPresent(['PERSON_ATTR_PHONE_NUMBER', 'PERSON_ATTR_ALT_PHONE_NUMBER', 'PERSON_ATTR_EMAIL'])) {
+    console.log('  ✓ Person attribute types already configured — skipping resolution');
+    return;
+  }
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
 
   try {
@@ -589,6 +608,16 @@ async function setupPersonAttributeTypes(baseUrl: string): Promise<void> {
  * These are order types, not concepts, so they're fetched from /ordertype.
  */
 async function setupOrderTypes(baseUrl: string): Promise<void> {
+  if (
+    allEnvKeysPresent([
+      'SERVICE_REQUEST_CATEGORY_LAB',
+      'SERVICE_REQUEST_CATEGORY_RADIOLOGY',
+      'SERVICE_REQUEST_CATEGORY_PROCEDURE',
+    ])
+  ) {
+    console.log('  ✓ Order types already configured — skipping resolution');
+    return;
+  }
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
 
   try {
@@ -628,6 +657,10 @@ async function setupOrderTypes(baseUrl: string): Promise<void> {
  * Resolve encounter type UUIDs by name and inject them into process.env and .env.local.
  */
 async function setupEncounterTypes(baseUrl: string): Promise<void> {
+  if (allEnvKeysPresent(['ENCOUNTER_TYPE_CONSULTATION'])) {
+    console.log('  ✓ Encounter types already configured — skipping resolution');
+    return;
+  }
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
 
   try {
@@ -987,6 +1020,11 @@ async function setupConcepts(baseUrl: string): Promise<void> {
     },
   ];
 
+  if (allEnvKeysPresent(conceptMappings.map((m) => m.envKey))) {
+    console.log(`  ✓ Concepts already configured — skipping resolution (${conceptMappings.length} keys)`);
+    return;
+  }
+
   let resolved = 0;
   for (const { envKey, cielUuid, searchName, matchName } of conceptMappings) {
     const uuid = await resolveConceptUuid(cielUuid, searchName, matchName);
@@ -1137,6 +1175,11 @@ async function setupDrugs(baseUrl: string): Promise<void> {
     },
   ];
 
+  if (allEnvKeysPresent(drugSearches.map((d) => d.envKey))) {
+    console.log(`  ✓ Drugs already configured — skipping resolution (${drugSearches.length} keys)`);
+    return;
+  }
+
   let resolved = 0;
   const cache = new Map<string, DrugResult[]>();
 
@@ -1164,6 +1207,28 @@ async function setupDrugs(baseUrl: string): Promise<void> {
  * Drug order frequencies must be OrderFrequency UUIDs, not concept UUIDs.
  */
 async function setupOrderFrequencies(baseUrl: string): Promise<void> {
+  const mappings: Array<{ envKey: string; matchTerms: string[] }> = [
+    { envKey: 'DRUG_FREQ_IMMEDIATE', matchTerms: ['immediately', 'stat', 'now'] },
+    { envKey: 'DRUG_FREQ_ONCE_DAILY', matchTerms: ['once a day', 'once daily', 'od'] },
+    { envKey: 'DRUG_FREQ_TWICE_DAILY', matchTerms: ['twice a day', 'twice daily', 'bd', 'bid'] },
+    { envKey: 'DRUG_FREQ_THRICE_DAILY', matchTerms: ['thrice a day', 'three times a day', 'thrice daily', 'tid'] },
+    { envKey: 'DRUG_FREQ_FOUR_TIMES_DAILY', matchTerms: ['four times a day', 'four times daily', 'qid'] },
+    { envKey: 'DRUG_FREQ_EVERY_2_HOURS', matchTerms: ['every 2 hours', 'every two hours'] },
+    { envKey: 'DRUG_FREQ_EVERY_4_HOURS', matchTerms: ['every 4 hours', 'every four hours'] },
+    { envKey: 'DRUG_FREQ_EVERY_6_HOURS', matchTerms: ['every 6 hours', 'every six hours'] },
+    { envKey: 'DRUG_FREQ_EVERY_8_HOURS', matchTerms: ['every 8 hours', 'every eight hours'] },
+    { envKey: 'DRUG_FREQ_EVERY_12_HOURS', matchTerms: ['every 12 hours', 'every twelve hours'] },
+    { envKey: 'DRUG_FREQ_ALTERNATE_DAYS', matchTerms: ['on alternate days', 'alternate days', 'every other day'] },
+    { envKey: 'DRUG_FREQ_ONCE_WEEKLY', matchTerms: ['once a week', 'once weekly', 'weekly'] },
+    { envKey: 'DRUG_FREQ_TWICE_WEEKLY', matchTerms: ['twice a week', 'twice weekly'] },
+    { envKey: 'DRUG_FREQ_EVERY_3_WEEKS', matchTerms: ['every 3 weeks', 'every three weeks'] },
+  ];
+
+  if (allEnvKeysPresent(mappings.map((m) => m.envKey))) {
+    console.log(`  ✓ Order frequencies already configured — skipping resolution (${mappings.length} keys)`);
+    return;
+  }
+
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
 
   try {
@@ -1180,23 +1245,6 @@ async function setupOrderFrequencies(baseUrl: string): Promise<void> {
     const freqs = (data as { results: { uuid: string; display: string; concept?: { uuid: string } }[] }).results ?? [];
     // The FHIR MedicationRequest timing code uses the OrderFrequency's concept UUID, not the OrderFrequency UUID itself
     const byDisplay = new Map(freqs.map((f) => [f.display.toLowerCase(), f.concept?.uuid ?? f.uuid]));
-
-    const mappings: Array<{ envKey: string; matchTerms: string[] }> = [
-      { envKey: 'DRUG_FREQ_IMMEDIATE', matchTerms: ['immediately', 'stat', 'now'] },
-      { envKey: 'DRUG_FREQ_ONCE_DAILY', matchTerms: ['once a day', 'once daily', 'od'] },
-      { envKey: 'DRUG_FREQ_TWICE_DAILY', matchTerms: ['twice a day', 'twice daily', 'bd', 'bid'] },
-      { envKey: 'DRUG_FREQ_THRICE_DAILY', matchTerms: ['thrice a day', 'three times a day', 'thrice daily', 'tid'] },
-      { envKey: 'DRUG_FREQ_FOUR_TIMES_DAILY', matchTerms: ['four times a day', 'four times daily', 'qid'] },
-      { envKey: 'DRUG_FREQ_EVERY_2_HOURS', matchTerms: ['every 2 hours', 'every two hours'] },
-      { envKey: 'DRUG_FREQ_EVERY_4_HOURS', matchTerms: ['every 4 hours', 'every four hours'] },
-      { envKey: 'DRUG_FREQ_EVERY_6_HOURS', matchTerms: ['every 6 hours', 'every six hours'] },
-      { envKey: 'DRUG_FREQ_EVERY_8_HOURS', matchTerms: ['every 8 hours', 'every eight hours'] },
-      { envKey: 'DRUG_FREQ_EVERY_12_HOURS', matchTerms: ['every 12 hours', 'every twelve hours'] },
-      { envKey: 'DRUG_FREQ_ALTERNATE_DAYS', matchTerms: ['on alternate days', 'alternate days', 'every other day'] },
-      { envKey: 'DRUG_FREQ_ONCE_WEEKLY', matchTerms: ['once a week', 'once weekly', 'weekly'] },
-      { envKey: 'DRUG_FREQ_TWICE_WEEKLY', matchTerms: ['twice a week', 'twice weekly'] },
-      { envKey: 'DRUG_FREQ_EVERY_3_WEEKS', matchTerms: ['every 3 weeks', 'every three weeks'] },
-    ];
 
     let resolved = 0;
     for (const { envKey, matchTerms } of mappings) {
@@ -1226,10 +1274,32 @@ async function setupOrderFrequencies(baseUrl: string): Promise<void> {
  * (order.drugRoutesConceptUuid global property). This guarantees only allowed routes are used.
  */
 async function setupDrugRoutes(baseUrl: string): Promise<void> {
+  const routeMappings: Array<{ envKey: string; keywords: string[] }> = [
+    { envKey: 'DRUG_ROUTE_ORAL', keywords: ['oral'] },
+    { envKey: 'DRUG_ROUTE_INTRAVENOUS', keywords: ['intravenous'] },
+    { envKey: 'DRUG_ROUTE_INTRAMUSCULAR', keywords: ['intramuscular'] },
+    { envKey: 'DRUG_ROUTE_SUBCUTANEOUS', keywords: ['sub cutaneous', 'subcutaneous', 's/c'] },
+    { envKey: 'DRUG_ROUTE_PER_VAGINAL', keywords: ['per vaginal', 'vaginal', 'p/v'] },
+    { envKey: 'DRUG_ROUTE_PER_RECTUM', keywords: ['per rectum', 'rectal', 'p/r'] },
+    { envKey: 'DRUG_ROUTE_SUBLINGUAL', keywords: ['sub lingual', 'sublingual', 's/l'] },
+    { envKey: 'DRUG_ROUTE_NASOGASTRIC', keywords: ['nasogastric', 'ng'] },
+    { envKey: 'DRUG_ROUTE_INTRADERMAL', keywords: ['intradermal', 'i/d'] },
+    { envKey: 'DRUG_ROUTE_INTRAPERITONEAL', keywords: ['intraperitoneal'] },
+    { envKey: 'DRUG_ROUTE_INTRATHECAL', keywords: ['intrathecal'] },
+    { envKey: 'DRUG_ROUTE_INTRAOSSEOUS', keywords: ['intraosseous'] },
+    { envKey: 'DRUG_ROUTE_TOPICAL', keywords: ['topical'] },
+    { envKey: 'DRUG_ROUTE_NASAL', keywords: ['nasal'] },
+    { envKey: 'DRUG_ROUTE_INHALATION', keywords: ['inhalation'] },
+  ];
+
+  if (allEnvKeysPresent(routeMappings.map((m) => m.envKey))) {
+    console.log(`  ✓ Drug routes already configured — skipping resolution (${routeMappings.length} keys)`);
+    return;
+  }
+
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
 
   try {
-    // Get the allowed routes concept set UUID from global properties
     const propResponse = await fetch(`${baseUrl}/openmrs/ws/rest/v1/systemsetting/order.drugRoutesConceptUuid?v=full`, {
       headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
     });
@@ -1244,7 +1314,6 @@ async function setupDrugRoutes(baseUrl: string): Promise<void> {
       return;
     }
 
-    // Fetch the concept set members
     const conceptResponse = await fetch(`${baseUrl}/openmrs/ws/rest/v1/concept/${routesConceptUuid}?v=full`, {
       headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
     });
@@ -1255,25 +1324,6 @@ async function setupDrugRoutes(baseUrl: string): Promise<void> {
     const conceptData = await conceptResponse.json();
     const members = (conceptData as { setMembers?: Array<{ uuid: string; display: string }> }).setMembers ?? [];
     const byDisplay = new Map(members.map((m) => [m.display.toLowerCase(), m.uuid]));
-
-    // Map env keys to keyword variants that cover naming differences across environments
-    const routeMappings: Array<{ envKey: string; keywords: string[] }> = [
-      { envKey: 'DRUG_ROUTE_ORAL', keywords: ['oral'] },
-      { envKey: 'DRUG_ROUTE_INTRAVENOUS', keywords: ['intravenous'] },
-      { envKey: 'DRUG_ROUTE_INTRAMUSCULAR', keywords: ['intramuscular'] },
-      { envKey: 'DRUG_ROUTE_SUBCUTANEOUS', keywords: ['sub cutaneous', 'subcutaneous', 's/c'] },
-      { envKey: 'DRUG_ROUTE_PER_VAGINAL', keywords: ['per vaginal', 'vaginal', 'p/v'] },
-      { envKey: 'DRUG_ROUTE_PER_RECTUM', keywords: ['per rectum', 'rectal', 'p/r'] },
-      { envKey: 'DRUG_ROUTE_SUBLINGUAL', keywords: ['sub lingual', 'sublingual', 's/l'] },
-      { envKey: 'DRUG_ROUTE_NASOGASTRIC', keywords: ['nasogastric', 'ng'] },
-      { envKey: 'DRUG_ROUTE_INTRADERMAL', keywords: ['intradermal', 'i/d'] },
-      { envKey: 'DRUG_ROUTE_INTRAPERITONEAL', keywords: ['intraperitoneal'] },
-      { envKey: 'DRUG_ROUTE_INTRATHECAL', keywords: ['intrathecal'] },
-      { envKey: 'DRUG_ROUTE_INTRAOSSEOUS', keywords: ['intraosseous'] },
-      { envKey: 'DRUG_ROUTE_TOPICAL', keywords: ['topical'] },
-      { envKey: 'DRUG_ROUTE_NASAL', keywords: ['nasal'] },
-      { envKey: 'DRUG_ROUTE_INHALATION', keywords: ['inhalation'] },
-    ];
 
     let resolved = 0;
     for (const { envKey, keywords } of routeMappings) {
@@ -1300,6 +1350,24 @@ async function setupDrugRoutes(baseUrl: string): Promise<void> {
  * both sets are written, since the FHIR DrugOrder validator checks doseUnits AND quantityUnits.
  */
 async function setupDrugOrderConcepts(baseUrl: string): Promise<void> {
+  const unitMappings: Array<{ envKey: string; keywords: string[] }> = [
+    { envKey: 'DRUG_DOSE_UNIT_TABLET', keywords: ['tablet'] },
+    { envKey: 'DRUG_DOSE_UNIT_CAPSULE', keywords: ['capsule', 'cap'] },
+    { envKey: 'DRUG_DOSE_UNIT_ML', keywords: ['ml', 'milliliter', 'millilitre'] },
+    { envKey: 'DRUG_DOSE_UNIT_MG', keywords: ['mg', 'milligram'] },
+    { envKey: 'DRUG_DOSE_UNIT_IU', keywords: ['iu', 'international unit'] },
+    { envKey: 'DRUG_DOSE_UNIT_DROP', keywords: ['drop'] },
+    { envKey: 'DRUG_DOSE_UNIT_TABLESPOON', keywords: ['tablespoon'] },
+    { envKey: 'DRUG_DOSE_UNIT_TEASPOON', keywords: ['teaspoon'] },
+    { envKey: 'DRUG_DOSE_UNIT_UNIT', keywords: ['unit(s)', 'unit'] },
+    { envKey: 'DRUG_DOSE_UNIT_PUFF', keywords: ['puff'] },
+  ];
+
+  if (allEnvKeysPresent(unitMappings.map((m) => m.envKey))) {
+    console.log(`  ✓ Drug dose units already configured — skipping resolution (${unitMappings.length} keys)`);
+    return;
+  }
+
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
   const headers = { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' };
 
@@ -1348,19 +1416,6 @@ async function setupDrugOrderConcepts(baseUrl: string): Promise<void> {
 
     const dispensingUuids = dispensingByDisplay ? new Set(dispensingByDisplay.values()) : null;
 
-    const unitMappings: Array<{ envKey: string; keywords: string[] }> = [
-      { envKey: 'DRUG_DOSE_UNIT_TABLET', keywords: ['tablet'] },
-      { envKey: 'DRUG_DOSE_UNIT_CAPSULE', keywords: ['capsule', 'cap'] },
-      { envKey: 'DRUG_DOSE_UNIT_ML', keywords: ['ml', 'milliliter', 'millilitre'] },
-      { envKey: 'DRUG_DOSE_UNIT_MG', keywords: ['mg', 'milligram'] },
-      { envKey: 'DRUG_DOSE_UNIT_IU', keywords: ['iu', 'international unit'] },
-      { envKey: 'DRUG_DOSE_UNIT_DROP', keywords: ['drop'] },
-      { envKey: 'DRUG_DOSE_UNIT_TABLESPOON', keywords: ['tablespoon'] },
-      { envKey: 'DRUG_DOSE_UNIT_TEASPOON', keywords: ['teaspoon'] },
-      { envKey: 'DRUG_DOSE_UNIT_UNIT', keywords: ['unit(s)', 'unit'] },
-      { envKey: 'DRUG_DOSE_UNIT_PUFF', keywords: ['puff'] },
-    ];
-
     let resolved = 0;
     for (const { envKey, keywords } of unitMappings) {
       const uuid = keywords.reduce<string | undefined>(
@@ -1390,6 +1445,10 @@ async function setupDrugOrderConcepts(baseUrl: string): Promise<void> {
  * falls back to the first non-Unknown location. Writes LOCATION_OPD to .env.local.
  */
 async function setupLocations(baseUrl: string): Promise<void> {
+  if (allEnvKeysPresent(['LOCATION_OPD', 'LOCATION_LOGIN_UUID'])) {
+    console.log('  ✓ OPD location already configured — skipping resolution');
+    return;
+  }
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
 
   try {
@@ -1427,6 +1486,10 @@ async function setupLocations(baseUrl: string): Promise<void> {
  * Picks the first non-voided service from /appointmentService/all/full.
  */
 async function setupAppointmentService(baseUrl: string): Promise<void> {
+  if (allEnvKeysPresent(['APPOINTMENT_SERVICE_UUID'])) {
+    console.log('  ✓ Appointment service already configured — skipping resolution');
+    return;
+  }
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
 
   try {

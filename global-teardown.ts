@@ -12,7 +12,6 @@ async function globalTeardown(_config: FullConfig) {
   console.log('🏁 Test Suite Completed');
   console.log('=================================');
   console.log('Check reports in:');
-  console.log('  - Allure: reports/allure-results');
   console.log('  - HTML: reports/html-report');
   console.log('  - JSON: reports/test-results.json');
   console.log('=================================\n');

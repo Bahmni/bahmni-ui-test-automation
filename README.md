@@ -196,17 +196,12 @@ npm run test:api -- tests/api/openmrs/registration.spec.ts
 
 ## Test Reports
 
-### Allure Reports
+Results are published to ReportPortal (see `infra/reportportal/README.md`). Playwright's built-in HTML and JSON reports are also written to `reports/html-report` and `reports/test-results.json`.
 
 ```bash
-# Generate report
-npm run allure:generate
-
-# Open report
-npm run allure:open
+# Open the local HTML report
+npm run report
 ```
-
-Reports are generated in `reports/allure-results`.
 
 ## Code Quality
 

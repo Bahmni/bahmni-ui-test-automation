@@ -33,11 +33,13 @@ jobs:
           USER_CLINICAL_READONLY_PASSWORD: ${{ secrets.USER_CLINICAL_READONLY_PASSWORD }}
           USER_PATIENT_READONLY_PASSWORD: ${{ secrets.USER_PATIENT_READONLY_PASSWORD }}
           USER_IPD_PASSWORD: ${{ secrets.USER_IPD_PASSWORD }}
+          RP_ENDPOINT: ${{ secrets.RP_ENDPOINT }}
+          RP_API_KEY: ${{ secrets.RP_API_KEY }}
+          RP_PROJECT: ${{ secrets.RP_PROJECT }}
+          RP_LAUNCH: api-regression
+          RP_DESCRIPTION: "API regression • branch=${{ github.ref_name }} • ${{ github.event_name }}"
+          RP_ATTRIBUTES: "suite:api-regression;env:dev-lite;branch:${{ github.ref_name }};commit:${{ github.sha }};runUrl:${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         run: NODE_ENV=dev-lite npx playwright test --project=api --grep "@regression|@onlyLite" --grep-invert @onlyStandard --workers=5
-
-      - name: Generate Allure report
-        if: always()
-        run: npm run allure:generate
 
       - name: Upload test reports and artifacts
         if: always()
@@ -45,9 +47,7 @@ jobs:
         with:
           name: api-regression-reports
           path: |
-            reports/allure-report
             reports/html-report
             reports/test-results.json
-            reports/allure-results
             test-results
           retention-days: 30

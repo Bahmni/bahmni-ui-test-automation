@@ -56,7 +56,7 @@ test.describe.serial('POST /fhir2/R4/EncounterBundle → GET /fhir2/R4/Condition
     expect(problem?.clinicalStatus?.coding[0].code).toBe('active');
     expect(problem?.subject.reference).toContain(ctx.patientUuid);
     expect(problem?.onsetDateTime).toBeDefined();
-    expect(problem?.encounter).toBeUndefined();
+    expect(problem?.encounter?.reference).toContain(encounterUuid);
   });
 
   // --- Category isolation (different OpenMRS DB tables) ---

@@ -56,11 +56,11 @@ export class HomePage {
 
   async logout() {
     await this.openUserMenu();
-    await this.page.getByTestId('logout-option').click();
+    await this.page.getByTestId('user-action-user-logout-global-action').click();
   }
 
   async goToChangePassword() {
     await this.openUserMenu();
-    await this.page.getByTestId('change-password-option').click();
+    await this.page.getByTestId('user-action-user-change-password-global-action').click();
   }
 }

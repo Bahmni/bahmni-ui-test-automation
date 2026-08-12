@@ -1,9 +1,14 @@
+import { test as base } from '@playwright/test';
 import { test, expect } from '../../../../src/ui/fixtures/apiClinicalFixture';
+import { test as fitnessEvaluationTest } from '../../../../src/ui/fixtures/observationFormFixture';
+import { PageFactory } from '../../../../src/ui/pages/PageFactory';
+import { ActionFactory } from '../../../../src/ui/actions/ActionFactory';
 import { admissionLetterFaker } from '../../../../test-data/common/admissionLetterData';
 import { deathNoteFaker } from '../../../../test-data/common/deathNoteData';
 import { diabetesProgressFaker } from '../../../../test-data/common/diabetesProgressData';
 import { malariaFaker } from '../../../../test-data/common/malariaData';
 import { vitalsFaker } from '../../../../test-data/common/vitalsData';
+import { fitnessEvaluationFaker } from '../../../../test-data/common/fitnessEvaluationData';
 
 test.describe('Observation form Tests', { tag: ['@regression'] }, () => {
   test('Add admission letter observation form in consultation', async ({ clinicalSetup }) => {
@@ -67,4 +72,36 @@ test.describe('Observation form Tests', { tag: ['@regression'] }, () => {
     await actions.observation.verifyMalariaData(malariaData);
     await bahmni.malariaForm.closeModal();
   });
+
+  base('Import and publish Fitness Evaluation form', { tag: ['@regression'] }, async ({ page }) => {
+    base.setTimeout(60000);
+    const bahmni = new PageFactory(page);
+    const actions = new ActionFactory(bahmni);
+
+    await actions.auth.loginAsAdmin();
+    await actions.observation.ensureFitnessEvaluationFormPublished();
+
+    expect(await bahmni.implementerInterfacePage.isFormPublished('Fitness Evaluation')).toBe(true);
+  });
+
+  fitnessEvaluationTest(
+    'Add fitness evaluation observation form in consultation',
+    { tag: ['@regression'] },
+    async ({ clinicalSetup }) => {
+      fitnessEvaluationTest.setTimeout(90000);
+      const { actions, bahmni, page, api, patientUuid } = clinicalSetup;
+      const fitnessEvaluationData = fitnessEvaluationFaker.simpleFitnessEvaluation();
+
+      const { body: patient } = await api.patient.getById(patientUuid);
+      const expectedFirstName = patient.name[0].given[0];
+      const expectedLastName = patient.name[0].family;
+
+      await expect(page).toHaveURL(/.*clinical\/.*/);
+      await actions.observation.addFitnessEvaluationInConsultation(fitnessEvaluationData);
+      await actions.observation.openObservationForm('Fitness Evaluation');
+      await actions.observation.verifyFitnessEvaluationData(fitnessEvaluationData);
+      await actions.observation.verifyFitnessEvaluationPatientName(expectedFirstName, expectedLastName);
+      await bahmni.fitnessEvaluationObsFormPage.closeModal();
+    }
+  );
 });

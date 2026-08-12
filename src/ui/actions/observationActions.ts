@@ -5,13 +5,18 @@ import { AdmissionLetterData } from '../../../test-data/common/admissionLetterDa
 import { DeathNoteData } from '../../../test-data/common/deathNoteData';
 import { DiabetesProgressData } from '../../../test-data/common/diabetesProgressData';
 import { MalariaData } from '../../../test-data/common/malariaData';
+import { FitnessEvaluationData } from '../../../test-data/common/fitnessEvaluationData';
 
 export class ObservationActions {
   constructor(private readonly bahmni: PageFactory) {}
 
   private async startNewConsultation() {
-    await this.bahmni.clinicalPage.clickNewConsultation();
-    await this.bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
+    const mode = await this.bahmni.clinicalPage.clickConsultationAction();
+    if (mode === 'continue') {
+      await this.bahmni.newConsultationPage.waitForContinueConsultationPageToOpen();
+    } else {
+      await this.bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
+    }
   }
 
   async addVitalsInConsultation(vitalsData: VitalsData) {
@@ -51,6 +56,21 @@ export class ObservationActions {
     await this.bahmni.newConsultationPage.searchAndOpenObservationForm('Malaria');
     await this.bahmni.malariaForm.waitForFormToLoad();
     await this.bahmni.malariaForm.fillAndSaveMalaria(malariaData);
+    await this.bahmni.newConsultationPage.saveConsultation();
+  }
+
+  async ensureFitnessEvaluationFormPublished() {
+    await this.bahmni.implementerInterfacePage.ensureFormPublished(
+      'test-data/common/Fitness Evaluation_1.json',
+      'Fitness Evaluation'
+    );
+  }
+
+  async addFitnessEvaluationInConsultation(data: FitnessEvaluationData) {
+    await this.startNewConsultation();
+    await this.bahmni.newConsultationPage.searchAndOpenObservationForm('Fitness Evaluation');
+    await this.bahmni.fitnessEvaluationObsFormPage.waitForFormToLoad();
+    await this.bahmni.fitnessEvaluationObsFormPage.fillAndSaveFitnessEvaluation(data);
     await this.bahmni.newConsultationPage.saveConsultation();
   }
 
@@ -105,5 +125,22 @@ export class ObservationActions {
     await expect(modal).toContainText(malariaData.rapidTestResult);
     await expect(modal).toContainText(malariaData.malariaRisk);
     await expect(modal).toContainText(malariaData.problemSeverity);
+  }
+
+  async verifyFitnessEvaluationData(data: FitnessEvaluationData) {
+    const modal = this.bahmni.fitnessEvaluationObsFormPage.getFormModal();
+    await expect(modal).toContainText(data.heightCm);
+    await expect(modal).toContainText(data.weightKg);
+    await expect(modal).toContainText(data.pulse);
+  }
+
+  /**
+   * Verifies the form's First name/Last name fields were auto-populated from the
+   * patient's actual demographics (not filled by the test) and saved as such.
+   */
+  async verifyFitnessEvaluationPatientName(firstName: string, lastName: string) {
+    const modal = this.bahmni.fitnessEvaluationObsFormPage.getFormModal();
+    await expect(modal).toContainText(firstName);
+    await expect(modal).toContainText(lastName);
   }
 }

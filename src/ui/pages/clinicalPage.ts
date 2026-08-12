@@ -1,11 +1,9 @@
 import { Page } from '@playwright/test';
 
-/**
- * ClinicalPage class for Bahmni clinical dashboard page
- * URL: https://docker.standard.mybahmni.in/bahmni-v2/clinical/{patientUuid}
- */
 export class ClinicalPage {
   private readonly page: Page;
+
+  private consultationStarted = false;
 
   // Tab options for medications and vaccinations
   readonly MEDICATION_TABS = {
@@ -51,7 +49,7 @@ export class ClinicalPage {
     patientGender: 'p:has(img[alt="gender"])',
     patientAge: 'p:has(img[alt="age"])',
     patientIdentifierText: 'p:has(span[aria-label="id-card"]) span:not([aria-label])',
-    newConsultationButton: '[data-testid="consultation-action-button"]',
+    newConsultationButton: '[data-testid="consultation-action-button"]:has-text("New Consultation")',
     continueConsultationButton: '[data-testid="consultation-action-button"]:has-text("Continue Consultation")',
 
     // Section headings
@@ -95,10 +93,6 @@ export class ClinicalPage {
     this.page = page;
   }
 
-  /**
-   * Navigate to a specific section by clicking the sidebar link
-   * @param section - The section name to navigate to
-   */
   async navigateToSection(
     section:
       | 'Basic Details'
@@ -130,30 +124,27 @@ export class ClinicalPage {
     await this.page.locator(sectionMap[section]).click();
   }
 
-  /**
-   * Click New Consultation button
-   */
   async clickNewConsultation() {
     await this.page.locator(this.selectors.newConsultationButton).click();
   }
-
-  /**
-   * Click Continue Consultation button
-   */
   async clickContinueConsultation() {
     await this.page.locator(this.selectors.continueConsultationButton).click();
   }
 
-  /**
-   * Returns the New Consultation button locator (for visibility assertions)
-   */
+  async clickConsultationAction(): Promise<'new' | 'continue'> {
+    if (!this.consultationStarted) {
+      await this.page.locator(this.selectors.newConsultationButton).click();
+      this.consultationStarted = true;
+      return 'new';
+    }
+    await this.page.locator(this.selectors.continueConsultationButton).click();
+    return 'continue';
+  }
+
   getNewConsultationButton() {
     return this.page.locator(this.selectors.newConsultationButton);
   }
 
-  /**
-   * Get patient details from the header
-   */
   async getPatientDetails() {
     const name = await this.page.locator(this.selectors.patientName).textContent();
     const id = await this.page.locator(this.selectors.patientId).textContent();
@@ -168,34 +159,19 @@ export class ClinicalPage {
     };
   }
 
-  /**
-   * Switch medication tab
-   * @param tab - Tab name to switch to ('Active & Scheduled' or 'All')
-   */
   async switchMedicationTab(tab: 'Active & Scheduled' | 'All') {
     const medicationsArticle = this.page.locator('article:has(p:has-text("Medications"))');
     await medicationsArticle.getByRole('tab', { name: tab, exact: true }).first().click();
   }
 
-  /**
-   * Expand/collapse an encounter by date
-   * @param date - Date of the encounter to expand/collapse
-   */
   async toggleEncounter(date: string) {
     await this.page.locator(this.selectors.encounterButton(date)).first().click();
   }
 
-  /**
-   * Expand/collapse a form by name
-   * @param formName - Name of the form to expand/collapse
-   */
   async toggleForm(formName: string) {
     await this.page.locator(this.selectors.formButton(formName)).click();
   }
 
-  /**
-   * Get allergies data from the table
-   */
   async getAllergies() {
     const table = this.page.locator(this.selectors.allergiesTable);
     const rows = table.locator('tbody tr');
@@ -219,9 +195,6 @@ export class ClinicalPage {
     return allergies;
   }
 
-  /**
-   * Get programs data from the table
-   */
   async getPrograms() {
     const table = this.page.locator(this.selectors.programsTable);
     const rows = table.locator('tbody tr');
@@ -249,9 +222,6 @@ export class ClinicalPage {
     return programs;
   }
 
-  /**
-   * Get medications data from the table
-   */
   async getMedications() {
     const table = this.page.locator(this.selectors.medicationsTable);
     const rows = table.locator('tbody tr');
@@ -281,10 +251,6 @@ export class ClinicalPage {
     return medications;
   }
 
-  /**
-   * Check if a section is visible
-   * @param section - The section name to check
-   */
   async isSectionVisible(
     section:
       | 'Basic Details'
@@ -430,6 +396,8 @@ export class ClinicalPage {
       .locator('tbody tr')
       .filter({ hasText: conditionName })
       .first();
+    await row.waitFor({ state: 'visible', timeout: 10000 });
+    await row.hover();
     await row.getByText(/mark as inactive/i).click();
     const modal = this.page.locator('[data-testid="mark-inactive-confirm-modal"]');
     await modal.waitFor({ state: 'visible' });
@@ -455,17 +423,10 @@ export class ClinicalPage {
       .first();
   }
 
-  /**
-   * Returns the Medications article locator (used by both Active and All tab views).
-   */
   getMedicationsArticle() {
     return this.page.locator('article:has(p:has-text("Medications"))').first();
   }
 
-  /**
-   * Expand a date-grouped encounter inside the Medications "All" tab.
-   * @param date - Encounter date label as displayed on the button (e.g. "06/22/2026")
-   */
   async expandMedicationEncounter(date: string): Promise<void> {
     const button = this.getMedicationsArticle().getByRole('button', { name: date }).first();
     await button.waitFor({ state: 'visible', timeout: 10000 });
@@ -475,19 +436,16 @@ export class ClinicalPage {
     }
   }
 
-  /**
-   * Wait for the clinical dashboard to settle after a save (no explicit loader).
-   * Waits for URL to leave the consultation form and the page to reach network idle.
-   */
   async waitForDashboardDataReady(): Promise<void> {
     await this.page.waitForURL(/.*clinical\/.*(?<!\/consultation)$/, { timeout: 10000 });
     await this.page.waitForLoadState('networkidle', { timeout: 10000 });
   }
 
-  /**
-   * Wait for a medication row's text to match the expected substring/pattern.
-   * Useful right after an edit save since the dashboard has no explicit loader.
-   */
+  async reloadDashboard(): Promise<void> {
+    await this.page.reload();
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 });
+  }
+
   async waitForMedicationRowToContain(medicationName: string, expected: string | RegExp): Promise<void> {
     const row = this.getDisplayedMedicationRow(medicationName);
     await row.waitFor({ state: 'visible', timeout: 15000 });
@@ -498,30 +456,30 @@ export class ClinicalPage {
     await row.filter({ hasText: expected }).first().waitFor({ state: 'visible', timeout: 15000 });
   }
 
-  /**
-   * Open the medication row's overflow menu and click the Edit option
-   */
   async clickEditMedication(medicationName: string): Promise<void> {
     await this.navigateToSection('Medications');
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 });
     const row = this.getDisplayedMedicationRow(medicationName);
     await row.waitFor({ state: 'visible', timeout: 10000 });
+    // The row's overflow-menu trigger is only revealed on hover in this table.
+    await row.hover();
     const overflowTrigger = row.locator('button.cds--overflow-menu').first();
-    await overflowTrigger.waitFor({ state: 'visible', timeout: 10000 });
+    await overflowTrigger.waitFor({ state: 'visible', timeout: 15000 });
     await overflowTrigger.click();
     const editOption = this.page.locator('[data-testid^="medication-action-edit-"]').first();
     await editOption.waitFor({ state: 'visible', timeout: 10000 });
     await editOption.click();
   }
 
-  /**
-   * Open the medication row's overflow menu and click the Stop option
-   */
   async clickStopMedication(medicationName: string): Promise<void> {
     await this.navigateToSection('Medications');
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 });
     const row = this.getDisplayedMedicationRow(medicationName);
     await row.waitFor({ state: 'visible', timeout: 10000 });
+    // The row's overflow-menu trigger is only revealed on hover in this table.
+    await row.hover();
     const overflowTrigger = row.locator('button.cds--overflow-menu').first();
-    await overflowTrigger.waitFor({ state: 'visible', timeout: 10000 });
+    await overflowTrigger.waitFor({ state: 'visible', timeout: 15000 });
     await overflowTrigger.click();
     const stopOption = this.page.locator('[data-testid^="medication-action-stop-"]').first();
     await stopOption.waitFor({ state: 'visible', timeout: 10000 });

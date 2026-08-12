@@ -1,5 +1,4 @@
 import { Page, expect } from '@playwright/test';
-import { config } from '../../config/env.config';
 
 export class PatientDocumentsPage {
   private readonly page: Page;
@@ -25,6 +24,10 @@ export class PatientDocumentsPage {
     viewerModal: '#modalIdForActionAreaLayout',
     viewerModalImage: '[data-testid$="-modal-image-test-id"]',
     viewerModalCloseButton: 'button[aria-label="Close"]',
+    // Legacy /bahmni/document-upload/...#/search page (reached via the Patient Documents
+    // home tile) — the Active Patients list here filters live as you type.
+    activePatientSearchInput: '#patientIdentifier',
+    activePatientListItem: 'li.active-patient',
   } as const;
 
   constructor(page: Page) {
@@ -60,11 +63,11 @@ export class PatientDocumentsPage {
     }
   }
 
-  // Standalone /bahmni-v2/patient-documents/{uuid} page
-
-  async goto(patientUuid: string) {
-    await this.page.goto(`${config.baseUrl}/bahmni-v2/patient-documents/${patientUuid}`);
-    await this.page.waitForLoadState('networkidle', { timeout: 20000 });
+  async searchAndSelectPatient(patientId: string): Promise<void> {
+    await this.page.locator(this.selectors.activePatientSearchInput).fill(patientId);
+    const result = this.page.locator(this.selectors.activePatientListItem).filter({ hasText: patientId }).first();
+    await result.waitFor({ state: 'visible', timeout: 10000 });
+    await result.click();
   }
 
   private getVisitAccordionItem(visitLabel: string) {
@@ -96,7 +99,11 @@ export class PatientDocumentsPage {
   }
 
   async getVisitLabels(): Promise<string[]> {
-    return this.page.locator(this.selectors.visitAccordionTitle).allTextContents();
+    const titles = this.page.locator(this.selectors.visitAccordionTitle);
+    // allTextContents() doesn't auto-wait — the standalone page's visit accordion
+    // renders after its own data fetch, which can still be in flight past networkidle.
+    await titles.first().waitFor({ state: 'visible', timeout: 10000 });
+    return titles.allTextContents();
   }
 
   async expandVisit(visitLabel: string) {
@@ -131,14 +138,14 @@ export class PatientDocumentsPage {
     await modal.waitFor({ state: 'hidden', timeout: 10000 });
   }
 
-  /**
-   * Selecting a file renders a pending row (thumbnail + document-type combobox,
-   * defaulted from the file name) that must be confirmed with Save before it
-   * appears in the documents table.
-   */
-  async uploadDocument(visitLabel: string, filePath: string) {
+  async uploadDocument(visitLabel: string, filePath: string, documentType?: string) {
     const item = this.getVisitAccordionItem(visitLabel);
     await item.locator(this.selectors.uploadFileInput).setInputFiles(filePath);
+    if (documentType) {
+      const typeCombobox = item.getByRole('combobox').first();
+      await typeCombobox.click();
+      await this.page.getByRole('option', { name: documentType, exact: true }).click();
+    }
     const saveButton = item.getByRole('button', { name: 'Save' });
     await saveButton.waitFor({ state: 'visible', timeout: 10000 });
     await saveButton.click();

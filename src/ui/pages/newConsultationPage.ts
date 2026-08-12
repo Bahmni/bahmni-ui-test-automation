@@ -12,6 +12,7 @@ export class NewConsultationPage {
   private readonly selectors = {
     // Heading
     newConsultationHeading: 'h2:has-text("New Consultation")',
+    continueConsultationHeading: 'h2:has-text("Continue Consultation")',
 
     // Encounter information - All disabled/read-only fields
     locationCombobox: 'combobox[aria-label="Location"]',
@@ -59,9 +60,15 @@ export class NewConsultationPage {
     // Action buttons - Using data-testid
     cancelButton: '[data-testid="action-area-secondary-button"]',
     doneButton: '[data-testid="action-area-primary-button"]',
+    // Shown instead of the consultation form when the visit has ended — shares
+    // the doneButton's test-id but reads "Start visit" until clicked.
+    startVisitButton: '[data-testid="action-area-primary-button"][aria-label="Start visit"]',
 
-    // Toast notification (Carbon Design System)
-    saveSuccessToast: '.cds--toast-notification',
+    // Toast notification (Carbon Design System) — scoped to the success
+    // variant specifically, since an unrelated background error toast can
+    // appear at the same time and would otherwise make this locator
+    // ambiguous (strict-mode violation).
+    saveSuccessToast: '.cds--toast-notification--success',
     saveSuccessToastCloseButton: 'button[title="close notification"]',
 
     // New Consultation button (on clinical page)
@@ -72,9 +79,6 @@ export class NewConsultationPage {
     this.page = page;
   }
 
-  /**
-   * Get encounter information (read-only fields)
-   */
   async getEncounterInfo() {
     const location = await this.page.locator(this.selectors.locationCombobox).textContent();
     const encounterType = await this.page.locator(this.selectors.encounterTypeCombobox).textContent();
@@ -91,10 +95,6 @@ export class NewConsultationPage {
     };
   }
 
-  /**
-   * Add an allergy by searching and selecting
-   * @param allergyName - Name of the allergy to add
-   */
   async addAllergy(allergyName: string) {
     await this.page.locator(this.selectors.allergiesSearchInput).fill(allergyName);
     const option = this.page.locator(`li[role="option"]:has-text("${allergyName}")`).first();
@@ -102,12 +102,6 @@ export class NewConsultationPage {
     await option.click();
   }
 
-  /**
-   * Add an allergy with severity and reaction
-   * @param allergyName - Name of the allergy to add
-   * @param severity - Severity level (Mild, Moderate, Severe)
-   * @param reaction - Reaction type
-   */
   async addAllergyWithDetails(allergyName: string, severity: string, reaction: string) {
     // Search and select allergen
     await this.addAllergy(allergyName);
@@ -128,13 +122,6 @@ export class NewConsultationPage {
     await this.page.keyboard.press('Escape');
   }
 
-  /**
-   * Edit the currently displayed allergy entry in the consultation edit panel.
-   * Replaces severity and reaction, and optionally adds a note.
-   * @param severity - New severity level
-   * @param reaction - New reaction to set (clears any existing reactions first)
-   * @param note - Optional note text to add
-   */
   async editAllergyDetails(severity: string, reaction: string, note?: string) {
     const severityCombobox = this.page.getByRole('combobox', { name: /severity/i });
     await severityCombobox.waitFor({ state: 'visible' });
@@ -260,9 +247,9 @@ export class NewConsultationPage {
    * Wait for the save success toast notification and dismiss it
    */
   async dismissSaveNotification() {
-    const toast = this.page.locator(this.selectors.saveSuccessToast);
+    const toast = this.page.locator(this.selectors.saveSuccessToast).first();
     await toast.waitFor({ state: 'visible', timeout: 10000 });
-    await this.page.locator(this.selectors.saveSuccessToastCloseButton).click();
+    await toast.locator(this.selectors.saveSuccessToastCloseButton).click();
     await toast.waitFor({ state: 'hidden', timeout: 5000 });
   }
 
@@ -291,10 +278,6 @@ export class NewConsultationPage {
     await option.click();
   }
 
-  /**
-   * Add a medication with complete prescription details
-   * @param medication - Medication data object with all required fields
-   */
   async addMedication(medication: MedicationData) {
     await this.searchAndSelectMedication(medication.name);
 
@@ -383,12 +366,6 @@ export class NewConsultationPage {
     }
   }
 
-  /**
-   * Fill the Stop Medication form panel with reason, note, and optional stop date.
-   * @param reason - Stop reason to select from the dropdown
-   * @param note - Note text to enter in the description textarea
-   * @param stopDate - Optional stop date in dd/mm/yyyy format (defaults to today)
-   */
   async fillStopMedicationForm(reason: string, note: string, stopDate?: string): Promise<void> {
     const formTile = this.page.locator('[data-testid="stop-medication-form-tile"]');
     await formTile.waitFor({ state: 'visible', timeout: 10000 });
@@ -399,6 +376,10 @@ export class NewConsultationPage {
     const yyyy = today.getFullYear();
     const dateValue = stopDate ?? `${dd}/${mm}/${yyyy}`;
     await this.page.locator('[data-testid="stop-medication-date-input"]').fill(dateValue);
+    // Dismiss any date-picker overlay left open by the fill above — it can still be
+    // settling into place when the next click lands, intercepting it and leaving the
+    // reason dropdown stuck open with no options rendered.
+    await this.page.keyboard.press('Escape');
 
     await this.page.locator('[data-testid="stop-medication-reason-dropdown"]').getByRole('combobox').click();
     await this.page.getByRole('option', { name: reason, exact: true }).click();
@@ -412,11 +393,6 @@ export class NewConsultationPage {
     await noteTextarea.fill(note);
   }
 
-  /**
-   * Add a vaccination with complete prescription details
-   * Note: For vaccinations, STAT is auto-enabled and frequency/duration are auto-populated
-   * @param vaccination - Vaccination data object with required fields
-   */
   async addVaccination(vaccination: MedicationData) {
     await this.page.locator(this.selectors.vaccinationsSearchInput).fill(vaccination.name);
     const option = this.page.locator(`li[role="option"]:has-text("${vaccination.name}")`).first();
@@ -434,10 +410,6 @@ export class NewConsultationPage {
     await this.page.getByRole('option', { name: vaccination.route, exact: true }).click();
   }
 
-  /**
-   * Search and open an observation form
-   * @param formName - Name of the observation form to open
-   */
   async searchAndOpenObservationForm(formName: string) {
     await this.page.locator(this.selectors.observationFormsSearchInput).fill(formName);
     const option = this.page.locator(`li[role="option"]:has-text("${formName}")`).first();
@@ -445,48 +417,54 @@ export class NewConsultationPage {
     await option.click();
   }
 
-  /**
-   * Open History and Examination form
-   */
   async openHistoryAndExaminationForm() {
     await this.page.locator(this.selectors.historyExaminationForm).click();
   }
 
-  /**
-   * Open Vitals form
-   */
   async openVitalsForm() {
     await this.page.locator(this.selectors.vitalsForm).click();
   }
 
-  /**
-   * Open a specific pinned form by name
-   * @param formName - Name of the form to open
-   */
   async openPinnedForm(formName: string) {
     await this.page.locator(`[data-testid="pinned-form-${formName}"]`).click();
   }
 
-  /**
-   * Cancel the consultation
-   */
   async cancelConsultation() {
     await this.page.locator(this.selectors.cancelButton).click();
   }
 
-  /**
-   * Save the consultation and dismiss the success notification
-   */
   async saveConsultation() {
     await this.page.locator(this.selectors.doneButton).click();
     await this.dismissSaveNotification();
+    // Wait for navigation back to the clinical dashboard before proceeding
+    await this.page.waitForURL(/.*clinical\/.*(?<!\/consultation)$/, { timeout: 10000 });
   }
 
-  /**
-   * Wait for New Consultation page to be visible
-   */
+  async startVisitIfPrompted(): Promise<void> {
+    const startVisitButton = this.page.locator(this.selectors.startVisitButton);
+    const promptShown = await startVisitButton
+      .waitFor({ state: 'visible', timeout: 3000 })
+      .then(() => true)
+      .catch(() => false);
+    if (promptShown) {
+      await startVisitButton.click();
+    }
+  }
+
   async waitForNewConsultationPageToOpen() {
     await this.page.locator(this.selectors.newConsultationHeading).waitFor({
+      state: 'visible',
+      timeout: 10000,
+    });
+    await this.startVisitIfPrompted();
+    await this.page.locator(this.selectors.doneButton).waitFor({
+      state: 'visible',
+      timeout: 10000,
+    });
+  }
+
+  async waitForContinueConsultationPageToOpen() {
+    await this.page.locator(this.selectors.continueConsultationHeading).waitFor({
       state: 'visible',
       timeout: 10000,
     });

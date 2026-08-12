@@ -13,8 +13,12 @@ export class ClinicalActions {
   constructor(private readonly bahmni: PageFactory) {}
 
   async startNewConsultation() {
-    await this.bahmni.clinicalPage.clickNewConsultation();
-    await this.bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
+    const mode = await this.bahmni.clinicalPage.clickConsultationAction();
+    if (mode === 'continue') {
+      await this.bahmni.newConsultationPage.waitForContinueConsultationPageToOpen();
+    } else {
+      await this.bahmni.newConsultationPage.waitForNewConsultationPageToOpen();
+    }
   }
 
   async continueConsultation() {
@@ -47,10 +51,6 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.saveConsultation();
   }
 
-  /**
-   * Edits an existing medication on the consultation by opening its row's
-   * overflow menu, updating the form fields, and saving the consultation.
-   */
   async editMedicationInConsultation(originalMedicationName: string, newMedication: MedicationData): Promise<void> {
     await this.bahmni.clinicalPage.clickEditMedication(originalMedicationName);
     await this.bahmni.newConsultationPage.editMedicationDetails(newMedication);
@@ -125,6 +125,7 @@ export class ClinicalActions {
 
   async verifyOrderDisplayed(name: string, section: 'Lab Investigations' | 'Procedures' | 'Radiology Investigations') {
     const displayName = name.replace(/ \(Panel\)$/, '');
+    await this.bahmni.clinicalPage.reloadDashboard();
     await this.bahmni.clinicalPage.navigateToSection(section);
     await expect(this.bahmni.clinicalPage.getSectionArticle(section)).toContainText(displayName);
   }

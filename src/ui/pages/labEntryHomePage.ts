@@ -13,7 +13,10 @@ export class LabEntryHomePage {
   }
 
   async waitForActivePatientList() {
-    await this.page.locator(this.selectors.activePatientHeading).waitFor({ state: 'visible', timeout: 15000 });
+    // Lab Entry is a separate module load from the clinical dashboard, so give
+    // it a chance to finish navigating before checking for its heading.
+    await this.page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
+    await this.page.locator(this.selectors.activePatientHeading).waitFor({ state: 'visible', timeout: 20000 });
   }
 
   async openPatient(patientId: string) {

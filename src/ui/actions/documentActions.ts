@@ -4,13 +4,15 @@ import { PageFactory } from '../pages/PageFactory';
 export class DocumentActions {
   constructor(private readonly bahmni: PageFactory) {}
 
-  async navigateToPatientDocumentsPage(patientUuid: string) {
-    await this.bahmni.patientDocumentsPage.goto(patientUuid);
+  async openPatientDocumentsForPatient(patientId: string) {
+    await this.bahmni.homePage.goto();
+    await this.bahmni.homePage.navigateToModule(this.bahmni.homePage.MODULES.PATIENT_DOCUMENTS);
+    await this.bahmni.patientDocumentsPage.searchAndSelectPatient(patientId);
   }
 
-  async uploadDocumentForVisit(visitLabel: string, filePath: string) {
+  async uploadDocumentForVisit(visitLabel: string, filePath: string, documentType?: string) {
     await this.bahmni.patientDocumentsPage.expandVisit(visitLabel);
-    await this.bahmni.patientDocumentsPage.uploadDocument(visitLabel, filePath);
+    await this.bahmni.patientDocumentsPage.uploadDocument(visitLabel, filePath, documentType);
   }
 
   async verifyDocumentDisplayedForVisit(visitLabel: string, documentType: string) {

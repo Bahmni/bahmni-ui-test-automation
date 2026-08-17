@@ -24,4 +24,16 @@ export const fitnessEvaluationFaker = {
     supplementStatus: 'Completed',
     pregnancyStatus: 'No',
   }),
+
+  /**
+   * Values used to edit a previously saved Fitness Evaluation form, distinct
+   * from simpleFitnessEvaluation() so the edit test can assert the change.
+   */
+  editedFitnessEvaluation: (): FitnessEvaluationData => ({
+    heightCm: '175',
+    weightKg: '80',
+    pulse: '85',
+    supplementStatus: 'Not done',
+    pregnancyStatus: 'Yes',
+  }),
 };

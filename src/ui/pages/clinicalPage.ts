@@ -552,18 +552,46 @@ export class ClinicalPage {
   async openObservationFormModal(formName: string): Promise<void> {
     await this.navigateToSection('Forms');
     const formsSection = this.page.locator('article:has(p:has-text("Forms"))');
-    const formButton = formsSection.locator(`button:has-text("${formName}")`);
+    // Exact accessible-name match - a substring match (":has-text") would ambiguously
+    // match both "Vitals" and "Second Vitals" when both exist for the same patient.
+    const formButton = formsSection.getByRole('button', { name: formName, exact: true });
     await formButton.waitFor({ state: 'visible', timeout: 5000 });
     const isExpanded = await formButton.getAttribute('aria-expanded');
     if (isExpanded === 'false' || isExpanded === null) {
       await formButton.click();
     }
     // Scope link click to the specific form's list item to avoid clicking a different form's link
-    const formListItem = formsSection.locator(`li:has(button:has-text("${formName}"))`);
+    const formListItem = formButton.locator('xpath=ancestor::li[1]');
     const dateLink = formListItem.locator('a').first();
     await dateLink.scrollIntoViewIfNeeded();
     await dateLink.waitFor({ state: 'visible', timeout: 10000 });
     await dateLink.click();
     await this.page.locator('[data-testid="form-details-modal"]').waitFor({ state: 'visible', timeout: 5000 });
+  }
+
+  async editObservationForm(formName: string): Promise<void> {
+    await this.navigateToSection('Forms');
+    const formsSection = this.page.locator('article:has(p:has-text("Forms"))');
+    // Exact accessible-name match - a substring match (":has-text") would ambiguously
+    // match both "Vitals" and "Second Vitals" when both exist for the same patient.
+    const formButton = formsSection.getByRole('button', { name: formName, exact: true });
+    await formButton.waitFor({ state: 'visible', timeout: 5000 });
+    const isExpanded = await formButton.getAttribute('aria-expanded');
+    if (isExpanded === 'false' || isExpanded === null) {
+      await formButton.click();
+    }
+    // Scope to the specific form's list item to avoid clicking a different form's edit button
+    const formListItem = formButton.locator('xpath=ancestor::li[1]');
+    const editButton = formListItem.getByRole('button', { name: 'Edit' }).first();
+    await editButton.scrollIntoViewIfNeeded();
+    await editButton.waitFor({ state: 'visible', timeout: 10000 });
+    await editButton.click();
+  }
+
+  async editObservationFormFromModal(): Promise<void> {
+    const modal = this.page.locator('[data-testid="form-details-modal"]');
+    const editIcon = modal.getByRole('button', { name: 'Edit', exact: true });
+    await editIcon.waitFor({ state: 'visible', timeout: 10000 });
+    await editIcon.click();
   }
 }

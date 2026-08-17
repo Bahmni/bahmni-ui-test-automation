@@ -63,6 +63,11 @@ export class VitalsForm {
     // Action buttons
     discardFormButton: 'button:has-text("Discard Form")',
     saveFormButton: 'button:has-text("Save Form")',
+
+    editFormHeading: 'h2:has-text("Edit Vitals")',
+    // Shared testid with other inline action panels (consultation pad, etc.) - :visible
+    // narrows to the one actually on screen since an unrelated panel can share this testid.
+    editDoneButton: '[data-testid="action-area-primary-button"]:visible',
   } as const;
 
   constructor(page: Page) {
@@ -78,7 +83,9 @@ export class VitalsForm {
   }
 
   private numberInputByLabel(labelText: string) {
-    return this.page.locator(`.form-field-wrap:has(label:text-is("${labelText}")) input[type="number"]`);
+    // .first() guards against the edit panel transiently double-rendering the
+    // same field while a previous encounter's fields are still settling.
+    return this.page.locator(`.form-field-wrap:has(label:text-is("${labelText}")) input[type="number"]`).first();
   }
 
   /**
@@ -135,7 +142,7 @@ export class VitalsForm {
    */
   async selectBodyPosition(position: string) {
     const positionSelector = `button:has-text("${position}")`;
-    await this.page.locator(positionSelector).click();
+    await this.page.locator(positionSelector).first().click();
   }
 
   /**
@@ -258,8 +265,31 @@ export class VitalsForm {
     await this.saveForm();
   }
 
+  async waitForEditFormToLoad() {
+    await this.page.locator(this.selectors.editFormHeading).waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator(this.selectors.editDoneButton).waitFor({ state: 'visible', timeout: 10000 });
+  }
+
+  async saveEditedForm() {
+    await this.page.locator(this.selectors.editDoneButton).click();
+    await this.page.locator(this.selectors.editFormHeading).waitFor({ state: 'hidden', timeout: 10000 });
+    // Give the save request time to settle before the caller re-opens the view
+    // modal, otherwise it can occasionally read back stale pre-edit values.
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+  }
+
   getFormModal() {
     return this.page.locator('[data-testid="form-details-modal"]');
+  }
+
+  /**
+   * Values outside the form's configured normal range are rendered by the
+   * view-form modal with an "abnormalValue" CSS module class (shown as red
+   * text). The class name suffix is a build-time hash, so match on the
+   * stable "abnormalValue" prefix instead of the full class.
+   */
+  getAbnormalValueElements() {
+    return this.getFormModal().locator('[class*="abnormalValue"]');
   }
 
   async getFormModalText(): Promise<string | null> {

@@ -33,9 +33,9 @@ export class HistoryAndExaminationForm {
     // Form heading
     formHeading: 'h2:has-text("History and Examination")',
 
-    // Chief Complaint section
-    chiefComplaintDropdown: 'combobox',
-    chiefComplaintDurationInput: 'spinbutton[aria-label="Sign/symptom duration"]',
+    // Chief Complaint section - the combobox/spinbutton carry no distinguishing
+    // aria-label of their own, but each is the only one of its kind on this form.
+    chiefComplaintDropdownName: 'Choose an item',
 
     // Duration unit buttons
     durationUnitHours: 'button:has-text("Hours")',
@@ -45,7 +45,7 @@ export class HistoryAndExaminationForm {
     durationUnitYears: 'button:has-text("Years")',
 
     // History of present illness
-    historyOfPresentIllnessInput: 'textbox[aria-label="History of present illness"]',
+    historyOfPresentIllnessLabel: 'History of present illness',
 
     // Smoking status buttons
     smokingStatusUnknown: 'button:has-text("Unknown if ever smoked")',
@@ -63,6 +63,11 @@ export class HistoryAndExaminationForm {
     // Action buttons
     discardFormButton: 'button:has-text("Discard Form")',
     saveFormButton: 'button:has-text("Save Form")',
+
+    editFormHeading: 'h2:has-text("Edit History and Examination")',
+    // Shared testid with other inline action panels (consultation pad, etc.) - :visible
+    // narrows to the one actually on screen since an unrelated panel can share this testid.
+    editDoneButton: '[data-testid="action-area-primary-button"]:visible',
   } as const;
 
   constructor(page: Page) {
@@ -82,7 +87,9 @@ export class HistoryAndExaminationForm {
    * @param complaint - Chief complaint text
    */
   async selectChiefComplaint(complaint: string) {
-    await this.page.locator(this.selectors.chiefComplaintDropdown).click();
+    const combobox = this.page.getByRole('combobox', { name: this.selectors.chiefComplaintDropdownName }).first();
+    await combobox.click();
+    await combobox.fill(complaint);
     const option = this.page.locator(`li[role="option"]:has-text("${complaint}")`).first();
     await option.waitFor({ state: 'visible', timeout: 5000 });
     await option.click();
@@ -93,7 +100,7 @@ export class HistoryAndExaminationForm {
    * @param duration - Duration value
    */
   async fillDuration(duration: string) {
-    await this.page.locator(this.selectors.chiefComplaintDurationInput).fill(duration);
+    await this.page.getByRole('spinbutton').first().fill(duration);
   }
 
   /**
@@ -102,7 +109,7 @@ export class HistoryAndExaminationForm {
    */
   async selectDurationUnit(unit: string) {
     const unitSelector = `button:has-text("${unit}")`;
-    await this.page.locator(unitSelector).click();
+    await this.page.locator(unitSelector).first().click();
   }
 
   /**
@@ -110,7 +117,7 @@ export class HistoryAndExaminationForm {
    * @param history - History text
    */
   async fillHistoryOfPresentIllness(history: string) {
-    await this.page.locator(this.selectors.historyOfPresentIllnessInput).fill(history);
+    await this.page.getByRole('textbox', { name: this.selectors.historyOfPresentIllnessLabel }).first().fill(history);
   }
 
   /**
@@ -119,7 +126,7 @@ export class HistoryAndExaminationForm {
    */
   async selectSmokingStatus(status: string) {
     const statusSelector = `button:has-text("${status}")`;
-    await this.page.locator(statusSelector).click();
+    await this.page.locator(statusSelector).first().click();
   }
 
   /**
@@ -183,5 +190,28 @@ export class HistoryAndExaminationForm {
   }) {
     await this.fillHistoryAndExaminationForm(formData);
     await this.saveForm();
+  }
+
+  getFormModal() {
+    return this.page.locator('[data-testid="form-details-modal"]');
+  }
+
+  async closeModal() {
+    await this.page.keyboard.press('Escape');
+    const modal = this.page.locator('[data-testid="form-details-modal"]');
+    await modal.waitFor({ state: 'hidden', timeout: 5000 });
+  }
+
+  async waitForEditFormToLoad() {
+    await this.page.locator(this.selectors.editFormHeading).waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator(this.selectors.editDoneButton).waitFor({ state: 'visible', timeout: 10000 });
+  }
+
+  async saveEditedForm() {
+    await this.page.locator(this.selectors.editDoneButton).click();
+    await this.page.locator(this.selectors.editFormHeading).waitFor({ state: 'hidden', timeout: 10000 });
+    // Give the save request time to settle before the caller re-opens the view
+    // modal, otherwise it can occasionally read back stale pre-edit values.
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
   }
 }

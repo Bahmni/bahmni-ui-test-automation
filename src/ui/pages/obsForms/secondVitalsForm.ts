@@ -24,15 +24,15 @@ export class SecondVitalsForm {
     formHeading: 'h2:has-text("Second Vitals")',
     pinFormButton: 'generic[aria-label="Pin form"]',
 
-    // Vital signs inputs with normal ranges
-    pulseInput: 'spinbutton[aria-label="Pulse (beats/min)"]', // Normal: 60-100
-    oxygenSaturationInput: 'spinbutton[aria-label="Arterial blood oxygen saturation (pulse oximeter) (%)"]', // Normal: >95
-    respiratoryRateInput: 'spinbutton[aria-label="Respiratory rate"]', // Normal: 12-18
-    temperatureInput: 'spinbutton[aria-label="Temperature (F)"]', // Normal: 95-99.6
+    // Vital signs accessible names (used with the .form-field-wrap label lookup below)
+    pulseLabel: 'Pulse (beats/min)', // Normal: 60-100
+    oxygenSaturationLabel: 'Arterial blood oxygen saturation (pulse oximeter) (%)', // Normal: >95
+    respiratoryRateLabel: 'Respiratory rate', // Normal: 12-18
+    temperatureLabel: 'Temperature (F)', // Normal: 95-99.6
 
     // Blood pressure
-    systolicBPInput: 'spinbutton[aria-label="Systolic blood pressure (mmHg)"]', // Normal: 100-140
-    diastolicBPInput: 'spinbutton[aria-label="Diastolic blood pressure (mmHg)"]', // Normal: 60-90
+    systolicBPLabel: 'Systolic blood pressure (mmHg)', // Normal: 100-140
+    diastolicBPLabel: 'Diastolic blood pressure (mmHg)', // Normal: 60-90
 
     // Body position buttons
     bodyPositionSitting: 'button:has-text("sitting")',
@@ -69,12 +69,16 @@ export class SecondVitalsForm {
     await this.page.locator(this.selectors.pinFormButton).click();
   }
 
+  private numberInputByLabel(labelText: string) {
+    return this.page.locator(`.form-field-wrap:has(label:text-is("${labelText}")) input[type="number"]`).first();
+  }
+
   /**
    * Fill pulse (beats/min)
    * @param pulse - Pulse value (normal range: 60-100)
    */
   async fillPulse(pulse: string) {
-    await this.page.locator(this.selectors.pulseInput).fill(pulse);
+    await this.numberInputByLabel(this.selectors.pulseLabel).fill(pulse);
   }
 
   /**
@@ -82,7 +86,7 @@ export class SecondVitalsForm {
    * @param oxygenSaturation - Oxygen saturation value (normal: >95)
    */
   async fillOxygenSaturation(oxygenSaturation: string) {
-    await this.page.locator(this.selectors.oxygenSaturationInput).fill(oxygenSaturation);
+    await this.numberInputByLabel(this.selectors.oxygenSaturationLabel).fill(oxygenSaturation);
   }
 
   /**
@@ -90,7 +94,7 @@ export class SecondVitalsForm {
    * @param respiratoryRate - Respiratory rate value (normal range: 12-18)
    */
   async fillRespiratoryRate(respiratoryRate: string) {
-    await this.page.locator(this.selectors.respiratoryRateInput).fill(respiratoryRate);
+    await this.numberInputByLabel(this.selectors.respiratoryRateLabel).fill(respiratoryRate);
   }
 
   /**
@@ -98,7 +102,7 @@ export class SecondVitalsForm {
    * @param temperature - Temperature value (normal range: 95-99.6)
    */
   async fillTemperature(temperature: string) {
-    await this.page.locator(this.selectors.temperatureInput).fill(temperature);
+    await this.numberInputByLabel(this.selectors.temperatureLabel).fill(temperature);
   }
 
   /**
@@ -106,7 +110,7 @@ export class SecondVitalsForm {
    * @param systolic - Systolic BP value (normal range: 100-140)
    */
   async fillSystolicBP(systolic: string) {
-    await this.page.locator(this.selectors.systolicBPInput).fill(systolic);
+    await this.numberInputByLabel(this.selectors.systolicBPLabel).fill(systolic);
   }
 
   /**
@@ -114,7 +118,7 @@ export class SecondVitalsForm {
    * @param diastolic - Diastolic BP value (normal range: 60-90)
    */
   async fillDiastolicBP(diastolic: string) {
-    await this.page.locator(this.selectors.diastolicBPInput).fill(diastolic);
+    await this.numberInputByLabel(this.selectors.diastolicBPLabel).fill(diastolic);
   }
 
   /**
@@ -123,7 +127,7 @@ export class SecondVitalsForm {
    */
   async selectBodyPosition(position: string) {
     const positionSelector = `button:has-text("${position}")`;
-    await this.page.locator(positionSelector).click();
+    await this.page.locator(positionSelector).first().click();
   }
 
   /**
@@ -199,5 +203,19 @@ export class SecondVitalsForm {
   }) {
     await this.fillSecondVitalsForm(vitalsData);
     await this.saveForm();
+  }
+
+  getFormModal() {
+    return this.page.locator('[data-testid="form-details-modal"]');
+  }
+
+  getAbnormalValueElements() {
+    return this.getFormModal().locator('[class*="abnormalValue"]');
+  }
+
+  async closeModal() {
+    await this.page.keyboard.press('Escape');
+    const modal = this.page.locator('[data-testid="form-details-modal"]');
+    await modal.waitFor({ state: 'hidden', timeout: 5000 });
   }
 }

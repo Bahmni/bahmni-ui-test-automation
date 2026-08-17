@@ -6,6 +6,7 @@ import { DeathNoteData } from '../../../test-data/common/deathNoteData';
 import { DiabetesProgressData } from '../../../test-data/common/diabetesProgressData';
 import { MalariaData } from '../../../test-data/common/malariaData';
 import { FitnessEvaluationData } from '../../../test-data/common/fitnessEvaluationData';
+import { HistoryAndExaminationData } from '../../../test-data/common/historyAndExaminationData';
 
 export class ObservationActions {
   constructor(private readonly bahmni: PageFactory) {}
@@ -24,6 +25,22 @@ export class ObservationActions {
     await this.bahmni.newConsultationPage.openVitalsForm();
     await this.bahmni.vitalsForm.waitForFormToLoad();
     await this.bahmni.vitalsForm.fillAndSaveVitals(vitalsData);
+    await this.bahmni.newConsultationPage.saveConsultation();
+  }
+
+  async addSecondVitalsInConsultation(vitalsData: VitalsData) {
+    await this.startNewConsultation();
+    await this.bahmni.newConsultationPage.searchAndOpenObservationForm('Second Vitals');
+    await this.bahmni.secondVitalsForm.waitForFormToLoad();
+    await this.bahmni.secondVitalsForm.fillAndSaveSecondVitals(vitalsData);
+    await this.bahmni.newConsultationPage.saveConsultation();
+  }
+
+  async addHistoryAndExaminationInConsultation(data: HistoryAndExaminationData) {
+    await this.startNewConsultation();
+    await this.bahmni.newConsultationPage.openHistoryAndExaminationForm();
+    await this.bahmni.historyAndExaminationForm.waitForFormToLoad();
+    await this.bahmni.historyAndExaminationForm.fillAndSaveHistoryAndExamination(data);
     await this.bahmni.newConsultationPage.saveConsultation();
   }
 
@@ -78,6 +95,29 @@ export class ObservationActions {
     await this.bahmni.clinicalPage.openObservationFormModal(formName);
   }
 
+  async editFitnessEvaluationInConsultation(data: FitnessEvaluationData, fieldToClear: string) {
+    await this.bahmni.clinicalPage.editObservationForm('Fitness Evaluation');
+    await this.bahmni.fitnessEvaluationObsFormPage.waitForEditFormToLoad();
+    await this.bahmni.fitnessEvaluationObsFormPage.fillFitnessEvaluationForm(data);
+    await this.bahmni.fitnessEvaluationObsFormPage.clearCodedField(fieldToClear);
+    await this.bahmni.fitnessEvaluationObsFormPage.saveEditedForm();
+  }
+
+  async editVitalsInConsultation(data: VitalsData) {
+    await this.bahmni.clinicalPage.editObservationForm('Vitals');
+    await this.bahmni.vitalsForm.waitForEditFormToLoad();
+    await this.bahmni.vitalsForm.fillVitalsForm(data);
+    await this.bahmni.vitalsForm.saveEditedForm();
+  }
+
+  async editHistoryAndExaminationInConsultation(data: HistoryAndExaminationData) {
+    await this.bahmni.clinicalPage.openObservationFormModal('History and Examination');
+    await this.bahmni.clinicalPage.editObservationFormFromModal();
+    await this.bahmni.historyAndExaminationForm.waitForEditFormToLoad();
+    await this.bahmni.historyAndExaminationForm.fillHistoryAndExaminationForm(data);
+    await this.bahmni.historyAndExaminationForm.saveEditedForm();
+  }
+
   async verifyVitalsFlowSheet(vitals: VitalsData) {
     await this.bahmni.clinicalPage.navigateToSection('Vitals Flow Sheet');
     const table = this.bahmni.clinicalPage.getVitalsFlowSheetTable();
@@ -99,6 +139,33 @@ export class ObservationActions {
     await expect(modal).toContainText(vitalsData.temperature);
     await expect(modal).toContainText(vitalsData.systolicBP);
     await expect(modal).toContainText(vitalsData.diastolicBP);
+  }
+
+  async verifyAbnormalVitalsHighlighted(abnormalValues: string[], normalValue: string) {
+    const abnormalElements = this.bahmni.vitalsForm.getAbnormalValueElements();
+    for (const value of abnormalValues) {
+      await expect(abnormalElements.filter({ hasText: value }).first()).toBeVisible();
+    }
+    await expect(abnormalElements.filter({ hasText: normalValue })).toHaveCount(0);
+  }
+
+  async verifyVitalsDataUpdated(vitalsData: VitalsData) {
+    const modal = this.bahmni.vitalsForm.getFormModal();
+    await expect(modal).toContainText(vitalsData.pulse);
+    await expect(modal).toContainText(vitalsData.oxygenSaturation);
+    await expect(modal).toContainText(vitalsData.temperature);
+    await expect(modal).toContainText(vitalsData.systolicBP);
+    await expect(modal).toContainText(vitalsData.diastolicBP);
+  }
+
+  async verifyHistoryAndExaminationData(data: HistoryAndExaminationData) {
+    const modal = this.bahmni.historyAndExaminationForm.getFormModal();
+    if (data.historyOfPresentIllness) {
+      await expect(modal).toContainText(data.historyOfPresentIllness);
+    }
+    if (data.smokingStatus) {
+      await expect(modal).toContainText(data.smokingStatus);
+    }
   }
 
   async verifyAdmissionLetterData(admissionLetterData: AdmissionLetterData) {
@@ -134,13 +201,17 @@ export class ObservationActions {
     await expect(modal).toContainText(data.pulse);
   }
 
-  /**
-   * Verifies the form's First name/Last name fields were auto-populated from the
-   * patient's actual demographics (not filled by the test) and saved as such.
-   */
   async verifyFitnessEvaluationPatientName(firstName: string, lastName: string) {
     const modal = this.bahmni.fitnessEvaluationObsFormPage.getFormModal();
     await expect(modal).toContainText(firstName);
     await expect(modal).toContainText(lastName);
+  }
+
+  async verifyFitnessEvaluationDataUpdated(data: FitnessEvaluationData, clearedFieldLabel: string) {
+    const modal = this.bahmni.fitnessEvaluationObsFormPage.getFormModal();
+    await expect(modal).toContainText(data.heightCm);
+    await expect(modal).toContainText(data.weightKg);
+    await expect(modal).toContainText(data.pulse);
+    await expect(modal).not.toContainText(clearedFieldLabel);
   }
 }

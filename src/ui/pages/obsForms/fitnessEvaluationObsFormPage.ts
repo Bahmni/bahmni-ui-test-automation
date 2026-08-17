@@ -11,6 +11,10 @@ export class FitnessEvaluationObsFormPage {
     weightLabel: 'Weight (kg) (kg)',
     pulseLabel: 'Pulse (beats/min)',
     supplementStatusNotesTextarea: 'textarea[placeholder="Notes"]',
+    editFormHeading: 'h2:has-text("Edit Fitness Evaluation")',
+    // Shared testid with other inline action panels (consultation pad, etc.) - :visible
+    // narrows to the one actually on screen since an unrelated panel can share this testid.
+    editDoneButton: '[data-testid="action-area-primary-button"]:visible',
   } as const;
 
   constructor(page: Page) {
@@ -23,7 +27,9 @@ export class FitnessEvaluationObsFormPage {
   }
 
   private numberInputByLabel(labelText: string) {
-    return this.page.locator(`.form-field-wrap:has(label:text-is("${labelText}")) input[type="number"]`);
+    // .first() guards against the edit panel transiently double-rendering the
+    // same field while a previous encounter's fields are still settling.
+    return this.page.locator(`.form-field-wrap:has(label:text-is("${labelText}")) input[type="number"]`).first();
   }
 
   async fillHeight(heightCm: string) {
@@ -39,14 +45,16 @@ export class FitnessEvaluationObsFormPage {
   }
 
   async selectSupplementStatus(status: string) {
-    await this.page.getByRole('button', { name: status, exact: true }).click();
+    await this.page.getByRole('button', { name: status, exact: true }).first().click();
     if (status === 'Completed') {
-      await expect(this.page.locator(this.selectors.supplementStatusNotesTextarea)).toBeVisible({ timeout: 5000 });
+      await expect(this.page.locator(this.selectors.supplementStatusNotesTextarea).first()).toBeVisible({
+        timeout: 5000,
+      });
     }
   }
 
   async selectPregnancyStatus(status: string) {
-    await this.page.getByRole('button', { name: status, exact: true }).click();
+    await this.page.getByRole('button', { name: status, exact: true }).first().click();
   }
 
   async fillFitnessEvaluationForm(data: {
@@ -77,6 +85,32 @@ export class FitnessEvaluationObsFormPage {
   }) {
     await this.fillFitnessEvaluationForm(data);
     await this.saveForm();
+  }
+
+  async waitForEditFormToLoad() {
+    await this.page.locator(this.selectors.editFormHeading).waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator(this.selectors.editDoneButton).waitFor({ state: 'visible', timeout: 10000 });
+  }
+
+  /**
+   * Clear a previously-selected value from a coded (dropdown) field, e.g. a
+   * calculated field like "Height for age status" that gets auto-populated
+   * once height/weight are filled.
+   */
+  async clearCodedField(labelText: string) {
+    const clearButton = this.page
+      .locator(`.form-field-wrap:has(label:text-is("${labelText}"))`)
+      .getByRole('button', { name: 'Clear selected item' })
+      .first();
+    await clearButton.click();
+  }
+
+  async saveEditedForm() {
+    await this.page.locator(this.selectors.editDoneButton).click();
+    await this.page.locator(this.selectors.editFormHeading).waitFor({ state: 'hidden', timeout: 10000 });
+    // Give the save request time to settle before the caller re-opens the view
+    // modal, otherwise it can occasionally read back stale pre-edit values.
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
   }
 
   getFormModal() {

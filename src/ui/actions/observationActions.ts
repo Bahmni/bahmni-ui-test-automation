@@ -166,6 +166,9 @@ export class ObservationActions {
     if (data.smokingStatus) {
       await expect(modal).toContainText(data.smokingStatus);
     }
+    if (data.additionalChiefComplaint) {
+      await expect(modal).toContainText(data.additionalChiefComplaint);
+    }
   }
 
   async verifyAdmissionLetterData(admissionLetterData: AdmissionLetterData) {

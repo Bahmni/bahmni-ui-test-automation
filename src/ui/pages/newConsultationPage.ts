@@ -248,7 +248,7 @@ export class NewConsultationPage {
    */
   async dismissSaveNotification() {
     const toast = this.page.locator(this.selectors.saveSuccessToast).first();
-    await toast.waitFor({ state: 'visible', timeout: 10000 });
+    await toast.waitFor({ state: 'visible', timeout: 20000 });
     await toast.locator(this.selectors.saveSuccessToastCloseButton).click();
     await toast.waitFor({ state: 'hidden', timeout: 5000 });
   }

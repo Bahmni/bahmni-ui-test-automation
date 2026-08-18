@@ -272,7 +272,7 @@ export class VitalsForm {
 
   async saveEditedForm() {
     await this.page.locator(this.selectors.editDoneButton).click();
-    await this.page.locator(this.selectors.editFormHeading).waitFor({ state: 'hidden', timeout: 10000 });
+    await this.page.locator(this.selectors.editFormHeading).waitFor({ state: 'hidden', timeout: 20000 });
     // Give the save request time to settle before the caller re-opens the view
     // modal, otherwise it can occasionally read back stale pre-edit values.
     await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});

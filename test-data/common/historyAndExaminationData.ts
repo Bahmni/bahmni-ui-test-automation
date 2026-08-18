@@ -6,6 +6,10 @@ export interface HistoryAndExaminationData {
   chiefComplaint?: string;
   duration?: string;
   durationUnit?: string;
+  // Adds a second Chief Complaint Record block (via "Add more") alongside chiefComplaint.
+  additionalChiefComplaint?: string;
+  additionalDuration?: string;
+  additionalDurationUnit?: string;
   historyOfPresentIllness?: string;
   smokingStatus?: string;
 }
@@ -26,6 +30,9 @@ export const historyAndExaminationFaker = {
   editedHistoryAndExamination: (): HistoryAndExaminationData => ({
     duration: '5',
     durationUnit: 'Days',
+    additionalChiefComplaint: 'Cough',
+    additionalDuration: '1',
+    additionalDurationUnit: 'Days',
     historyOfPresentIllness: 'Fever has persisted for five days and is now accompanied by a cough.',
     smokingStatus: 'Former smoker',
   }),

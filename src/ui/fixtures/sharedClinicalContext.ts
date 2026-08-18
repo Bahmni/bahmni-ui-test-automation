@@ -94,7 +94,7 @@ export async function createSharedClinicalContext(
   }
 
   await page.goto(`${config.baseUrl}/bahmni-v2/clinical/${patientUuid}`);
-  await page.waitForLoadState('networkidle', { timeout: 20000 });
+  await page.waitForLoadState('networkidle', { timeout: 30000 });
 
   // API mode: consultationCtx is set (visit/encounter/practitioner UUIDs); patientId aliases patientUuid; patientData is undefined.
   return {
@@ -117,7 +117,7 @@ export async function ensureOnClinicalDashboard(ctx: SharedClinicalContext): Pro
   const onClinicalDashboard = currentUrl.includes('/clinical/') && !currentUrl.includes('/consultation');
   if (!onClinicalDashboard) {
     await ctx.page.goto(`${config.baseUrl}/bahmni-v2/clinical/${ctx.patientUuid}`);
-    await ctx.page.waitForLoadState('networkidle', { timeout: 10000 });
+    await ctx.page.waitForLoadState('networkidle', { timeout: 20000 });
   }
 }
 

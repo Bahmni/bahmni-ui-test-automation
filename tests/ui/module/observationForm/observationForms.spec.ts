@@ -1,6 +1,8 @@
 import { test as base } from '@playwright/test';
 import { test, expect } from '../../../../src/ui/fixtures/apiClinicalFixture';
 import { test as fitnessEvaluationTest } from '../../../../src/ui/fixtures/observationFormFixture';
+import { test as standaloneTest } from '../../../../src/ui/fixtures/standaloneClinicalFixture';
+import { config } from '../../../../src/config/env.config';
 import { PageFactory } from '../../../../src/ui/pages/PageFactory';
 import { ActionFactory } from '../../../../src/ui/actions/ActionFactory';
 import { admissionLetterFaker } from '../../../../test-data/common/admissionLetterData';
@@ -141,16 +143,27 @@ test.describe('Observation form Tests', { tag: ['@regression'] }, () => {
     }
   );
 
-  fitnessEvaluationTest(
+  // Uses its own fresh patient/visit (standaloneTest) and adds the entry it edits itself,
+  // rather than depending on another test in the same worker having added one first -
+  // worker-scoped fixtures share one patient across whichever tests happen to land on
+  // that worker, which fullyParallel scheduling does not guarantee to be in file order.
+  standaloneTest(
     'Edit Fitness Evaluation form observations and verify updated values',
     { tag: ['@regression'] },
     async ({ clinicalSetup }) => {
-      fitnessEvaluationTest.setTimeout(90000);
-      const { actions, bahmni, page } = clinicalSetup;
+      standaloneTest.setTimeout(90000);
+      const { actions, bahmni, page, patientUuid } = clinicalSetup;
+      const fitnessEvaluationData = fitnessEvaluationFaker.simpleFitnessEvaluation();
       const editedFitnessEvaluationData = fitnessEvaluationFaker.editedFitnessEvaluation();
       const clearedFieldLabel = 'Height for age status';
 
       await expect(page).toHaveURL(/.*clinical\/.*/);
+      // Publishing navigates away to the implementer interface - return to the clinical
+      // dashboard before starting the consultation, same as observationFormFixture does.
+      await actions.observation.ensureFitnessEvaluationFormPublished();
+      await page.goto(`${config.baseUrl}/bahmni-v2/clinical/${patientUuid}`);
+      await page.waitForLoadState('networkidle');
+      await actions.observation.addFitnessEvaluationInConsultation(fitnessEvaluationData);
       await actions.observation.editFitnessEvaluationInConsultation(editedFitnessEvaluationData, clearedFieldLabel);
       await actions.observation.openObservationForm('Fitness Evaluation');
       await actions.observation.verifyFitnessEvaluationDataUpdated(editedFitnessEvaluationData, clearedFieldLabel);
@@ -158,15 +171,18 @@ test.describe('Observation form Tests', { tag: ['@regression'] }, () => {
     }
   );
 
-  // Edits the entry created by "Add vitals observation form in consultation" above -
-  // the "Vitals" quick-add tile is only offered once per visit, so this test can't
-  // add its own fresh Vitals entry once that earlier test has already used it.
-  test('Edit Vitals form observations and verify updated values', async ({ clinicalSetup }) => {
-    test.setTimeout(90000);
+  // Uses its own fresh patient/visit (standaloneTest) and adds the Vitals entry it edits
+  // itself, rather than depending on "Add vitals observation form in consultation" above -
+  // the "Vitals" quick-add tile is only offered once per visit, so a shared visit can't
+  // support two independent Add-Vitals steps.
+  standaloneTest('Edit Vitals form observations and verify updated values', async ({ clinicalSetup }) => {
+    standaloneTest.setTimeout(90000);
     const { actions, bahmni, page } = clinicalSetup;
+    const vitalsData = vitalsFaker.normalVitals();
     const editedVitalsData = vitalsFaker.editedVitals();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
+    await actions.observation.addVitalsInConsultation(vitalsData);
     await actions.observation.editVitalsInConsultation(editedVitalsData);
     await actions.observation.openObservationForm('Vitals');
     await actions.observation.verifyVitalsDataUpdated(editedVitalsData);

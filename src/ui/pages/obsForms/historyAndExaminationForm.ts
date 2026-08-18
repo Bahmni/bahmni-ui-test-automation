@@ -60,6 +60,9 @@ export class HistoryAndExaminationForm {
     // Consultation Images/Videos
     uploadVideoButton: 'button:has-text("Upload Video")',
 
+    // Adds another repeating Chief Complaint Record block (its own combobox/duration/units)
+    addMoreChiefComplaintButton: 'button:has-text("Add more")',
+
     // Action buttons
     discardFormButton: 'button:has-text("Discard Form")',
     saveFormButton: 'button:has-text("Save Form")',
@@ -85,9 +88,10 @@ export class HistoryAndExaminationForm {
   /**
    * Select chief complaint from dropdown
    * @param complaint - Chief complaint text
+   * @param index - Which Chief Complaint Record block to target (0 = first, added via "Add more" for others)
    */
-  async selectChiefComplaint(complaint: string) {
-    const combobox = this.page.getByRole('combobox', { name: this.selectors.chiefComplaintDropdownName }).first();
+  async selectChiefComplaint(complaint: string, index = 0) {
+    const combobox = this.page.getByRole('combobox', { name: this.selectors.chiefComplaintDropdownName }).nth(index);
     await combobox.click();
     await combobox.fill(complaint);
     const option = this.page.locator(`li[role="option"]:has-text("${complaint}")`).first();
@@ -98,18 +102,32 @@ export class HistoryAndExaminationForm {
   /**
    * Fill the sign/symptom duration
    * @param duration - Duration value
+   * @param index - Which Chief Complaint Record block to target (0 = first, added via "Add more" for others)
    */
-  async fillDuration(duration: string) {
-    await this.page.getByRole('spinbutton').first().fill(duration);
+  async fillDuration(duration: string, index = 0) {
+    await this.page.getByRole('spinbutton').nth(index).fill(duration);
   }
 
   /**
    * Select duration unit
    * @param unit - Duration unit (Hours, Days, Weeks, Months, Years)
+   * @param index - Which Chief Complaint Record block to target (0 = first, added via "Add more" for others)
    */
-  async selectDurationUnit(unit: string) {
-    const unitSelector = `button:has-text("${unit}")`;
-    await this.page.locator(unitSelector).first().click();
+  async selectDurationUnit(unit: string, index = 0) {
+    const unitButton = this.page.locator(`button:has-text("${unit}")`).nth(index);
+    // These are toggle buttons, not a radio group - clicking one that's already
+    // pressed (e.g. carried over from a prior save) deselects it instead of no-op-ing.
+    const isPressed = await unitButton.getAttribute('aria-pressed');
+    if (isPressed !== 'true') {
+      await unitButton.click();
+    }
+  }
+
+  /**
+   * Add another Chief Complaint Record block via the "Add more" button
+   */
+  async addAnotherChiefComplaint() {
+    await this.page.locator(this.selectors.addMoreChiefComplaintButton).first().click();
   }
 
   /**
@@ -137,6 +155,9 @@ export class HistoryAndExaminationForm {
     chiefComplaint?: string;
     duration?: string;
     durationUnit?: string;
+    additionalChiefComplaint?: string;
+    additionalDuration?: string;
+    additionalDurationUnit?: string;
     historyOfPresentIllness?: string;
     smokingStatus?: string;
   }) {
@@ -150,6 +171,19 @@ export class HistoryAndExaminationForm {
 
     if (formData.durationUnit) {
       await this.selectDurationUnit(formData.durationUnit);
+    }
+
+    if (formData.additionalChiefComplaint) {
+      await this.addAnotherChiefComplaint();
+      await this.selectChiefComplaint(formData.additionalChiefComplaint, 1);
+
+      if (formData.additionalDuration) {
+        await this.fillDuration(formData.additionalDuration, 1);
+      }
+
+      if (formData.additionalDurationUnit) {
+        await this.selectDurationUnit(formData.additionalDurationUnit, 1);
+      }
     }
 
     if (formData.historyOfPresentIllness) {
@@ -209,7 +243,7 @@ export class HistoryAndExaminationForm {
 
   async saveEditedForm() {
     await this.page.locator(this.selectors.editDoneButton).click();
-    await this.page.locator(this.selectors.editFormHeading).waitFor({ state: 'hidden', timeout: 10000 });
+    await this.page.locator(this.selectors.editFormHeading).waitFor({ state: 'hidden', timeout: 20000 });
     // Give the save request time to settle before the caller re-opens the view
     // modal, otherwise it can occasionally read back stale pre-edit values.
     await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});

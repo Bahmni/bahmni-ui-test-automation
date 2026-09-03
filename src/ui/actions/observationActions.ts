@@ -78,7 +78,7 @@ export class ObservationActions {
 
   async ensureFitnessEvaluationFormPublished() {
     await this.bahmni.implementerInterfacePage.ensureFormPublished(
-      'test-data/common/Fitness Evaluation_1.json',
+      'test-data/common/Fitness_Evaluation_1.json',
       'Fitness Evaluation'
     );
   }

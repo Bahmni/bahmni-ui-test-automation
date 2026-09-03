@@ -759,7 +759,7 @@ async function setupConcepts(baseUrl: string): Promise<void> {
     },
     {
       envKey: 'LAB_CONCEPT_PLATELET_COUNT',
-      cielUuid: '159896AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      cielUuid: '729AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
       searchName: 'Platelet count',
       matchName: 'platelet count',
     },
@@ -772,13 +772,13 @@ async function setupConcepts(baseUrl: string): Promise<void> {
     {
       envKey: 'LAB_CONCEPT_ABSOLUTE_IMMATURE_CELL_COUNT',
       cielUuid: '1335AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-      searchName: 'Absolute reticulocyte',
-      matchName: 'absolute',
+      searchName: 'Absolute immature cell count',
+      matchName: 'absolute immature cell count',
     },
     {
       envKey: 'LAB_CONCEPT_COMPLETE_BLOOD_COUNT',
-      cielUuid: '1019AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-      searchName: 'Complete blood count',
+      cielUuid: '163700AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      searchName: 'CBC with differential',
       matchName: 'complete blood count',
     },
     {

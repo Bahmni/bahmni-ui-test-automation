@@ -698,14 +698,17 @@ async function setupEncounterTypes(baseUrl: string): Promise<void> {
 async function setupConcepts(baseUrl: string): Promise<void> {
   const auth = Buffer.from(`${config.users.admin.username}:${config.users.admin.password}`).toString('base64');
 
-  async function lookupByUuid(uuid: string): Promise<string | undefined> {
+  async function lookupByUuid(uuid: string): Promise<{ uuid: string; display: string } | undefined> {
     try {
-      const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/concept/${uuid}?v=default`, {
+      // v=custom:(uuid,display) rather than v=default — some concepts 500 under the
+      // "default" representation on certain servers, even though the concept itself exists.
+      const response = await fetch(`${baseUrl}/openmrs/ws/rest/v1/concept/${uuid}?v=custom:(uuid,display)`, {
         headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
       });
       if (!response.ok) return undefined;
       const data = await response.json();
-      return (data as { uuid?: string }).uuid;
+      const { uuid: foundUuid, display } = data as { uuid?: string; display?: string };
+      return foundUuid && display ? { uuid: foundUuid, display } : undefined;
     } catch {
       return undefined;
     }
@@ -731,9 +734,19 @@ async function setupConcepts(baseUrl: string): Promise<void> {
     searchName: string,
     matchName?: string
   ): Promise<string | undefined> {
+    const expectedMatch = (matchName ?? searchName).toLowerCase();
     if (cielUuid) {
       const found = await lookupByUuid(cielUuid);
-      if (found) return found;
+      // Only trust the direct UUID hit if its display actually matches what we're
+      // looking for — some hardcoded CIEL UUIDs here point to unrelated concepts
+      // on servers that don't use the full CIEL dictionary (e.g. 145119AAAA... is
+      // "Anaemia" in CIEL but "Chylopericardium" on this instance). Check both
+      // directions since the real display is sometimes shorter than matchName
+      // (e.g. display "Dengue" for matchName "dengue fever").
+      const foundDisplay = found?.display.toLowerCase();
+      if (foundDisplay && (foundDisplay.includes(expectedMatch) || expectedMatch.includes(foundDisplay))) {
+        return found!.uuid;
+      }
     }
     const byName = await searchByName(searchName, matchName ?? searchName);
     if (byName) return byName;

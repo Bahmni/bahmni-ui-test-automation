@@ -35,6 +35,18 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyAllergyDisplayed(editedAllergyData);
   });
 
+  test('Verify duplicate allergy error when adding same allergen twice', async ({ clinicalSetup }) => {
+    const { actions, page, bahmni } = clinicalSetup;
+    const allergyData = generateAllergyData(ALLERGENS.PENICILLIN, SEVERITY_LEVELS.MILD, REACTIONS.RASH);
+
+    await expect(page).toHaveURL(/.*clinical\/.*/);
+
+    await actions.clinical.addAllergyInConsultation(allergyData);
+    await actions.clinical.continueConsultation();
+    await actions.clinical.verifyDuplicateAllergyErrorOnSave(allergyData, bahmni);
+    await actions.clinical.cancelConsultation();
+  });
+
   test('Order investigation in consultation', async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
     const investigation = medicalFaker.investigation_single();
@@ -91,18 +103,10 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
 
-    // Add only condition (no diagnosis)
     await actions.clinical.addCondition(condition);
     await actions.clinical.verifyConditionDisplayed(condition, 'Active');
-
-    // Continue consultation (saves and reopens)
     await actions.clinical.continueConsultation();
-
-    // Try to add the same condition again by searching in the diagnosis dropdown
-    // Should show "Added as a Condition" message
     await actions.clinical.verifyConditionAlreadyAdded(condition);
-
-    // Cancel consultation
     await actions.clinical.cancelConsultation();
   });
 
@@ -148,16 +152,9 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
 
-    // Add medication first time and save
     await actions.clinical.addMedicationInConsultation(medication);
-
-    // Continue consultation to open it again
     await actions.clinical.continueConsultation();
-
-    // Try to add the same medication again with same start date, then try to save
     await actions.clinical.verifyDuplicateMedicationErrorOnSave(medication, bahmni);
-
-    // Cancel consultation
     await actions.clinical.cancelConsultation();
   });
 
@@ -180,18 +177,11 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
 
-    // Add vaccination first time and save
     await actions.clinical.addVaccinationInConsultation(vaccination);
     await page.reload();
     await page.waitForLoadState('networkidle');
-
-    // Continue consultation to open it again
     await actions.clinical.continueConsultation();
-
-    // Try to add the same vaccination again and verify error
     await actions.clinical.verifyDuplicateVaccineErrorOnSave(vaccination, bahmni);
-
-    // Cancel consultation
     await actions.clinical.cancelConsultation();
   });
 

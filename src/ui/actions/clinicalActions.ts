@@ -85,57 +85,24 @@ export class ClinicalActions {
   }
 
   async verifyConditionAlreadyAdded(conditionName: string) {
-    const page = this.bahmni.newConsultationPage['page'];
-    const diagnosesSearchInput = '[data-testid="diagnoses-search-combobox"]';
-
-    // Search for the condition
-    await page.locator(diagnosesSearchInput).fill(conditionName);
-
-    // Wait for search to settle
-    await this.bahmni.newConsultationPage.waitForSearchDebounce(3000);
-
-    // Find and click the condition option
-    const option = page.locator(`li[role="option"]:has-text("${conditionName}")`).first();
-    await expect(option).toBeVisible();
-    await option.click();
-
-    // Wait for the "Added as a Condition" message to appear
-    const addedMessage = page.locator('text=Added as a Condition').first();
-    await expect(addedMessage).toBeVisible({ timeout: 5000 });
+    await this.bahmni.newConsultationPage.verifyConditionAlreadyAdded(conditionName);
   }
 
   async verifyDuplicateMedicationErrorOnSave(medication: MedicationData, bahmni: any) {
-    const page = bahmni.newConsultationPage['page'];
-
-    // We're already in the continued consultation page, just add the medication again
     await bahmni.newConsultationPage.addMedication(medication);
-
-    // Click Done button to try saving
-    await page.locator('[data-testid="action-area-primary-button"]').click();
-
-    // Wait for error to appear
-    await page.waitForTimeout(3000);
-
-    // Look for error notification - appears as a box with "Consultation Error" title
-    const errorBox = page.locator('text=One or more drugs you are trying to order are already active').first();
-    await expect(errorBox).toBeVisible({ timeout: 5000 });
+    await bahmni.newConsultationPage.clickDoneButton();
+    await bahmni.newConsultationPage.verifyActiveDrugOrderError();
   }
 
   async verifyDuplicateVaccineErrorOnSave(vaccination: MedicationData, bahmni: any) {
-    const page = bahmni.newConsultationPage['page'];
-
-    // We're already in the continued consultation page, add the same vaccine with all fields filled
     await bahmni.newConsultationPage.addVaccination(vaccination);
+    await bahmni.newConsultationPage.clickDoneButton();
+    await bahmni.newConsultationPage.verifyActiveDrugOrderError();
+  }
 
-    // Try to save by clicking Done button
-    await page.locator('[data-testid="action-area-primary-button"]').click();
-
-    // Wait for error to appear
-    await page.waitForTimeout(3000);
-
-    // Verify error message appears
-    const errorBox = page.locator('text=One or more drugs you are trying to order are already active').first();
-    await expect(errorBox).toBeVisible({ timeout: 5000 });
+  async verifyDuplicateAllergyErrorOnSave(allergyData: AllergyData, bahmni: any) {
+    await bahmni.newConsultationPage.addAllergy(allergyData.allergen);
+    await bahmni.newConsultationPage.verifyDuplicateAllergyError();
   }
 
   async saveConsultation() {

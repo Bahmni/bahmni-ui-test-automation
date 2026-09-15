@@ -84,12 +84,39 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.closeInvestigationsDropdown();
   }
 
+  async verifyConditionAlreadyAdded(conditionName: string) {
+    await this.bahmni.newConsultationPage.verifyConditionAlreadyAdded(conditionName);
+  }
+
+  async verifyDuplicateMedicationErrorOnSave(medication: MedicationData, bahmni: any) {
+    await bahmni.newConsultationPage.addMedication(medication);
+    await bahmni.newConsultationPage.clickDoneButton();
+    await bahmni.newConsultationPage.verifyActiveDrugOrderError();
+  }
+
+  async verifyDuplicateVaccineErrorOnSave(vaccination: MedicationData, bahmni: any) {
+    await bahmni.newConsultationPage.addVaccination(vaccination);
+    await bahmni.newConsultationPage.clickDoneButton();
+    await bahmni.newConsultationPage.verifyActiveDrugOrderError();
+  }
+
+  async verifyDuplicateAllergyErrorOnSave(allergyData: AllergyData, bahmni: any) {
+    await bahmni.newConsultationPage.addAllergy(allergyData.allergen);
+    await bahmni.newConsultationPage.verifyDuplicateAllergyError();
+  }
+
   async saveConsultation() {
     await this.bahmni.newConsultationPage.saveConsultation();
   }
 
   async cancelConsultation() {
     await this.bahmni.newConsultationPage.cancelConsultation();
+  }
+
+  async addCondition(condition: string) {
+    await this.startNewConsultation();
+    await this.bahmni.newConsultationPage.addCondition(condition);
+    await this.bahmni.newConsultationPage.saveDiagnosesAndConditions();
   }
 
   async addConditionAndDiagnosisInConsultation(condition: string, diagnosis: string) {

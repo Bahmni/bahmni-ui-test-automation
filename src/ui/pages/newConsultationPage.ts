@@ -122,6 +122,35 @@ export class NewConsultationPage {
     await this.page.keyboard.press('Escape');
   }
 
+  /**
+   * Clicks the Done button without waiting for success verification.
+   * Use this when testing error scenarios where the save is expected to fail.
+   * For successful saves, use saveConsultation() or saveDiagnosesAndConditions() instead.
+   */
+  async clickDoneButton() {
+    await this.page.locator(this.selectors.doneButton).click();
+  }
+
+  async verifyDuplicateAllergyError() {
+    const errorBox = this.page.locator('text=Allergen is already added').first();
+    await errorBox.waitFor({ state: 'visible', timeout: 5000 });
+  }
+
+  async verifyActiveDrugOrderError() {
+    const errorBox = this.page.locator('text=One or more drugs you are trying to order are already active').first();
+    await errorBox.waitFor({ state: 'visible', timeout: 5000 });
+  }
+
+  async verifyConditionAlreadyAdded(conditionName: string) {
+    await this.page.locator(this.selectors.diagnosesSearchInput).fill(conditionName);
+    await this.waitForSearchDebounce(3000);
+    const option = this.page.locator(`li[role="option"]:has-text("${conditionName}")`).first();
+    await option.waitFor({ state: 'visible' });
+    await option.click();
+    const addedMessage = this.page.locator('text=Added as a Condition').first();
+    await addedMessage.waitFor({ state: 'visible', timeout: 5000 });
+  }
+
   async editAllergyDetails(severity: string, reaction: string, note?: string) {
     const severityCombobox = this.page.getByRole('combobox', { name: /severity/i });
     await severityCombobox.waitFor({ state: 'visible' });

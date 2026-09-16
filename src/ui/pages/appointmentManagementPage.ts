@@ -17,6 +17,7 @@ export class AppointmentManagementPage {
     const tab = this.page.locator(this.selectors.appointmentsListTab);
     if ((await tab.count()) > 0) {
       await tab.click();
+      await this.page.waitForLoadState('networkidle');
       await this.page.waitForTimeout(1000);
     }
   }
@@ -30,7 +31,11 @@ export class AppointmentManagementPage {
 
     const listViewBtn = this.page.locator(this.selectors.listViewButton);
     if ((await listViewBtn.count()) > 0) {
-      await listViewBtn.click();
+      await listViewBtn.waitFor({ state: 'visible', timeout: 10000 });
+      // A Carbon tab-switcher button briefly overlaps this link during the view
+      // transition and intercepts pointer events; force bypasses that actionability
+      // check since the link itself is otherwise stable and clickable.
+      await listViewBtn.click({ force: true });
       await this.page.waitForTimeout(1000);
     }
   }

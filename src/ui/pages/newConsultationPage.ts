@@ -424,8 +424,9 @@ export class NewConsultationPage {
 
   async addVaccination(vaccination: MedicationData) {
     await this.page.locator(this.selectors.vaccinationsSearchInput).fill(vaccination.name);
+    await this.waitForSearchDebounce(1000);
     const option = this.page.locator(`li[role="option"]:has-text("${vaccination.name}")`).first();
-    await option.waitFor({ state: 'visible', timeout: 5000 });
+    await option.waitFor({ state: 'visible', timeout: 10000 });
     await option.click();
 
     const dosageInput = this.page.locator(this.selectors.vaccinationItemDosageInput);

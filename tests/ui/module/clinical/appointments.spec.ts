@@ -8,7 +8,7 @@ function toDisplayDate(isoDate: string): string {
   return `${month}/${day}/${year}`;
 }
 
-test.describe('Appointments Display Control', { tag: ['@regression', '@gk'] }, () => {
+test.describe('Appointments Display Control', { tag: ['@regression'] }, () => {
   test('Upcoming appointments sorted ASC and past appointments sorted DESC', async ({ appointmentSetup }) => {
     const { bahmni } = appointmentSetup;
     const widget = bahmni.appointmentsDisplayControl;
@@ -36,7 +36,7 @@ test.describe('Appointments Display Control', { tag: ['@regression', '@gk'] }, (
   });
 });
 
-clinicalTest.describe('Add Appointment via UI', { tag: ['@regression', '@gk'] }, () => {
+clinicalTest.describe('Add Appointment via UI', { tag: ['@regression'] }, () => {
   clinicalTest(
     'Book an appointment for a newly registered patient and verify it on the patient dashboard',
     async ({ clinicalSetup }) => {

@@ -49,6 +49,17 @@ export class AppointmentsDisplayControlPage {
     await expect(this.getPastTab()).toHaveAttribute('aria-selected', 'true');
   }
 
+  // isoDate is yyyy-mm-dd; the widget renders dates as mm/dd/yyyy.
+  findAppointmentByServiceAndDate(
+    rows: AppointmentRow[],
+    service: string,
+    isoDate: string
+  ): AppointmentRow | undefined {
+    const [year, month, day] = isoDate.split('-');
+    const displayDate = `${month}/${day}/${year}`;
+    return rows.find((apt) => apt.service === service && apt.appointmentDate === displayDate);
+  }
+
   async getAppointmentRows(): Promise<AppointmentRow[]> {
     const activeTab = await this.getActiveTabName();
     const tabpanel = this.page.getByRole('tabpanel', { name: activeTab });

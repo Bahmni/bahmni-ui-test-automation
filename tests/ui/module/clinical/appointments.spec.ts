@@ -2,12 +2,6 @@ import { test, expect } from '../../../../src/ui/fixtures/appointmentFixture';
 import { test as clinicalTest } from '../../../../src/ui/fixtures/clinicalFixture';
 import { generateUpcomingAppointmentDates } from '../../../../test-data/common/appointmentData';
 
-// Dashboard widget renders dates as mm/dd/yyyy; appointmentDate here is ISO (yyyy-mm-dd).
-function toDisplayDate(isoDate: string): string {
-  const [year, month, day] = isoDate.split('-');
-  return `${month}/${day}/${year}`;
-}
-
 test.describe('Appointments Display Control', { tag: ['@regression'] }, () => {
   test('Upcoming appointments sorted ASC and past appointments sorted DESC', async ({ appointmentSetup }) => {
     const { bahmni } = appointmentSetup;
@@ -67,12 +61,15 @@ clinicalTest.describe('Add Appointment via UI', { tag: ['@regression'] }, () => 
       await bahmni.appointmentsDisplayControl.verifyUpcomingTabIsActive();
 
       const appointments = await bahmni.appointmentsDisplayControl.getAppointmentRows();
-      const displayDate = toDisplayDate(appointmentDate);
-      const booked = appointments.find((apt) => apt.service === bookedService && apt.appointmentDate === displayDate);
+      const booked = bahmni.appointmentsDisplayControl.findAppointmentByServiceAndDate(
+        appointments,
+        bookedService,
+        appointmentDate
+      );
 
       expect(
         booked,
-        `Expected a "${bookedService}" appointment on ${displayDate}, saw: ${JSON.stringify(appointments)}`
+        `Expected a "${bookedService}" appointment on ${appointmentDate}, saw: ${JSON.stringify(appointments)}`
       ).toBeDefined();
       expect(booked?.status).toContain('Scheduled');
     }
@@ -127,10 +124,6 @@ clinicalTest.describe('Add Appointment via UI', { tag: ['@regression'] }, () => 
     }
   );
 
-  // Book/Reject-duplicate/Missed/Cancelled all share one worker-scoped patient, and the appointments
-  // list view is scoped to the appointment's date then filtered by patient — so each test below uses a
-  // distinct day offset to keep its own appointment the only "General Medicine" row for that date,
-  // regardless of what the other tests in this worker have already booked for this same patient.
   clinicalTest('Mark appointment as missed and verify status on dashboard', async ({ clinicalSetup }) => {
     const { bahmni, page, patientId, patientUuid } = clinicalSetup;
 
@@ -163,14 +156,15 @@ clinicalTest.describe('Add Appointment via UI', { tag: ['@regression'] }, () => 
 
     await bahmni.appointmentsDisplayControl.waitForWidgetToLoad();
     const appointments = await bahmni.appointmentsDisplayControl.getAppointmentRows();
-    const displayDate = toDisplayDate(appointmentDate);
-    const missedAppointment = appointments.find(
-      (apt) => apt.service === bookedService && apt.appointmentDate === displayDate
+    const missedAppointment = bahmni.appointmentsDisplayControl.findAppointmentByServiceAndDate(
+      appointments,
+      bookedService,
+      appointmentDate
     );
 
     expect(
       missedAppointment,
-      `Expected a "${bookedService}" appointment on ${displayDate}, saw: ${JSON.stringify(appointments)}`
+      `Expected a "${bookedService}" appointment on ${appointmentDate}, saw: ${JSON.stringify(appointments)}`
     ).toBeDefined();
     expect(missedAppointment?.status).toContain('Missed');
   });
@@ -207,14 +201,15 @@ clinicalTest.describe('Add Appointment via UI', { tag: ['@regression'] }, () => 
 
     await bahmni.appointmentsDisplayControl.waitForWidgetToLoad();
     const appointments = await bahmni.appointmentsDisplayControl.getAppointmentRows();
-    const displayDate = toDisplayDate(appointmentDate);
-    const cancelledAppointment = appointments.find(
-      (apt) => apt.service === bookedService && apt.appointmentDate === displayDate
+    const cancelledAppointment = bahmni.appointmentsDisplayControl.findAppointmentByServiceAndDate(
+      appointments,
+      bookedService,
+      appointmentDate
     );
 
     expect(
       cancelledAppointment,
-      `Expected a "${bookedService}" appointment on ${displayDate}, saw: ${JSON.stringify(appointments)}`
+      `Expected a "${bookedService}" appointment on ${appointmentDate}, saw: ${JSON.stringify(appointments)}`
     ).toBeDefined();
     expect(cancelledAppointment?.status).toContain('Cancelled');
   });

@@ -183,7 +183,7 @@ export function buildCompleteBloodCountDRBundle(
     drEntry(
       'dr-cbc',
       serviceRequestId,
-      '1019AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      '163700AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
       'Complete blood count',
       patientRef,
       `Encounter/${encounterUuid}`,

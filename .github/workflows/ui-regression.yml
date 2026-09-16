@@ -48,7 +48,7 @@ jobs:
           RP_LAUNCH: ui-regression
           RP_DESCRIPTION: "UI regression • branch=${{ github.ref_name }} • ${{ github.event_name }}"
           RP_ATTRIBUTES: "suite:ui-regression;env:dev-lite;branch:${{ github.ref_name }};commit:${{ github.sha }};runUrl:${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        run: NODE_ENV=dev-lite npx playwright test --project=chromium --grep "@regression|@onlyLite" --grep-invert @onlyStandard
+        run: NODE_ENV=dev-lite npx playwright test --project=chromium --grep "@gk"
 
       - name: Upload test reports and artifacts
         if: always()

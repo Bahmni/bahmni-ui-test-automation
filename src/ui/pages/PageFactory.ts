@@ -19,6 +19,8 @@ import { VitalsForm } from './obsForms/vitalsForm';
 import { SecondVitalsForm } from './obsForms/secondVitalsForm';
 import { PatientDocumentsPage } from './patientDocumentsPage';
 import { AppointmentsDisplayControlPage } from './appointmentsDisplayControlPage';
+import { AppointmentBookingPage } from './appointmentBookingPage';
+import { AppointmentManagementPage } from './appointmentManagementPage';
 import { LabEntryHomePage } from './labEntryHomePage';
 import { LabEntryPatientPage } from './labEntryPatientPage';
 
@@ -47,6 +49,8 @@ export class PageFactory {
   readonly secondVitalsForm: SecondVitalsForm;
   readonly patientDocumentsPage: PatientDocumentsPage;
   readonly appointmentsDisplayControl: AppointmentsDisplayControlPage;
+  readonly appointmentBookingPage: AppointmentBookingPage;
+  readonly appointmentManagementPage: AppointmentManagementPage;
   readonly labEntryHomePage: LabEntryHomePage;
   readonly labEntryPatientPage: LabEntryPatientPage;
 
@@ -71,6 +75,8 @@ export class PageFactory {
     this.secondVitalsForm = new SecondVitalsForm(page);
     this.patientDocumentsPage = new PatientDocumentsPage(page);
     this.appointmentsDisplayControl = new AppointmentsDisplayControlPage(page);
+    this.appointmentBookingPage = new AppointmentBookingPage(page);
+    this.appointmentManagementPage = new AppointmentManagementPage(page);
     this.labEntryHomePage = new LabEntryHomePage(page);
     this.labEntryPatientPage = new LabEntryPatientPage(page);
   }

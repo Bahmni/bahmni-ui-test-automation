@@ -35,17 +35,21 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyAllergyDisplayed(editedAllergyData);
   });
 
-  test('Verify duplicate allergy error when adding same allergen twice', async ({ clinicalSetup }) => {
-    const { actions, page, bahmni } = clinicalSetup;
-    const allergyData = generateAllergyData(ALLERGENS.PENICILLIN, SEVERITY_LEVELS.MILD, REACTIONS.RASH);
+  test(
+    'Verify duplicate allergy error when adding same allergen twice',
+    { tag: ['@gk'] },
+    async ({ clinicalSetup }) => {
+      const { actions, page } = clinicalSetup;
+      const allergyData = generateAllergyData(ALLERGENS.PENICILLIN, SEVERITY_LEVELS.MILD, REACTIONS.RASH);
 
-    await expect(page).toHaveURL(/.*clinical\/.*/);
+      await expect(page).toHaveURL(/.*clinical\/.*/);
 
-    await actions.clinical.addAllergyInConsultation(allergyData);
-    await actions.clinical.continueConsultation();
-    await actions.clinical.verifyDuplicateAllergyErrorOnSave(allergyData, bahmni);
-    await actions.clinical.cancelConsultation();
-  });
+      await actions.clinical.addAllergyInConsultation(allergyData);
+      await actions.clinical.continueConsultation();
+      await actions.clinical.verifyDuplicateAllergyErrorOnSave(allergyData);
+      await actions.clinical.cancelConsultation();
+    }
+  );
 
   test('Order investigation in consultation', async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
@@ -96,19 +100,23 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyConditionDisplayed(condition, 'Inactive');
   });
 
-  test('Verify condition already added message when trying to add duplicate condition', async ({ clinicalSetup }) => {
-    test.setTimeout(60000);
-    const { actions, page } = clinicalSetup;
-    const condition = diagnosisFaker.diagnosis();
+  test(
+    'Verify condition already added message when trying to add duplicate condition',
+    { tag: ['@gk'] },
+    async ({ clinicalSetup }) => {
+      test.setTimeout(60000);
+      const { actions, page } = clinicalSetup;
+      const condition = diagnosisFaker.diagnosis();
 
-    await expect(page).toHaveURL(/.*clinical\/.*/);
+      await expect(page).toHaveURL(/.*clinical\/.*/);
 
-    await actions.clinical.addCondition(condition);
-    await actions.clinical.verifyConditionDisplayed(condition, 'Active');
-    await actions.clinical.continueConsultation();
-    await actions.clinical.verifyConditionAlreadyAdded(condition);
-    await actions.clinical.cancelConsultation();
-  });
+      await actions.clinical.addCondition(condition);
+      await actions.clinical.verifyConditionDisplayed(condition, 'Active');
+      await actions.clinical.continueConsultation();
+      await actions.clinical.verifyConditionAlreadyAdded(condition);
+      await actions.clinical.cancelConsultation();
+    }
+  );
 
   test('Add and edit medication in consultation', async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
@@ -146,17 +154,21 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyMedicationStopped(medication.name, stopReason);
   });
 
-  test('Verify duplicate medication error when prescribing same drug for same date', async ({ clinicalSetup }) => {
-    const { actions, page, bahmni } = clinicalSetup;
-    const medication = medicationFaker.medication();
+  test(
+    'Verify duplicate medication error when prescribing same drug for same date',
+    { tag: ['@gk'] },
+    async ({ clinicalSetup }) => {
+      const { actions, page } = clinicalSetup;
+      const medication = medicationFaker.medication();
 
-    await expect(page).toHaveURL(/.*clinical\/.*/);
+      await expect(page).toHaveURL(/.*clinical\/.*/);
 
-    await actions.clinical.addMedicationInConsultation(medication);
-    await actions.clinical.continueConsultation();
-    await actions.clinical.verifyDuplicateMedicationErrorOnSave(medication, bahmni);
-    await actions.clinical.cancelConsultation();
-  });
+      await actions.clinical.addMedicationInConsultation(medication);
+      await actions.clinical.continueConsultation();
+      await actions.clinical.verifyDuplicateMedicationErrorOnSave(medication);
+      await actions.clinical.cancelConsultation();
+    }
+  );
 
   test('Add vaccination in consultation', async ({ clinicalSetup }) => {
     const { actions, page } = clinicalSetup;
@@ -171,19 +183,23 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await actions.clinical.verifyVaccinationDisplayed(vaccination);
   });
 
-  test('Verify duplicate vaccine error when administering same vaccine twice', async ({ clinicalSetup }) => {
-    const { actions, page, bahmni } = clinicalSetup;
-    const vaccination = vaccinationFaker.vaccination();
+  test(
+    'Verify duplicate vaccine error when administering same vaccine twice',
+    { tag: ['@gk'] },
+    async ({ clinicalSetup }) => {
+      const { actions, page } = clinicalSetup;
+      const vaccination = vaccinationFaker.vaccination();
 
-    await expect(page).toHaveURL(/.*clinical\/.*/);
+      await expect(page).toHaveURL(/.*clinical\/.*/);
 
-    await actions.clinical.addVaccinationInConsultation(vaccination);
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    await actions.clinical.continueConsultation();
-    await actions.clinical.verifyDuplicateVaccineErrorOnSave(vaccination, bahmni);
-    await actions.clinical.cancelConsultation();
-  });
+      await actions.clinical.addVaccinationInConsultation(vaccination);
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      await actions.clinical.continueConsultation();
+      await actions.clinical.verifyDuplicateVaccineErrorOnSave(vaccination);
+      await actions.clinical.cancelConsultation();
+    }
+  );
 
   test('Add vitals observation form in consultation', async ({ clinicalSetup }) => {
     test.setTimeout(60000);

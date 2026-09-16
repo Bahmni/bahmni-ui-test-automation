@@ -22,6 +22,12 @@ export class AppointmentManagementPage {
   }
 
   async switchToListView(): Promise<void> {
+    const conflictsClose = this.page.locator('[class*="Conflicts"][class*="Close"]').first();
+    if ((await conflictsClose.count()) > 0) {
+      await conflictsClose.click();
+      await this.page.waitForTimeout(500);
+    }
+
     const listViewBtn = this.page.locator(this.selectors.listViewButton);
     if ((await listViewBtn.count()) > 0) {
       await listViewBtn.click();

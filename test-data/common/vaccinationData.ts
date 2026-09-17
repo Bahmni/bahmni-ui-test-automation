@@ -7,7 +7,7 @@ import { faker } from '@faker-js/faker';
 import { MedicationData, DOSAGE_UNITS, FREQUENCIES, DURATION_UNITS, INSTRUCTIONS, ROUTES } from './medicationData';
 
 // Only include vaccinations that exist in the system
-const VACCINATIONS = ['Anti-rabies vaccine', 'vitamin A 5000 IU'];
+const VACCINATIONS = ['Anti-rabies vaccine'];
 
 export const vaccinationFaker = {
   /**

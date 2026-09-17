@@ -14,6 +14,8 @@ type ClinicalFixtures = {
     bahmni: PageFactory;
     actions: ActionFactory;
     page: Page;
+    patientId: string;
+    patientUuid: string;
   };
 };
 
@@ -33,8 +35,8 @@ export const test = base.extend<ClinicalFixtures, WorkerFixtures>({
 
   clinicalSetup: async ({ sharedClinicalContext }, use) => {
     await ensureOnClinicalDashboard(sharedClinicalContext);
-    const { bahmni, actions, page } = sharedClinicalContext;
-    await use({ bahmni, actions, page });
+    const { bahmni, actions, page, patientId, patientUuid } = sharedClinicalContext;
+    await use({ bahmni, actions, page, patientId, patientUuid });
   },
 });
 

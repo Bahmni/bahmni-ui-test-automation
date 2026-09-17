@@ -36,14 +36,14 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
   });
 
   test('Verify duplicate allergy error when adding same allergen twice', async ({ clinicalSetup }) => {
-    const { actions, page, bahmni } = clinicalSetup;
+    const { actions, page } = clinicalSetup;
     const allergyData = generateAllergyData(ALLERGENS.PENICILLIN, SEVERITY_LEVELS.MILD, REACTIONS.RASH);
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
 
     await actions.clinical.addAllergyInConsultation(allergyData);
     await actions.clinical.continueConsultation();
-    await actions.clinical.verifyDuplicateAllergyErrorOnSave(allergyData, bahmni);
+    await actions.clinical.verifyDuplicateAllergyErrorOnSave(allergyData);
     await actions.clinical.cancelConsultation();
   });
 
@@ -147,14 +147,14 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
   });
 
   test('Verify duplicate medication error when prescribing same drug for same date', async ({ clinicalSetup }) => {
-    const { actions, page, bahmni } = clinicalSetup;
+    const { actions, page } = clinicalSetup;
     const medication = medicationFaker.medication();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
 
     await actions.clinical.addMedicationInConsultation(medication);
     await actions.clinical.continueConsultation();
-    await actions.clinical.verifyDuplicateMedicationErrorOnSave(medication, bahmni);
+    await actions.clinical.verifyDuplicateMedicationErrorOnSave(medication);
     await actions.clinical.cancelConsultation();
   });
 
@@ -172,7 +172,7 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
   });
 
   test('Verify duplicate vaccine error when administering same vaccine twice', async ({ clinicalSetup }) => {
-    const { actions, page, bahmni } = clinicalSetup;
+    const { actions, page } = clinicalSetup;
     const vaccination = vaccinationFaker.vaccination();
 
     await expect(page).toHaveURL(/.*clinical\/.*/);
@@ -181,7 +181,7 @@ test.describe('Clinical Consultation Tests', { tag: ['@regression'] }, () => {
     await page.reload();
     await page.waitForLoadState('networkidle');
     await actions.clinical.continueConsultation();
-    await actions.clinical.verifyDuplicateVaccineErrorOnSave(vaccination, bahmni);
+    await actions.clinical.verifyDuplicateVaccineErrorOnSave(vaccination);
     await actions.clinical.cancelConsultation();
   });
 

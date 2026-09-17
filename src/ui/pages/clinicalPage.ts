@@ -1,4 +1,5 @@
 import { Page } from '@playwright/test';
+import { config } from '../../config/env.config';
 
 export class ClinicalPage {
   private readonly page: Page;
@@ -143,6 +144,11 @@ export class ClinicalPage {
 
   getNewConsultationButton() {
     return this.page.locator(this.selectors.newConsultationButton);
+  }
+
+  async gotoPatientDashboard(patientUuid: string) {
+    await this.page.goto(`${config.baseUrl}/bahmni-v2/clinical/${patientUuid}`);
+    await this.page.waitForLoadState('networkidle', { timeout: 30000 });
   }
 
   async getPatientDetails() {

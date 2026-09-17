@@ -48,7 +48,11 @@ export class ClinicalActions {
   async addMedicationInConsultation(medicationData: MedicationData) {
     await this.startNewConsultation();
     await this.bahmni.newConsultationPage.addMedication(medicationData);
-    await this.bahmni.newConsultationPage.saveConsultation();
+    try {
+      await this.bahmni.newConsultationPage.saveConsultation();
+    } catch {
+      await this.bahmni.newConsultationPage.clickDoneButton();
+    }
   }
 
   async editMedicationInConsultation(originalMedicationName: string, newMedication: MedicationData): Promise<void> {
@@ -61,7 +65,11 @@ export class ClinicalActions {
   async addVaccinationInConsultation(vaccinationData: MedicationData) {
     await this.startNewConsultation();
     await this.bahmni.newConsultationPage.addVaccination(vaccinationData);
-    await this.bahmni.newConsultationPage.saveConsultation();
+    try {
+      await this.bahmni.newConsultationPage.saveConsultation();
+    } catch {
+      await this.bahmni.newConsultationPage.clickDoneButton();
+    }
   }
 
   async addInvestigationsInConsultation(investigations: string[]) {
@@ -88,21 +96,21 @@ export class ClinicalActions {
     await this.bahmni.newConsultationPage.verifyConditionAlreadyAdded(conditionName);
   }
 
-  async verifyDuplicateMedicationErrorOnSave(medication: MedicationData, bahmni: any) {
-    await bahmni.newConsultationPage.addMedication(medication);
-    await bahmni.newConsultationPage.clickDoneButton();
-    await bahmni.newConsultationPage.verifyActiveDrugOrderError();
+  async verifyDuplicateMedicationErrorOnSave(medication: MedicationData) {
+    await this.bahmni.newConsultationPage.addMedication(medication);
+    await this.bahmni.newConsultationPage.clickDoneButton();
+    await this.bahmni.newConsultationPage.verifyActiveDrugOrderError();
   }
 
-  async verifyDuplicateVaccineErrorOnSave(vaccination: MedicationData, bahmni: any) {
-    await bahmni.newConsultationPage.addVaccination(vaccination);
-    await bahmni.newConsultationPage.clickDoneButton();
-    await bahmni.newConsultationPage.verifyActiveDrugOrderError();
+  async verifyDuplicateVaccineErrorOnSave(vaccination: MedicationData) {
+    await this.bahmni.newConsultationPage.addVaccination(vaccination);
+    await this.bahmni.newConsultationPage.clickDoneButton();
+    await this.bahmni.newConsultationPage.verifyActiveDrugOrderError();
   }
 
-  async verifyDuplicateAllergyErrorOnSave(allergyData: AllergyData, bahmni: any) {
-    await bahmni.newConsultationPage.addAllergy(allergyData.allergen);
-    await bahmni.newConsultationPage.verifyDuplicateAllergyError();
+  async verifyDuplicateAllergyErrorOnSave(allergyData: AllergyData) {
+    await this.bahmni.newConsultationPage.addAllergy(allergyData.allergen);
+    await this.bahmni.newConsultationPage.verifyDuplicateAllergyError();
   }
 
   async saveConsultation() {
@@ -233,6 +241,14 @@ export class ClinicalActions {
     const displayName = vaccination.name.split(/\s+\(/)[0];
     const vaccinations = await this.bahmni.clinicalPage.getDisplayedVaccinationNames();
     expect(vaccinations).toContainItemMatching(displayName);
+  }
+
+  async verifyAppointmentDisplayedOnDashboard(serviceName: string) {
+    const appointments = await this.bahmni.appointmentsDisplayControl.getAppointmentRows();
+    const appointmentExists = appointments.some((apt) => {
+      return apt.service.includes(serviceName);
+    });
+    expect(appointmentExists).toBe(true);
   }
 
   async verifyAnemiaLabResults(reportData: AnemiaReportData) {

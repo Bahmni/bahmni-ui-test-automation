@@ -15,6 +15,42 @@ export class DocumentActions {
     await this.bahmni.patientDocumentsPage.uploadDocument(visitLabel, filePath, documentType);
   }
 
+  async selectFilesForVisit(visitLabel: string, filePaths: string[]) {
+    await this.bahmni.patientDocumentsPage.expandVisit(visitLabel);
+    await this.bahmni.patientDocumentsPage.selectFilesForVisit(visitLabel, filePaths);
+  }
+
+  async saveDocuments() {
+    await this.bahmni.patientDocumentsPage.saveDocuments();
+  }
+
+  async verifyPendingDocumentCount(visitLabel: string, expectedCount: number) {
+    const count = await this.bahmni.patientDocumentsPage.getPendingDocumentCount(visitLabel);
+    expect(count).toBe(expectedCount);
+  }
+
+  async discardPendingDocument(visitLabel: string, index: number) {
+    const before = await this.bahmni.patientDocumentsPage.getPendingDocumentCount(visitLabel);
+    await this.bahmni.patientDocumentsPage.discardPendingDocument(visitLabel, index);
+    await expect(async () => {
+      expect(await this.bahmni.patientDocumentsPage.getPendingDocumentCount(visitLabel)).toBe(before - 1);
+    }).toPass({ timeout: 10000 });
+  }
+
+  async verifySuccessToast(message: string) {
+    await this.bahmni.patientDocumentsPage.verifyToastVisible('Document saved', message);
+  }
+
+  async verifyErrorToast(title: string, message?: string) {
+    await this.bahmni.patientDocumentsPage.verifyToastVisible(title, message);
+  }
+
+  async verifyUnsavedDocumentsConfirmationVisible() {
+    const modal = this.bahmni.patientDocumentsPage.getUnsavedDocumentsModal();
+    await expect(modal).toBeVisible();
+    await expect(modal).toContainText('Unsaved documents');
+  }
+
   async verifyDocumentDisplayedForVisit(visitLabel: string, documentType: string) {
     await this.bahmni.patientDocumentsPage.expandVisit(visitLabel);
     const documentTypes = await this.bahmni.patientDocumentsPage.getDocumentTypesForVisit(visitLabel);

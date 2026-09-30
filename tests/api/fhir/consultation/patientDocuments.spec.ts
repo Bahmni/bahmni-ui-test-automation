@@ -114,3 +114,105 @@ test.describe.serial('POST + GET /fhir2/R4/DocumentReference — patient documen
     await teardownConsultationContext(api, ctx);
   });
 });
+
+test.describe('POST /bahmnicore/visitDocument/uploadDocument — validation', { tag: ['@regression'] }, () => {
+  let ctx: ConsultationContext;
+
+  test.beforeAll(async ({ api }) => {
+    ctx = await setupConsultationContext(api);
+  });
+
+  test.afterAll(async ({ api }) => {
+    await teardownConsultationContext(api, ctx);
+  });
+
+  test('rejects an upload for a non-existent patientUuid with 400', async ({ api }) => {
+    const { status } = await api.fhir.uploadDocumentRaw(
+      faker.string.uuid(),
+      SMALL_PNG_BASE64,
+      'orphan-doc',
+      'image',
+      'png'
+    );
+
+    expect(status).toBe(400);
+  });
+
+  test('rejects an unsupported file type with 400', async ({ api }) => {
+    const { status, body } = await api.fhir.uploadDocumentRaw(
+      ctx.patientUuid,
+      SMALL_PNG_BASE64,
+      'unsupported.exe',
+      'application',
+      'exe'
+    );
+
+    expect(status).toBe(400);
+    expect(body.error?.message).toContain('file type is not supported');
+  });
+
+  // Confirmed against a live instance: the backend has no server-side size cap here —
+  // bahmni.documentUpload.maxFileSizeInMB is a frontend-only pre-check (see the UI spec), and the
+  // server's own limit is gated behind an unset DOCUMENT_MAX_SIZE_MB env var. A genuinely valid
+  // image well over 5MB is accepted. What *is* rejected regardless of size is content the server
+  // can't decode as an image, which is what a >5MB garbage-byte payload actually triggers below.
+  test('rejects a >5MB payload that is not a decodable image with 400', async ({ api }) => {
+    const oversizedGarbage = Buffer.alloc(6 * 1000 * 1000, 1).toString('base64');
+    const { status, body } = await api.fhir.uploadDocumentRaw(
+      ctx.patientUuid,
+      oversizedGarbage,
+      'oversized.png',
+      'image',
+      'png'
+    );
+
+    expect(status).toBe(400);
+    expect(body.error?.message).toContain('not supported');
+  });
+
+  test('partial save: 2 invalid uploads fail independently while 1 valid upload still saves', async ({ api }) => {
+    const oversizedGarbage = Buffer.alloc(6 * 1000 * 1000, 1).toString('base64');
+
+    const validUpload = await api.fhir.uploadDocumentRaw(
+      ctx.patientUuid,
+      SMALL_PNG_BASE64,
+      'valid.png',
+      'image',
+      'png'
+    );
+    const invalidTypeUpload = await api.fhir.uploadDocumentRaw(
+      ctx.patientUuid,
+      SMALL_PNG_BASE64,
+      'invalid.exe',
+      'application',
+      'exe'
+    );
+    const invalidSizeUpload = await api.fhir.uploadDocumentRaw(
+      ctx.patientUuid,
+      oversizedGarbage,
+      'oversized.png',
+      'image',
+      'png'
+    );
+
+    expect(validUpload.status).toBe(200);
+    expect(validUpload.body.url).toBeTruthy();
+    expect(invalidTypeUpload.status).toBe(400);
+    expect(invalidSizeUpload.status).toBe(400);
+
+    // Only the successful upload's url is bundled into the DocumentReference — mirroring the
+    // Patient Documents widget, which saves each accepted file independently of the rejected ones.
+    const payload = buildDocumentReferencePayload({
+      patientUuid: ctx.patientUuid,
+      practitionerUuid: ctx.practitionerUuid,
+      masterIdentifier: `doc-partial-${faker.string.alphanumeric(8)}`,
+      attachments: [{ contentType: 'image/png', url: validUpload.body.url as string }],
+    });
+    const { status, body } = await api.fhir.createDocumentReference(payload);
+    const docRef = body as unknown as DocumentReferenceEntry;
+
+    expect(status).toBe(201);
+    expect(docRef.content).toHaveLength(1);
+    expect(docRef.content[0].attachment.url).toBe(validUpload.body.url);
+  });
+});

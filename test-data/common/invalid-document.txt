@@ -1,0 +1,2 @@
+This is a plain-text file used to verify that the Patient Documents upload widget
+rejects unsupported file formats (only images, videos and PDF are accepted).

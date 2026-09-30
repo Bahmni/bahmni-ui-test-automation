@@ -97,6 +97,24 @@ export class FhirController extends BaseApiController {
     );
   }
 
+  // Never throws — for negative tests asserting on the status code of a rejected upload.
+  // fileType/format are untyped strings (not the 'image' | 'pdf' union) because invalid
+  // values are the point of most callers of this method.
+  async uploadDocumentRaw(
+    patientUuid: string,
+    content: string,
+    fileName: string,
+    fileType: string,
+    format: string,
+    role: UserRole = 'admin'
+  ): Promise<ApiResponse<{ url?: string; error?: { message?: string } }>> {
+    return this.postRaw<{ url?: string; error?: { message?: string } }>(
+      REST.visitDocumentUpload,
+      { content, encounterTypeName: 'Patient Document', fileName, fileType, format, patientUuid },
+      role
+    );
+  }
+
   async createDocumentReference(
     payload: Record<string, unknown>,
     role: UserRole = 'admin'

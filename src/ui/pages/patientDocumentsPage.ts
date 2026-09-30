@@ -24,6 +24,12 @@ export class PatientDocumentsPage {
     viewerModal: '#modalIdForActionAreaLayout',
     viewerModalImage: '[data-testid$="-modal-image-test-id"]',
     viewerModalCloseButton: 'button[aria-label="Close"]',
+    // Files staged for upload — one row per file, shown above the file input until Saved or discarded.
+    pendingDocumentRow: '[data-testid="pending-document-row"]',
+    saveDocumentsButton: '[data-testid="save-documents"]',
+    backToSearchButton: '[data-testid="back-to-search"]',
+    unsavedDocumentsModal: '[data-testid="unsaved-documents-modal"]',
+    toastNotification: '.cds--toast-notification',
     // Legacy /bahmni/document-upload/...#/search page (reached via the Patient Documents
     // home tile) — the Active Patients list here filters live as you type.
     activePatientSearchInput: '#patientIdentifier',
@@ -138,16 +144,69 @@ export class PatientDocumentsPage {
     await modal.waitFor({ state: 'hidden', timeout: 10000 });
   }
 
-  async uploadDocument(visitLabel: string, filePath: string, documentType?: string) {
+  async selectFilesForVisit(visitLabel: string, filePaths: string[]) {
     const item = this.getVisitAccordionItem(visitLabel);
-    await item.locator(this.selectors.uploadFileInput).setInputFiles(filePath);
-    if (documentType) {
-      const typeCombobox = item.getByRole('combobox').first();
-      await typeCombobox.click();
-      await this.page.getByRole('option', { name: documentType, exact: true }).click();
-    }
-    const saveButton = item.getByRole('button', { name: 'Save' });
+    await item.locator(this.selectors.uploadFileInput).setInputFiles(filePaths);
+  }
+
+  private getPendingDocumentRows(visitLabel: string) {
+    return this.getVisitAccordionItem(visitLabel).locator(this.selectors.pendingDocumentRow);
+  }
+
+  async getPendingDocumentCount(visitLabel: string): Promise<number> {
+    return this.getPendingDocumentRows(visitLabel).count();
+  }
+
+  async discardPendingDocument(visitLabel: string, index: number) {
+    const row = this.getPendingDocumentRows(visitLabel).nth(index);
+    await row.getByRole('button', { name: 'Discard' }).click();
+  }
+
+  async selectDocumentTypeForPendingFile(visitLabel: string, index: number, documentType: string) {
+    const row = this.getPendingDocumentRows(visitLabel).nth(index);
+    await row.getByRole('combobox').click();
+    await this.page.getByRole('option', { name: documentType, exact: true }).click();
+  }
+
+  // Saving is page-level, not per-visit: one "Save" button commits every visit's
+  // pending files in a single click.
+  async saveDocuments() {
+    const saveButton = this.page.locator(this.selectors.saveDocumentsButton);
     await saveButton.waitFor({ state: 'visible', timeout: 10000 });
     await saveButton.click();
+  }
+
+  async clickBackToSearch() {
+    await this.page.locator(this.selectors.backToSearchButton).click();
+  }
+
+  getUnsavedDocumentsModal() {
+    return this.page.locator(this.selectors.unsavedDocumentsModal);
+  }
+
+  async stayOnUnsavedDocuments() {
+    const modal = this.getUnsavedDocumentsModal();
+    await modal.getByRole('button', { name: 'Stay' }).click();
+    await modal.waitFor({ state: 'hidden', timeout: 10000 });
+  }
+
+  async leaveUnsavedDocuments() {
+    await this.getUnsavedDocumentsModal().getByRole('button', { name: 'Leave' }).click();
+  }
+
+  async verifyToastVisible(title: string, message?: string, timeout = 15000) {
+    const toast = this.page.locator(this.selectors.toastNotification).filter({ hasText: title }).first();
+    await toast.waitFor({ state: 'visible', timeout });
+    if (message) {
+      await expect(toast).toContainText(message);
+    }
+  }
+
+  async uploadDocument(visitLabel: string, filePath: string, documentType?: string) {
+    await this.selectFilesForVisit(visitLabel, [filePath]);
+    if (documentType) {
+      await this.selectDocumentTypeForPendingFile(visitLabel, 0, documentType);
+    }
+    await this.saveDocuments();
   }
 }

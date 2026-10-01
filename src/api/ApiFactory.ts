@@ -9,6 +9,7 @@ import { AppointmentController } from './controllers/AppointmentController';
 import { ProgramEnrollmentController } from './controllers/ProgramEnrollmentController';
 import { ConceptController } from './controllers/ConceptController';
 import { ReportController } from './controllers/ReportController';
+import { RelatedPersonController } from './controllers/RelatedPersonController';
 
 export class ApiFactory {
   readonly patient: PatientController;
@@ -21,6 +22,7 @@ export class ApiFactory {
   readonly program: ProgramEnrollmentController;
   readonly concept: ConceptController;
   readonly report: ReportController;
+  readonly relatedPerson: RelatedPersonController;
 
   constructor(request: APIRequestContext) {
     this.patient = new PatientController(request);
@@ -33,5 +35,6 @@ export class ApiFactory {
     this.program = new ProgramEnrollmentController(request);
     this.concept = new ConceptController(request);
     this.report = new ReportController(request);
+    this.relatedPerson = new RelatedPersonController(request);
   }
 }

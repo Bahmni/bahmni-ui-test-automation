@@ -15,6 +15,7 @@ export const REST = {
   appointmentService: '/openmrs/ws/rest/v1/appointmentService',
   bahmniProgramEnrollment: '/openmrs/ws/rest/v1/bahmniprogramenrollment',
   concept: '/openmrs/ws/rest/v1/concept',
+  relationshipType: '/openmrs/ws/rest/v1/relationshiptype',
   idgenIdentifierSource: '/openmrs/ws/rest/v1/idgen/identifiersource',
 } as const;
 
@@ -36,4 +37,5 @@ export const FHIR = {
   valueSet: '/openmrs/ws/fhir2/R4/ValueSet',
   documentReference: '/openmrs/ws/fhir2/R4/DocumentReference',
   appointment: '/openmrs/ws/fhir2/R4/Appointment',
+  relatedPerson: '/openmrs/ws/fhir2/R4/RelatedPerson',
 } as const;

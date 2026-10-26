@@ -39,7 +39,7 @@ jobs:
           RP_LAUNCH: api-regression
           RP_DESCRIPTION: "API regression • branch=${{ github.ref_name }} • ${{ github.event_name }}"
           RP_ATTRIBUTES: "suite:api-regression;env:dev-lite;branch:${{ github.ref_name }};commit:${{ github.sha }};runUrl:${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        run: NODE_ENV=dev-lite npx playwright test --project=api --grep "@regression|@onlyLite" --grep-invert @onlyStandard --workers=5
+        run: NODE_ENV=standard npx playwright test --project=api --grep "@regression|@onlyStandard" --grep-invert @onlyLite --workers=5
 
       - name: Upload test reports and artifacts
         if: always()

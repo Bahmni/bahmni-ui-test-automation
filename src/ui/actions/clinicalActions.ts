@@ -48,11 +48,7 @@ export class ClinicalActions {
   async addMedicationInConsultation(medicationData: MedicationData) {
     await this.startNewConsultation();
     await this.bahmni.newConsultationPage.addMedication(medicationData);
-    try {
-      await this.bahmni.newConsultationPage.saveConsultation();
-    } catch {
-      await this.bahmni.newConsultationPage.clickDoneButton();
-    }
+    await this.bahmni.newConsultationPage.saveConsultation();
   }
 
   async editMedicationInConsultation(originalMedicationName: string, newMedication: MedicationData): Promise<void> {
@@ -65,11 +61,7 @@ export class ClinicalActions {
   async addVaccinationInConsultation(vaccinationData: MedicationData) {
     await this.startNewConsultation();
     await this.bahmni.newConsultationPage.addVaccination(vaccinationData);
-    try {
-      await this.bahmni.newConsultationPage.saveConsultation();
-    } catch {
-      await this.bahmni.newConsultationPage.clickDoneButton();
-    }
+    await this.bahmni.newConsultationPage.saveConsultation();
   }
 
   async addInvestigationsInConsultation(investigations: string[]) {

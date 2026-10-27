@@ -466,8 +466,9 @@ export class NewConsultationPage {
   async saveConsultation() {
     await this.page.locator(this.selectors.doneButton).click();
     await this.dismissSaveNotification();
-    // Wait for navigation back to the clinical dashboard before proceeding
-    await this.page.waitForURL(/.*clinical\/.*(?<!\/consultation)$/, { timeout: 10000 });
+    // Wait for navigation back to the clinical dashboard before proceeding. 10s was too tight
+    // against slower environments — the save toast can appear well before the redirect fires.
+    await this.page.waitForURL(/.*clinical\/.*(?<!\/consultation)$/, { timeout: 30000 });
   }
 
   async startVisitIfPrompted(): Promise<void> {
